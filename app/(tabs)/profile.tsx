@@ -3,20 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { StatsCard } from '@/components/StatsCard';
-import { 
-  User, 
-  Settings, 
-  Bell, 
-  Shield, 
-  HelpCircle, 
-  Star, 
-  Share2, 
-  Award,
-  Target,
-  TrendingUp,
-  Recycle,
-  Leaf
-} from 'lucide-react-native';
+import { User, Settings, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Recycle, Leaf } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const { stats, loading } = useWasteData();

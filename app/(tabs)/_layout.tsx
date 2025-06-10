@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Home, Camera, BarChart3, User, Trash2 } from 'lucide-react-native';
+import { Chrome as Home, Camera, ChartBar as BarChart3, User, Trash2 } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (

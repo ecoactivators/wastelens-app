@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
-import { BarChart3, TrendingUp, Recycle, Leaf, Calendar, Filter } from 'lucide-react-native';
+import { ChartBar as BarChart3, TrendingUp, Recycle, Leaf, Calendar, Filter } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
