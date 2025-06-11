@@ -20,9 +20,9 @@ export default function TabLayout() {
             backgroundColor: theme.colors.tabBar,
             borderTopWidth: 1,
             borderTopColor: theme.colors.tabBarBorder,
-            paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-            paddingTop: 10,
-            height: Platform.OS === 'ios' ? 90 : 70,
+            paddingBottom: Platform.OS === 'ios' ? 30 : 20, // Increased bottom padding
+            paddingTop: 15, // Slightly increased top padding
+            height: Platform.OS === 'ios' ? 100 : 80, // Increased height to accommodate padding
           },
           // Hide tab bar when on camera screen
           isCameraScreen && { display: 'none' }
@@ -96,7 +96,7 @@ function CameraTabButton({ onPress, ...props }: any) {
 
 const styles = StyleSheet.create({
   cameraButton: {
-    top: -10,
+    top: -15, // Adjusted to work with new padding
     justifyContent: 'center',
     alignItems: 'center',
   },
