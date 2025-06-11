@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { WasteEntry, WasteType } from '@/types/waste';
-import { Flame, Wheat, Droplets } from 'lucide-react-native';
+import { Package } from 'lucide-react-native';
 
 interface WasteCardProps {
   entry: WasteEntry;
@@ -30,14 +30,6 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, '0');
     return `${displayHours}:${displayMinutes} ${period}`;
-  };
-
-  // Mock nutritional data - in a real app this would come from the AI analysis
-  const mockNutrition = {
-    calories: Math.floor(Math.random() * 800) + 200,
-    protein: Math.floor(Math.random() * 80) + 5,
-    carbs: Math.floor(Math.random() * 90) + 10,
-    fat: Math.floor(Math.random() * 30) + 5,
   };
 
   const getItemName = () => {
@@ -73,24 +65,13 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
             <Text style={styles.time}>{formatTime(entry.timestamp)}</Text>
           </View>
 
-          <View style={styles.caloriesContainer}>
-            <Flame size={16} color="#111827" />
-            <Text style={styles.calories}>{mockNutrition.calories} calories</Text>
+          <View style={styles.quantityContainer}>
+            <Package size={16} color="#111827" />
+            <Text style={styles.quantity}>Quantity: 1</Text>
           </View>
 
-          <View style={styles.nutritionContainer}>
-            <View style={styles.nutritionItem}>
-              <View style={[styles.nutritionDot, { backgroundColor: '#ef4444' }]} />
-              <Text style={styles.nutritionText}>{mockNutrition.protein}g</Text>
-            </View>
-            <View style={styles.nutritionItem}>
-              <View style={[styles.nutritionDot, { backgroundColor: '#f59e0b' }]} />
-              <Text style={styles.nutritionText}>{mockNutrition.carbs}g</Text>
-            </View>
-            <View style={styles.nutritionItem}>
-              <View style={[styles.nutritionDot, { backgroundColor: '#3b82f6' }]} />
-              <Text style={styles.nutritionText}>{mockNutrition.fat}g</Text>
-            </View>
+          <View style={styles.weightContainer}>
+            <Text style={styles.weight}>{entry.weight}g</Text>
           </View>
         </View>
       </View>
@@ -156,34 +137,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
   },
-  caloriesContainer: {
+  quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
     gap: 6,
   },
-  calories: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#111827',
-  },
-  nutritionContainer: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  nutritionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  nutritionDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  nutritionText: {
+  quantity: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
     color: '#6b7280',
+  },
+  weightContainer: {
+    marginTop: 4,
+  },
+  weight: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    color: '#111827',
   },
 });

@@ -3,21 +3,28 @@ import { Platform } from 'react-native';
 import { Chrome as Home, Gift, Settings, Plus } from 'lucide-react-native';
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 
 export default function TabLayout() {
+  const pathname = usePathname();
+  const isCameraScreen = pathname === '/(tabs)/camera';
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopWidth: 1,
-          borderTopColor: '#f0f0f0',
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          paddingTop: 10,
-          height: Platform.OS === 'ios' ? 90 : 70,
-        },
+        tabBarStyle: [
+          {
+            backgroundColor: '#ffffff',
+            borderTopWidth: 1,
+            borderTopColor: '#f0f0f0',
+            paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+            paddingTop: 10,
+            height: Platform.OS === 'ios' ? 90 : 70,
+          },
+          // Hide tab bar when on camera screen
+          isCameraScreen && { display: 'none' }
+        ],
         tabBarActiveTintColor: '#10b981',
         tabBarInactiveTintColor: '#6b7280',
         tabBarLabelStyle: {

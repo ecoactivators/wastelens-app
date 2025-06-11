@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
 import { X, Zap, Image as ImageIcon, RotateCcw } from 'lucide-react-native';
@@ -14,17 +13,17 @@ export default function CameraScreen() {
 
   if (!permission) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading camera...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!permission.granted) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.permissionContainer}>
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
           <Text style={styles.permissionText}>
@@ -34,7 +33,7 @@ export default function CameraScreen() {
             <Text style={styles.permissionButtonText}>Grant Permission</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -114,7 +113,7 @@ export default function CameraScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <CameraView
         ref={cameraRef}
         style={styles.camera}
@@ -162,7 +161,7 @@ export default function CameraScreen() {
           </TouchableOpacity>
         </View>
       </CameraView>
-    </SafeAreaView>
+    </View>
   );
 }
 
