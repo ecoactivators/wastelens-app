@@ -36,7 +36,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => router.push('/(tabs)/camera')}
+            onPress={() => router.push('/camera')}
           >
             <Plus size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -97,7 +97,7 @@ export default function HomeScreen() {
               <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>No entries yet. Start by scanning an item!</Text>
               <TouchableOpacity
                 style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
-                onPress={() => router.push('/(tabs)/camera')}
+                onPress={() => router.push('/camera')}
               >
                 <Plus size={20} color="#ffffff" />
                 <Text style={styles.scanButtonText}>Scan Item</Text>

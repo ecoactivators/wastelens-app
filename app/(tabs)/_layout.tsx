@@ -3,35 +3,24 @@ import { Platform } from 'react-native';
 import { House, Gift, Settings, Plus } from 'lucide-react-native';
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { router, usePathname } from 'expo-router';
+import { router } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function TabLayout() {
-  const pathname = usePathname();
-  const isCameraScreen = pathname === '/(tabs)/camera';
   const { theme } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: [
-          {
-            backgroundColor: theme.colors.tabBar,
-            borderTopWidth: 1,
-            borderTopColor: theme.colors.tabBarBorder,
-            paddingBottom: Platform.OS === 'ios' ? 35 : 25,
-            paddingTop: 20,
-            height: Platform.OS === 'ios' ? 110 : 90,
-          },
-          // Completely hide tab bar when on camera screen
-          isCameraScreen && { 
-            display: 'none',
-            height: 0,
-            paddingBottom: 0,
-            paddingTop: 0,
-          }
-        ],
+        tabBarStyle: {
+          backgroundColor: theme.colors.tabBar,
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.tabBarBorder,
+          paddingBottom: Platform.OS === 'ios' ? 35 : 25,
+          paddingTop: 20,
+          height: Platform.OS === 'ios' ? 110 : 90,
+        },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarLabelStyle: {
@@ -70,13 +59,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="camera"
         options={{
-          title: '',
-          tabBarIcon: ({ size, color }) => (
-            <Plus size={size} color={color} />
-          ),
-          tabBarButton: (props) => (
-            <CameraTabButton {...props} />
-          ),
+          href: null, // Hide this tab from the tab bar
         }}
       />
     </Tabs>
@@ -89,7 +72,7 @@ function CameraTabButton({ onPress, ...props }: any) {
   return (
     <TouchableOpacity
       style={[styles.cameraButton]}
-      onPress={() => router.push('/(tabs)/camera')}
+      onPress={() => router.push('/camera')}
       {...props}
     >
       <View style={[styles.cameraButtonInner, { backgroundColor: theme.colors.primary }]}>
