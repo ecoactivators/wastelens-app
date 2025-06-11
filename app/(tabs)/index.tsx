@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { WasteCard } from '@/components/WasteCard';
@@ -12,13 +12,29 @@ import { useTheme } from '@/contexts/ThemeContext';
 export default function HomeScreen() {
   const { entries, goals, stats, loading } = useWasteData();
   const { theme } = useTheme();
+  const [refreshing, setRefreshing] = React.useState(false);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Home screen focused, entries:', entries.length); // Debug log
+      console.log('Home screen focused');
+      console.log('Current entries count:', entries.length);
+      console.log('Recent entries:', entries.slice(0, 3).map(e => ({ 
+        id: e.id, 
+        description: e.description, 
+        weight: e.weight,
+        timestamp: e.timestamp.toLocaleString()
+      })));
     }, [entries])
   );
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate refresh - in a real app, you'd refetch data
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   if (loading || !stats) {
     return (
@@ -31,11 +47,21 @@ export default function HomeScreen() {
   }
 
   const recentEntries = entries.slice(0, 5);
-  console.log('Recent entries to display:', recentEntries.length); // Debug log
+  console.log('Rendering recent entries:', recentEntries.length);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <View>
@@ -97,16 +123,33 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Logged</Text>
             {entries.length > 0 && (
-              <Text style={[styles.entryCount, { color: theme.colors.textSecondary }]}>
-                {entries.length} item{entries.length !== 1 ? 's' : ''}
-              </Text>
+              <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
+                <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
+                  {entries.length}
+                </Text>
+              </View>
             )}
           </View>
           
           {recentEntries.length > 0 ? (
-            recentEntries.map(entry => (
-              <WasteCard key={entry.id} entry={entry} />
-            ))
+            <>
+              {recentEntries.map(entry => (
+                <WasteCard key={entry.id} entry={entry} />
+              ))}
+              {entries.length > 5 && (
+                <TouchableOpacity 
+                  style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
+                  onPress={() => {
+                    // Navigate to a full list view - for now just show an alert
+                    console.log('View all entries');
+                  }}
+                >
+                  <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
+                    View all {entries.length} entries
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
           ) : (
             <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
               <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
@@ -195,9 +238,32 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     fontSize: 20,
   },
+  entryCountBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
   entryCount: {
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
+  },
+  viewAllButton: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  viewAllText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
   },
   emptyState: {
     alignItems: 'center',

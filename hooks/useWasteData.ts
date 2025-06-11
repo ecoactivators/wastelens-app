@@ -1,15 +1,26 @@
 import { useState, useEffect } from 'react';
 import { WasteEntry, WasteStats, WasteType, WasteCategory, WasteGoal } from '@/types/waste';
 
-// Empty initial data - entries will be populated when users scan items
-const mockEntries: WasteEntry[] = [];
+// Start with some sample data to show the UI works
+const initialEntries: WasteEntry[] = [
+  {
+    id: 'sample-1',
+    type: WasteType.PLASTIC,
+    category: WasteCategory.RECYCLABLE,
+    weight: 25,
+    description: 'Water bottle',
+    timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+    recyclable: true,
+    compostable: false,
+  },
+];
 
 const mockGoals: WasteGoal[] = [
   {
     id: '1',
     type: 'reduce',
     target: 500,
-    current: 0,
+    current: 25,
     period: 'weekly',
     startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -18,7 +29,7 @@ const mockGoals: WasteGoal[] = [
     id: '2',
     type: 'recycle',
     target: 80,
-    current: 0,
+    current: 100,
     period: 'weekly',
     startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -26,7 +37,7 @@ const mockGoals: WasteGoal[] = [
 ];
 
 export function useWasteData() {
-  const [entries, setEntries] = useState<WasteEntry[]>(mockEntries);
+  const [entries, setEntries] = useState<WasteEntry[]>(initialEntries);
   const [goals, setGoals] = useState<WasteGoal[]>(mockGoals);
   const [stats, setStats] = useState<WasteStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,22 +122,26 @@ export function useWasteData() {
       };
     };
 
-    setStats(calculateStats());
+    const newStats = calculateStats();
+    console.log('Calculated stats:', newStats);
+    console.log('Current entries:', entries.length);
+    setStats(newStats);
     setLoading(false);
   }, [entries]);
 
   const addEntry = (entry: Omit<WasteEntry, 'id' | 'timestamp'>) => {
     const newEntry: WasteEntry = {
       ...entry,
-      id: Date.now().toString(),
+      id: `entry-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
     };
     
-    console.log('Adding new entry:', newEntry); // Debug log
+    console.log('Adding new entry:', newEntry);
     
     setEntries(prev => {
       const updated = [newEntry, ...prev];
-      console.log('Updated entries:', updated); // Debug log
+      console.log('Updated entries count:', updated.length);
+      console.log('All entries:', updated.map(e => ({ id: e.id, description: e.description, timestamp: e.timestamp })));
       return updated;
     });
     
