@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useWasteData } from '@/hooks/useWasteData';
+import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
 import { Gift, Star, Trophy } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -56,7 +56,7 @@ const mockRewards: Reward[] = [
 ];
 
 export default function RewardsScreen() {
-  const { stats, loading } = useWasteData();
+  const { stats, loading } = useItems();
   const { theme } = useTheme();
   const userPoints = 0; // Start with 0 points
 
