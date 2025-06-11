@@ -29,7 +29,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good morning!</Text>
+            <Text style={styles.greeting}>WasteLens</Text>
             <Text style={styles.subtitle}>Track your waste, save the planet</Text>
           </View>
           <TouchableOpacity
