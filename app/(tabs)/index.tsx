@@ -66,12 +66,6 @@ export default function HomeScreen() {
             <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => router.push('/camera')}
-          >
-            <Plus size={24} color="#ffffff" />
-          </TouchableOpacity>
         </View>
 
         {/* Quick Stats */}
@@ -167,6 +161,14 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Floating Camera Button */}
+      <TouchableOpacity
+        style={[styles.floatingCameraButton, { backgroundColor: theme.colors.primary }]}
+        onPress={() => router.push('/camera')}
+      >
+        <Plus size={28} color="#ffffff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -203,21 +205,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-  },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#10b981',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -297,5 +284,23 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
+  },
+  floatingCameraButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
 });

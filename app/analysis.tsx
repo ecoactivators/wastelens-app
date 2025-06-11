@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert, Modal, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { openAIService } from '@/services/openai';
 import { useItems } from '@/contexts/ItemsContext';
 import { WasteType, WasteCategory } from '@/types/waste';
@@ -125,6 +126,12 @@ export default function AnalysisScreen() {
     );
   };
 
+  const triggerSuccessVibration = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
   const handleDone = () => {
     if (analysis) {
       // Determine waste type based on material
@@ -167,20 +174,11 @@ export default function AnalysisScreen() {
 
       console.log('✅ [AnalysisScreen] Item added successfully:', newItem);
 
-      Alert.alert(
-        'Success!', 
-        `${analysis.itemName} has been scanned and logged!\n\nWeight: ${analysis.weight}g\nType: ${wasteType}\nRecyclable: ${analysis.recyclable ? 'Yes' : 'No'}`, 
-        [
-          {
-            text: 'View in Home',
-            onPress: () => {
-              console.log('🏠 [AnalysisScreen] Navigating to home screen');
-              // Navigate back to home screen
-              router.push('/');
-            }
-          }
-        ]
-      );
+      // Trigger success vibration instead of showing alert
+      triggerSuccessVibration();
+
+      // Navigate back to home screen
+      router.push('/');
     } else {
       router.push('/');
     }
