@@ -16,13 +16,17 @@ export class OpenAIService {
   private baseUrl = 'https://api.openai.com/v1';
 
   constructor() {
-    this.apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+    this.apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
     if (!this.apiKey) {
-      throw new Error('OpenAI API key not found in environment variables');
+      console.warn('OpenAI API key not found in environment variables');
     }
   }
 
   async analyzeWasteImage(imageUri: string): Promise<WasteAnalysisResult> {
+    if (!this.apiKey) {
+      throw new Error('OpenAI API key not configured. Please set EXPO_PUBLIC_OPENAI_API_KEY in your environment variables.');
+    }
+
     try {
       // Convert image to base64
       const base64Image = await this.convertImageToBase64(imageUri);
@@ -38,28 +42,32 @@ export class OpenAIService {
           messages: [
             {
               role: 'system',
-              content: `You are an expert waste analysis AI. Analyze the image and provide detailed information about the waste item(s) shown. Return your response as a JSON object with the following structure:
-              {
-                "itemName": "string - name of the primary waste item",
-                "quantity": "number - estimated number of items",
-                "weight": "number - estimated weight in grams",
-                "material": "string - primary material type",
-                "environmentScore": "number - environmental impact score from 1-10 (10 being best)",
-                "recyclable": "boolean - whether the item is recyclable",
-                "compostable": "boolean - whether the item is compostable",
-                "carbonFootprint": "number - estimated carbon footprint in kg CO2",
-                "suggestions": "array of strings - 3-4 actionable suggestions for disposal/recycling",
-                "confidence": "number - confidence level from 0-1"
-              }
-              
-              Consider factors like material type, recyclability, environmental impact, and provide practical disposal advice.`
+              content: `You are an expert waste analysis AI. Analyze the image and provide detailed information about the waste item(s) shown. 
+
+CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
+
+Return your response as a JSON object with this exact structure:
+{
+  "itemName": "string - name of the primary waste item",
+  "quantity": "number - estimated number of items",
+  "weight": "number - estimated weight in grams",
+  "material": "string - primary material type",
+  "environmentScore": "number - environmental impact score from 1-10 (10 being best)",
+  "recyclable": "boolean - whether the item is recyclable",
+  "compostable": "boolean - whether the item is compostable",
+  "carbonFootprint": "number - estimated carbon footprint in kg CO2",
+  "suggestions": "array of strings - 3-4 actionable suggestions for disposal/recycling",
+  "confidence": "number - confidence level from 0-1"
+}
+
+Consider factors like material type, recyclability, environmental impact, and provide practical disposal advice.`
             },
             {
               role: 'user',
               content: [
                 {
                   type: 'text',
-                  text: 'Please analyze this waste item and provide detailed environmental information.'
+                  text: 'Please analyze this waste item and provide detailed environmental information. Return only valid JSON with no formatting.'
                 },
                 {
                   type: 'image_url',
@@ -89,7 +97,7 @@ export class OpenAIService {
         throw new Error('No response content from OpenAI');
       }
 
-      // Clean the content by removing markdown code block delimiters
+      // Clean the content by removing any potential markdown formatting
       const cleanedContent = this.cleanMarkdownCodeBlocks(content);
 
       // Parse the JSON response with enhanced error handling
@@ -100,7 +108,18 @@ export class OpenAIService {
         console.error('JSON Parse Error - Raw content:', content);
         console.error('Cleaned content:', cleanedContent);
         console.error('Parse error details:', parseError);
-        throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+        
+        // Try to extract JSON from the content if it's embedded in text
+        const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            analysisResult = JSON.parse(jsonMatch[0]);
+          } catch (secondParseError) {
+            throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+          }
+        } else {
+          throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+        }
       }
       
       // Validate the response structure
@@ -111,18 +130,24 @@ export class OpenAIService {
       console.error('Error analyzing waste image:', error);
       
       // Provide more specific error messages based on error type
-      if (error.message.includes('API error: 401')) {
-        throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
-      } else if (error.message.includes('API error: 429')) {
-        throw new Error('OpenAI API rate limit exceeded. Please try again later.');
-      } else if (error.message.includes('API error: 403')) {
-        throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
-      } else if (error.message.includes('malformed JSON')) {
-        throw error; // Re-throw the specific JSON parsing error
-      } else if (error.message.includes('Failed to convert image')) {
-        throw new Error('Failed to process the image. Please try with a different image.');
+      if (error instanceof Error) {
+        if (error.message.includes('API error: 401')) {
+          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+        } else if (error.message.includes('API error: 429')) {
+          throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+        } else if (error.message.includes('API error: 403')) {
+          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+        } else if (error.message.includes('malformed JSON')) {
+          throw error; // Re-throw the specific JSON parsing error
+        } else if (error.message.includes('Failed to convert image')) {
+          throw new Error('Failed to process the image. Please try with a different image.');
+        } else if (error.message.includes('API key not configured')) {
+          throw error; // Re-throw API key configuration error
+        } else {
+          throw new Error('Failed to analyze waste image. Please check your internet connection and try again.');
+        }
       } else {
-        throw new Error('Failed to analyze waste image. Please check your internet connection and try again.');
+        throw new Error('An unexpected error occurred while analyzing the image.');
       }
     }
   }
@@ -132,6 +157,10 @@ export class OpenAIService {
     userFeedback: string,
     imageUri: string
   ): Promise<WasteAnalysisResult> {
+    if (!this.apiKey) {
+      throw new Error('OpenAI API key not configured. Please set EXPO_PUBLIC_OPENAI_API_KEY in your environment variables.');
+    }
+
     try {
       const base64Image = await this.convertImageToBase64(imageUri);
 
@@ -146,7 +175,11 @@ export class OpenAIService {
           messages: [
             {
               role: 'system',
-              content: `You are an expert waste analysis AI. The user has provided feedback about a previous analysis. Use their feedback to provide a corrected analysis. Return your response as a JSON object with the same structure as before.`
+              content: `You are an expert waste analysis AI. The user has provided feedback about a previous analysis. Use their feedback to provide a corrected analysis. 
+
+CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
+
+Return your response as a JSON object with the same structure as before.`
             },
             {
               role: 'user',
@@ -157,7 +190,7 @@ export class OpenAIService {
                   
                   The user provided this feedback: "${userFeedback}"
                   
-                  Please provide a corrected analysis based on this feedback and re-examine the image.`
+                  Please provide a corrected analysis based on this feedback and re-examine the image. Return only valid JSON with no formatting.`
                 },
                 {
                   type: 'image_url',
@@ -187,7 +220,7 @@ export class OpenAIService {
         throw new Error('No response content from OpenAI');
       }
 
-      // Clean the content by removing markdown code block delimiters
+      // Clean the content by removing any potential markdown formatting
       const cleanedContent = this.cleanMarkdownCodeBlocks(content);
 
       // Parse the JSON response with enhanced error handling
@@ -198,7 +231,18 @@ export class OpenAIService {
         console.error('JSON Parse Error - Raw content:', content);
         console.error('Cleaned content:', cleanedContent);
         console.error('Parse error details:', parseError);
-        throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+        
+        // Try to extract JSON from the content if it's embedded in text
+        const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            correctedAnalysis = JSON.parse(jsonMatch[0]);
+          } catch (secondParseError) {
+            throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+          }
+        } else {
+          throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+        }
       }
       
       this.validateAnalysisResult(correctedAnalysis);
@@ -208,29 +252,46 @@ export class OpenAIService {
       console.error('Error fixing analysis:', error);
       
       // Provide more specific error messages based on error type
-      if (error.message.includes('API error: 401')) {
-        throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
-      } else if (error.message.includes('API error: 429')) {
-        throw new Error('OpenAI API rate limit exceeded. Please try again later.');
-      } else if (error.message.includes('API error: 403')) {
-        throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
-      } else if (error.message.includes('malformed JSON')) {
-        throw error; // Re-throw the specific JSON parsing error
-      } else if (error.message.includes('Failed to convert image')) {
-        throw new Error('Failed to process the image. Please try with a different image.');
+      if (error instanceof Error) {
+        if (error.message.includes('API error: 401')) {
+          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+        } else if (error.message.includes('API error: 429')) {
+          throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+        } else if (error.message.includes('API error: 403')) {
+          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+        } else if (error.message.includes('malformed JSON')) {
+          throw error; // Re-throw the specific JSON parsing error
+        } else if (error.message.includes('Failed to convert image')) {
+          throw new Error('Failed to process the image. Please try with a different image.');
+        } else if (error.message.includes('API key not configured')) {
+          throw error; // Re-throw API key configuration error
+        } else {
+          throw new Error('Failed to update analysis. Please check your internet connection and try again.');
+        }
       } else {
-        throw new Error('Failed to update analysis. Please check your internet connection and try again.');
+        throw new Error('An unexpected error occurred while updating the analysis.');
       }
     }
   }
 
   private cleanMarkdownCodeBlocks(content: string): string {
-    // Remove markdown code block delimiters
-    return content
-      .replace(/^```json\s*/i, '') // Remove opening ```json
-      .replace(/^```\s*/m, '') // Remove opening ``` (alternative format)
-      .replace(/\s*```\s*$/m, '') // Remove closing ```
-      .trim();
+    // Remove markdown code block delimiters and any surrounding text
+    let cleaned = content.trim();
+    
+    // Remove various forms of markdown code blocks
+    cleaned = cleaned.replace(/^```json\s*/i, ''); // Remove opening ```json
+    cleaned = cleaned.replace(/^```\s*/m, ''); // Remove opening ``` (alternative format)
+    cleaned = cleaned.replace(/\s*```\s*$/m, ''); // Remove closing ```
+    
+    // Remove any leading/trailing text that might not be JSON
+    const jsonStart = cleaned.indexOf('{');
+    const jsonEnd = cleaned.lastIndexOf('}');
+    
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+    }
+    
+    return cleaned.trim();
   }
 
   private async convertImageToBase64(imageUri: string): Promise<string> {
@@ -246,7 +307,8 @@ export class OpenAIService {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const base64 = (reader.result as string).split(',')[1];
+          const result = reader.result as string;
+          const base64 = result.split(',')[1];
           resolve(base64);
         };
         reader.onerror = () => {
@@ -283,6 +345,37 @@ export class OpenAIService {
 
     if (!Array.isArray(result.suggestions)) {
       throw new Error('Suggestions must be an array');
+    }
+
+    // Ensure numeric fields are actually numbers
+    if (typeof result.quantity !== 'number' || result.quantity <= 0) {
+      throw new Error('Invalid quantity');
+    }
+
+    if (typeof result.weight !== 'number' || result.weight <= 0) {
+      throw new Error('Invalid weight');
+    }
+
+    if (typeof result.carbonFootprint !== 'number' || result.carbonFootprint < 0) {
+      throw new Error('Invalid carbon footprint');
+    }
+
+    // Ensure boolean fields are actually booleans
+    if (typeof result.recyclable !== 'boolean') {
+      throw new Error('Recyclable must be a boolean');
+    }
+
+    if (typeof result.compostable !== 'boolean') {
+      throw new Error('Compostable must be a boolean');
+    }
+
+    // Ensure string fields are not empty
+    if (typeof result.itemName !== 'string' || result.itemName.trim() === '') {
+      throw new Error('Item name must be a non-empty string');
+    }
+
+    if (typeof result.material !== 'string' || result.material.trim() === '') {
+      throw new Error('Material must be a non-empty string');
     }
   }
 }
