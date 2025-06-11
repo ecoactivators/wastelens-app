@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Chrome as Home, Camera, ChartBar as BarChart3, User, Trash2 } from 'lucide-react-native';
+import { Chrome as Home, Gift, Settings, Plus } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -33,32 +33,77 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="track"
+        name="rewards"
         options={{
-          title: 'Track',
+          title: 'Rewards',
           tabBarIcon: ({ size, color }) => (
-            <Camera size={size} color={color} />
+            <Gift size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="insights"
+        name="settings"
         options={{
-          title: 'Insights',
+          title: 'Settings',
           tabBarIcon: ({ size, color }) => (
-            <BarChart3 size={size} color={color} />
+            <Settings size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="camera"
         options={{
-          title: 'Profile',
+          title: '',
           tabBarIcon: ({ size, color }) => (
-            <User size={size} color={color} />
+            <Plus size={size} color={color} />
+          ),
+          tabBarButton: (props) => (
+            <CameraTabButton {...props} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+import React from 'react';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+
+function CameraTabButton({ onPress, ...props }: any) {
+  return (
+    <TouchableOpacity
+      style={styles.cameraButton}
+      onPress={() => router.push('/camera')}
+      {...props}
+    >
+      <View style={styles.cameraButtonInner}>
+        <Plus size={24} color="#ffffff" />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  cameraButton: {
+    top: -10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraButtonInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#10b981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+});

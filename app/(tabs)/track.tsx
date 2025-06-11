@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { WasteType, WasteCategory } from '@/types/waste';
-import { Camera, Plus, Minus, Check } from 'lucide-react-native';
+import { Camera, Plus, Minus, Check, X } from 'lucide-react-native';
+import { useLocalSearchParams, router } from 'expo-router';
 
 const wasteTypes = [
   { type: WasteType.FOOD, label: 'Food', color: '#f59e0b' },
@@ -20,12 +21,19 @@ const wasteTypes = [
 
 export default function TrackScreen() {
   const { addEntry } = useWasteData();
+  const { photoUri } = useLocalSearchParams<{ photoUri?: string }>();
   const [selectedType, setSelectedType] = useState<WasteType | null>(null);
   const [weight, setWeight] = useState('');
   const [description, setDescription] = useState('');
   const [recyclable, setRecyclable] = useState(false);
   const [compostable, setCompostable] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (photoUri) {
+      setImageUrl(photoUri);
+    }
+  }, [photoUri]);
 
   const handleWeightChange = (delta: number) => {
     const currentWeight = parseInt(weight) || 0;
@@ -63,18 +71,20 @@ export default function TrackScreen() {
     setCompostable(false);
     setImageUrl(null);
 
-    Alert.alert('Success', 'Waste entry added successfully!');
+    Alert.alert('Success', 'Waste entry added successfully!', [
+      {
+        text: 'OK',
+        onPress: () => router.push('/')
+      }
+    ]);
   };
 
   const handleTakePhoto = () => {
-    // Mock photo URL for demonstration
-    const mockPhotoUrls = [
-      'https://images.pexels.com/photos/3735218/pexels-photo-3735218.jpeg',
-      'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg',
-      'https://images.pexels.com/photos/3850512/pexels-photo-3850512.jpeg',
-    ];
-    const randomUrl = mockPhotoUrls[Math.floor(Math.random() * mockPhotoUrls.length)];
-    setImageUrl(randomUrl);
+    router.push('/camera');
+  };
+
+  const removePhoto = () => {
+    setImageUrl(null);
   };
 
   return (
@@ -92,6 +102,12 @@ export default function TrackScreen() {
           {imageUrl ? (
             <View style={styles.photoContainer}>
               <Image source={{ uri: imageUrl }} style={styles.photo} />
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={removePhoto}
+              >
+                <X size={16} color="#ffffff" />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.retakeButton}
                 onPress={handleTakePhoto}
@@ -270,6 +286,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 12,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   retakeButton: {
     position: 'absolute',
