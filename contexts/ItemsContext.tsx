@@ -19,31 +19,19 @@ interface ItemsContextType {
   removeItem: (id: string) => void;
   updateGoal: (goal: WasteGoal) => void;
   refreshData: () => void;
-  getDebugInfo: () => any;
 }
 
 const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
-// Initial sample data
-const initialItems: WasteEntry[] = [
-  {
-    id: 'sample-1',
-    type: WasteType.PLASTIC,
-    category: WasteCategory.RECYCLABLE,
-    weight: 25,
-    description: 'Water bottle',
-    timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
-    recyclable: true,
-    compostable: false,
-  },
-];
+// Initial empty state - no sample data
+const initialItems: WasteEntry[] = [];
 
 const mockGoals: WasteGoal[] = [
   {
     id: '1',
     type: 'reduce',
     target: 500,
-    current: 25,
+    current: 0,
     period: 'weekly',
     startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -52,7 +40,7 @@ const mockGoals: WasteGoal[] = [
     id: '2',
     type: 'recycle',
     target: 80,
-    current: 100,
+    current: 0,
     period: 'weekly',
     startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -242,27 +230,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     }, 500);
   }, [calculateStats]);
 
-  // Get debug info
-  const getDebugInfo = useCallback(() => {
-    return {
-      itemsCount: items.length,
-      recentItemsCount: recentItems.length,
-      lastUpdate: lastUpdate.toISOString(),
-      recentItems: recentItems.slice(0, 5).map(item => ({
-        id: item.id,
-        description: item.description,
-        weight: item.weight,
-        timestamp: item.timestamp.toISOString()
-      })),
-      stats: stats ? {
-        totalWeight: stats.totalWeight,
-        weeklyWeight: stats.weeklyWeight,
-        recyclingRate: Math.round(stats.recyclingRate),
-        streak: stats.streak
-      } : null
-    };
-  }, [items, recentItems, lastUpdate, stats]);
-
   const value: ItemsContextType = {
     items,
     recentItems,
@@ -274,7 +241,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     removeItem,
     updateGoal,
     refreshData,
-    getDebugInfo,
   };
 
   return (

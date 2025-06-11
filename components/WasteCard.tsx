@@ -45,6 +45,10 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
     return entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
   };
 
+  const formatWeight = (weight: number) => {
+    return `${weight} Grams`;
+  };
+
   return (
     <TouchableOpacity style={[styles.container, { backgroundColor: theme.colors.surface }]} onPress={onPress}>
       <View style={styles.content}>
@@ -74,7 +78,7 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
           </View>
 
           <View style={styles.weightContainer}>
-            <Text style={[styles.weight, { color: theme.colors.text }]}>{entry.weight}g</Text>
+            <Text style={[styles.weight, { color: theme.colors.text }]}>{formatWeight(entry.weight)}</Text>
           </View>
         </View>
       </View>

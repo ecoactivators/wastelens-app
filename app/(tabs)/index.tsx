@@ -5,7 +5,7 @@ import { useItems } from '@/contexts/ItemsContext';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
-import { Plus, Zap, Recycle, Leaf, TrendingDown, RefreshCw } from 'lucide-react-native';
+import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -15,30 +15,16 @@ export default function HomeScreen() {
     goals, 
     stats, 
     loading, 
-    refreshData, 
-    getDebugInfo, 
-    lastUpdate 
+    refreshData
   } = useItems();
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = React.useState(false);
-  const [debugInfo, setDebugInfo] = React.useState<any>(null);
-  const [debugRefreshKey, setDebugRefreshKey] = React.useState(0);
-
-  // Update debug info whenever data changes
-  useEffect(() => {
-    const info = getDebugInfo();
-    setDebugInfo(info);
-    console.log('🏠 [HomeScreen] Data updated:', info);
-  }, [recentItems, stats, lastUpdate, getDebugInfo, debugRefreshKey]);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       console.log('🏠 [HomeScreen] Screen focused');
-      const info = getDebugInfo();
-      setDebugInfo(info);
-      console.log('📊 [HomeScreen] Current debug info:', info);
-    }, [getDebugInfo])
+    }, [])
   );
 
   const onRefresh = React.useCallback(() => {
@@ -48,21 +34,6 @@ export default function HomeScreen() {
       setRefreshing(false);
     }, 1000);
   }, [refreshData]);
-
-  const handleDebugRefresh = React.useCallback(() => {
-    console.log('🔄 [HomeScreen] Manual debug refresh triggered');
-    
-    // Force refresh the debug info
-    const freshInfo = getDebugInfo();
-    setDebugInfo(freshInfo);
-    setDebugRefreshKey(prev => prev + 1);
-    
-    console.log('📊 [HomeScreen] Fresh debug info:', freshInfo);
-    console.log('🔢 [HomeScreen] Debug refresh key:', debugRefreshKey + 1);
-    
-    // Also refresh the main data
-    refreshData();
-  }, [getDebugInfo, refreshData, debugRefreshKey]);
 
   if (loading || !stats) {
     return (
@@ -107,7 +78,7 @@ export default function HomeScreen() {
         <View style={styles.statsContainer}>
           <StatsCard
             title="This Week"
-            value={`${stats.weeklyWeight}g`}
+            value={`${stats.weeklyWeight} Grams`}
             subtitle="Total waste"
             icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
           />
@@ -195,67 +166,6 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-
-        {/* Real-time Debug Info */}
-        {__DEV__ && (
-          <View style={[styles.debugSection, { backgroundColor: theme.colors.surface }]}>
-            <View style={styles.debugHeader}>
-              <Text style={[styles.debugTitle, { color: theme.colors.text }]}>🔍 Items Context Debug</Text>
-              <Text style={[styles.debugKey, { color: theme.colors.textTertiary }]}>
-                Key: {debugRefreshKey}
-              </Text>
-            </View>
-            
-            {debugInfo ? (
-              <>
-                <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Total items: {debugInfo.itemsCount}
-                </Text>
-                <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Recent items: {debugInfo.recentItemsCount}
-                </Text>
-                <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Last update: {new Date(debugInfo.lastUpdate).toLocaleTimeString()}
-                </Text>
-                {debugInfo.stats && (
-                  <>
-                    <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                      Total weight: {debugInfo.stats.totalWeight}g
-                    </Text>
-                    <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                      Weekly weight: {debugInfo.stats.weeklyWeight}g
-                    </Text>
-                    <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                      Recycling rate: {debugInfo.stats.recyclingRate}%
-                    </Text>
-                  </>
-                )}
-                {debugInfo.recentItems && debugInfo.recentItems.length > 0 && (
-                  <View style={styles.debugEntries}>
-                    <Text style={[styles.debugSubtitle, { color: theme.colors.text }]}>Recent Items:</Text>
-                    {debugInfo.recentItems.map((item: any, index: number) => (
-                      <Text key={index} style={[styles.debugEntryText, { color: theme.colors.textTertiary }]}>
-                        • {item.description} ({item.weight}g) - {new Date(item.timestamp).toLocaleTimeString()}
-                      </Text>
-                    ))}
-                  </View>
-                )}
-              </>
-            ) : (
-              <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                No debug info available
-              </Text>
-            )}
-            
-            <TouchableOpacity 
-              style={[styles.refreshDebugButton, { backgroundColor: theme.colors.primary }]}
-              onPress={handleDebugRefresh}
-            >
-              <RefreshCw size={16} color="#ffffff" />
-              <Text style={styles.refreshDebugText}>Refresh Debug Info</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -386,62 +296,6 @@ const styles = StyleSheet.create({
   scanButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#ffffff',
-  },
-  debugSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#10b981',
-  },
-  debugHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  debugTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 16,
-  },
-  debugKey: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
-  },
-  debugText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  debugSubtitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  debugEntries: {
-    marginTop: 8,
-  },
-  debugEntryText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  refreshDebugButton: {
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  refreshDebugText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 12,
     color: '#ffffff',
   },
 });
