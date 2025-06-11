@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { openAIService } from '@/services/openai';
 import { useWasteData } from '@/hooks/useWasteData';
 import { WasteType, WasteCategory } from '@/types/waste';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface WasteAnalysis {
   itemName: string;
@@ -24,6 +25,7 @@ interface WasteAnalysis {
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
   const { addEntry } = useWasteData();
+  const { theme } = useTheme();
   const [analysis, setAnalysis] = useState<WasteAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState('1');
@@ -177,7 +179,7 @@ export default function AnalysisScreen() {
   };
 
   const getConfidenceColor = (confidence?: number) => {
-    if (!confidence) return '#6b7280';
+    if (!confidence) return theme.colors.textSecondary;
     if (confidence >= 0.8) return '#10b981';
     if (confidence >= 0.6) return '#f59e0b';
     return '#ef4444';
@@ -192,11 +194,11 @@ export default function AnalysisScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10b981" />
-          <Text style={styles.loadingText}>Analyzing waste with AI...</Text>
-          <Text style={styles.loadingSubtext}>This may take a few seconds</Text>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.text }]}>Analyzing waste with AI...</Text>
+          <Text style={[styles.loadingSubtext, { color: theme.colors.textTertiary }]}>This may take a few seconds</Text>
         </View>
       </SafeAreaView>
     );
@@ -204,12 +206,12 @@ export default function AnalysisScreen() {
 
   if (!analysis) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.errorContainer}>
           <AlertCircle size={48} color="#ef4444" />
-          <Text style={styles.errorText}>Failed to analyze waste</Text>
-          <Text style={styles.errorSubtext}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={analyzeWaste}>
+          <Text style={[styles.errorText, { color: theme.colors.text }]}>Failed to analyze waste</Text>
+          <Text style={[styles.errorSubtext, { color: theme.colors.textTertiary }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.colors.primary }]} onPress={analyzeWaste}>
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -218,9 +220,9 @@ export default function AnalysisScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.colors.overlay }]}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -250,7 +252,7 @@ export default function AnalysisScreen() {
         </View>
 
         {/* Analysis Card */}
-        <View style={styles.analysisCard}>
+        <View style={[styles.analysisCard, { backgroundColor: theme.colors.surface }]}>
           {/* Error Banner */}
           {error && (
             <View style={styles.errorBanner}>
@@ -264,35 +266,35 @@ export default function AnalysisScreen() {
           {/* Item Info */}
           <View style={styles.itemHeader}>
             <View style={styles.itemInfo}>
-              <Text style={styles.itemName}>{analysis.itemName}</Text>
-              <Text style={styles.timestamp}>
+              <Text style={[styles.itemName, { color: theme.colors.text }]}>{analysis.itemName}</Text>
+              <Text style={[styles.timestamp, { color: theme.colors.textSecondary }]}>
                 {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
             </View>
-            <View style={styles.quantityContainer}>
+            <View style={[styles.quantityContainer, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}>
               <TextInput
-                style={styles.quantityInput}
+                style={[styles.quantityInput, { color: theme.colors.text }]}
                 value={quantity}
                 onChangeText={setQuantity}
                 keyboardType="numeric"
               />
-              <Edit3 size={16} color="#6b7280" />
+              <Edit3 size={16} color={theme.colors.textSecondary} />
             </View>
           </View>
 
           {/* Weight and Material */}
           <View style={styles.detailsContainer}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Weight</Text>
-              <Text style={styles.detailValue}>{analysis.weight}g</Text>
+              <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Weight</Text>
+              <Text style={[styles.detailValue, { color: theme.colors.text }]}>{analysis.weight}g</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Material</Text>
-              <Text style={styles.detailValue}>{analysis.material}</Text>
+              <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Material</Text>
+              <Text style={[styles.detailValue, { color: theme.colors.text }]}>{analysis.material}</Text>
             </View>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Carbon</Text>
-              <Text style={styles.detailValue}>{analysis.carbonFootprint}kg CO₂</Text>
+              <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>Carbon</Text>
+              <Text style={[styles.detailValue, { color: theme.colors.text }]}>{analysis.carbonFootprint}kg CO₂</Text>
             </View>
           </View>
 
@@ -319,12 +321,12 @@ export default function AnalysisScreen() {
           <View style={styles.scoreContainer}>
             <View style={styles.scoreHeader}>
               <Sparkles size={20} color={getScoreColor(analysis.environmentScore)} />
-              <Text style={styles.scoreTitle}>Environment Score</Text>
+              <Text style={[styles.scoreTitle, { color: theme.colors.text }]}>Environment Score</Text>
               <Text style={[styles.scoreValue, { color: getScoreColor(analysis.environmentScore) }]}>
                 {analysis.environmentScore}/10
               </Text>
             </View>
-            <View style={styles.scoreBarContainer}>
+            <View style={[styles.scoreBarContainer, { backgroundColor: theme.colors.border }]}>
               <LinearGradient
                 colors={getScoreGradient(analysis.environmentScore)}
                 style={[styles.scoreBar, { width: `${analysis.environmentScore * 10}%` }]}
@@ -336,11 +338,11 @@ export default function AnalysisScreen() {
 
           {/* AI Suggestions */}
           <View style={styles.suggestionsContainer}>
-            <Text style={styles.suggestionsTitle}>AI Recommendations</Text>
+            <Text style={[styles.suggestionsTitle, { color: theme.colors.text }]}>AI Recommendations</Text>
             {analysis.suggestions.map((suggestion, index) => (
               <View key={index} style={styles.suggestionItem}>
-                <View style={styles.suggestionDot} />
-                <Text style={styles.suggestionText}>{suggestion}</Text>
+                <View style={[styles.suggestionDot, { backgroundColor: theme.colors.primary }]} />
+                <Text style={[styles.suggestionText, { color: theme.colors.textSecondary }]}>{suggestion}</Text>
               </View>
             ))}
           </View>
@@ -348,15 +350,15 @@ export default function AnalysisScreen() {
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
+      <View style={[styles.bottomActions, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
         <TouchableOpacity 
-          style={styles.fixButton} 
+          style={[styles.fixButton, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]} 
           onPress={() => setShowFixModal(true)}
         >
-          <Text style={styles.fixButtonText}>Fix Results</Text>
+          <Text style={[styles.fixButtonText, { color: theme.colors.text }]}>Fix Results</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
-          <Text style={styles.doneButtonText}>Done</Text>
+        <TouchableOpacity style={[styles.doneButton, { backgroundColor: theme.colors.text }]} onPress={handleDone}>
+          <Text style={[styles.doneButtonText, { color: theme.colors.surface }]}>Done</Text>
         </TouchableOpacity>
       </View>
 
@@ -366,30 +368,31 @@ export default function AnalysisScreen() {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
             <TouchableOpacity onPress={() => setShowFixModal(false)}>
-              <X size={24} color="#6b7280" />
+              <X size={24} color={theme.colors.textSecondary} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Fix Results</Text>
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Fix Results</Text>
             <View style={{ width: 24 }} />
           </View>
           
           <View style={styles.modalContent}>
-            <Text style={styles.modalSubtitle}>
+            <Text style={[styles.modalSubtitle, { color: theme.colors.textSecondary }]}>
               Tell our AI what we got wrong and we'll improve the analysis
             </Text>
             <TextInput
-              style={styles.fixInput}
+              style={[styles.fixInput, { backgroundColor: theme.colors.background, borderColor: theme.colors.border, color: theme.colors.text }]}
               value={fixMessage}
               onChangeText={setFixMessage}
               placeholder="Example: This is actually a glass bottle, not plastic..."
+              placeholderTextColor={theme.colors.textTertiary}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
             />
             <TouchableOpacity 
-              style={[styles.sendButton, fixLoading && styles.sendButtonDisabled]} 
+              style={[styles.sendButton, { backgroundColor: theme.colors.primary }, fixLoading && styles.sendButtonDisabled]} 
               onPress={handleFixResults}
               disabled={fixLoading}
             >
@@ -412,7 +415,6 @@ export default function AnalysisScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   loadingContainer: {
     flex: 1,
@@ -423,13 +425,11 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
-    color: '#ffffff',
     marginTop: 16,
   },
   loadingSubtext: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#9ca3af',
     marginTop: 8,
   },
   errorContainer: {
@@ -441,19 +441,16 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
-    color: '#ffffff',
     marginTop: 16,
     marginBottom: 8,
   },
   errorSubtext: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#9ca3af',
     textAlign: 'center',
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: '#10b981',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -469,7 +466,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
   headerButton: {
     width: 44,
@@ -516,7 +512,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   analysisCard: {
-    backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -24,
@@ -552,28 +547,23 @@ const styles = StyleSheet.create({
   itemName: {
     fontFamily: 'Inter-Bold',
     fontSize: 24,
-    color: '#111827',
     marginBottom: 4,
   },
   timestamp: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
   },
   quantityInput: {
     fontFamily: 'Inter-Bold',
     fontSize: 18,
-    color: '#111827',
     minWidth: 30,
     textAlign: 'center',
     marginRight: 8,
@@ -590,13 +580,11 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontFamily: 'Inter-Medium',
     fontSize: 12,
-    color: '#6b7280',
     marginBottom: 4,
   },
   detailValue: {
     fontFamily: 'Inter-Bold',
     fontSize: 16,
-    color: '#111827',
   },
   propertiesContainer: {
     flexDirection: 'row',
@@ -643,7 +631,6 @@ const styles = StyleSheet.create({
   scoreTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#111827',
     marginLeft: 8,
     flex: 1,
   },
@@ -653,7 +640,6 @@ const styles = StyleSheet.create({
   },
   scoreBarContainer: {
     height: 8,
-    backgroundColor: '#f3f4f6',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -667,7 +653,6 @@ const styles = StyleSheet.create({
   suggestionsTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#111827',
     marginBottom: 16,
   },
   suggestionItem: {
@@ -679,14 +664,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10b981',
     marginTop: 6,
     marginRight: 12,
   },
   suggestionText: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#374151',
     flex: 1,
     lineHeight: 20,
   },
@@ -699,15 +682,11 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 24,
     paddingVertical: 24,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
   },
   fixButton: {
     flex: 1,
-    backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#e5e7eb',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
@@ -715,11 +694,9 @@ const styles = StyleSheet.create({
   fixButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#374151',
   },
   doneButton: {
     flex: 1,
-    backgroundColor: '#000000',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
@@ -727,11 +704,9 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#ffffff',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#ffffff',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -740,12 +715,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   modalTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
-    color: '#111827',
   },
   modalContent: {
     flex: 1,
@@ -755,24 +728,19 @@ const styles = StyleSheet.create({
   modalSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#6b7280',
     marginBottom: 24,
     lineHeight: 24,
   },
   fixInput: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 12,
     padding: 16,
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#111827',
     minHeight: 120,
     marginBottom: 24,
   },
   sendButton: {
-    backgroundColor: '#10b981',
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',

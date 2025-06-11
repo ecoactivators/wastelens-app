@@ -10,6 +10,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router'
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 declare global {
   interface Window {
@@ -18,6 +19,20 @@ declare global {
 }
 
 SplashScreen.preventAutoHideAsync();
+
+function RootLayoutContent() {
+  const { isDark } = useTheme();
+  
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style={isDark ? "light" : "dark"} />
+    </>
+  );
+}
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -40,12 +55,8 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </>
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
   );
 }

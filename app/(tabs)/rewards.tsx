@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { StatsCard } from '@/components/StatsCard';
 import { Gift, Star, Trophy, Target, Zap, Leaf, Award, ChevronRight } from 'lucide-react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Reward {
   id: string;
@@ -91,13 +92,14 @@ const achievements = [
 
 export default function RewardsScreen() {
   const { stats, loading } = useWasteData();
+  const { theme } = useTheme();
   const userPoints = 750; // Mock user points
 
   if (loading || !stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading rewards...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading rewards...</Text>
         </View>
       </SafeAreaView>
     );
@@ -107,27 +109,27 @@ export default function RewardsScreen() {
   const unavailableRewards = mockRewards.filter(reward => !reward.available || reward.points > userPoints);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Rewards</Text>
-          <Text style={styles.subtitle}>Earn points by tracking waste</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Rewards</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Earn points by tracking waste</Text>
         </View>
 
         {/* Points Balance */}
         <View style={styles.section}>
-          <View style={styles.pointsCard}>
+          <View style={[styles.pointsCard, { backgroundColor: theme.colors.surface }]}>
             <View style={styles.pointsHeader}>
-              <View style={styles.pointsIcon}>
-                <Gift size={24} color="#10b981" />
+              <View style={[styles.pointsIcon, { backgroundColor: theme.colors.primaryLight }]}>
+                <Gift size={24} color={theme.colors.primary} />
               </View>
               <View style={styles.pointsInfo}>
-                <Text style={styles.pointsTitle}>Your Points</Text>
-                <Text style={styles.pointsValue}>{userPoints.toLocaleString()}</Text>
+                <Text style={[styles.pointsTitle, { color: theme.colors.textSecondary }]}>Your Points</Text>
+                <Text style={[styles.pointsValue, { color: theme.colors.primary }]}>{userPoints.toLocaleString()}</Text>
               </View>
             </View>
-            <Text style={styles.pointsSubtitle}>
+            <Text style={[styles.pointsSubtitle, { color: theme.colors.textSecondary }]}>
               Keep tracking to earn more points!
             </Text>
           </View>
@@ -139,8 +141,8 @@ export default function RewardsScreen() {
             title="This Week"
             value={`+${Math.round(stats.weeklyWeight / 10)}`}
             subtitle="Points earned"
-            color="#10b981"
-            icon={<Star size={20} color="#10b981" />}
+            color={theme.colors.success}
+            icon={<Star size={20} color={theme.colors.success} />}
           />
           <StatsCard
             title="Total Earned"
@@ -153,19 +155,19 @@ export default function RewardsScreen() {
 
         {/* Available Rewards */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Available Rewards</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Available Rewards</Text>
           {availableRewards.map(reward => (
-            <TouchableOpacity key={reward.id} style={styles.rewardCard}>
+            <TouchableOpacity key={reward.id} style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
               <Image source={{ uri: reward.imageUrl }} style={styles.rewardImage} />
               <View style={styles.rewardContent}>
-                <Text style={styles.rewardTitle}>{reward.title}</Text>
-                <Text style={styles.rewardDescription}>{reward.description}</Text>
+                <Text style={[styles.rewardTitle, { color: theme.colors.text }]}>{reward.title}</Text>
+                <Text style={[styles.rewardDescription, { color: theme.colors.textSecondary }]}>{reward.description}</Text>
                 <View style={styles.rewardFooter}>
                   <View style={styles.pointsBadge}>
                     <Star size={12} color="#f59e0b" />
                     <Text style={styles.pointsText}>{reward.points} pts</Text>
                   </View>
-                  <ChevronRight size={16} color="#6b7280" />
+                  <ChevronRight size={16} color={theme.colors.textSecondary} />
                 </View>
               </View>
             </TouchableOpacity>
@@ -174,39 +176,43 @@ export default function RewardsScreen() {
 
         {/* Achievements */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Achievements</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Achievements</Text>
           {achievements.map(achievement => (
             <View key={achievement.id} style={[
               styles.achievementCard,
-              achievement.completed && styles.achievementCompleted
+              { backgroundColor: theme.colors.surface },
+              achievement.completed && { backgroundColor: theme.colors.primaryLight }
             ]}>
               <View style={[
                 styles.achievementIcon,
-                achievement.completed && styles.achievementIconCompleted
+                { backgroundColor: theme.colors.background },
+                achievement.completed && { backgroundColor: theme.colors.primaryLight }
               ]}>
                 {achievement.icon}
               </View>
               <View style={styles.achievementContent}>
                 <Text style={[
                   styles.achievementTitle,
-                  achievement.completed && styles.achievementTitleCompleted
+                  { color: theme.colors.text },
+                  achievement.completed && { color: theme.colors.primary }
                 ]}>
                   {achievement.title}
                 </Text>
-                <Text style={styles.achievementDescription}>
+                <Text style={[styles.achievementDescription, { color: theme.colors.textSecondary }]}>
                   {achievement.description}
                 </Text>
               </View>
               <View style={styles.achievementPoints}>
                 <Text style={[
                   styles.achievementPointsText,
-                  achievement.completed && styles.achievementPointsCompleted
+                  { color: theme.colors.textSecondary },
+                  achievement.completed && { color: theme.colors.primary }
                 ]}>
                   +{achievement.points}
                 </Text>
                 {achievement.completed && (
                   <View style={styles.completedBadge}>
-                    <Award size={12} color="#10b981" />
+                    <Award size={12} color={theme.colors.success} />
                   </View>
                 )}
               </View>
@@ -217,19 +223,19 @@ export default function RewardsScreen() {
         {/* Locked Rewards */}
         {unavailableRewards.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Coming Soon</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Coming Soon</Text>
             {unavailableRewards.map(reward => (
-              <View key={reward.id} style={[styles.rewardCard, styles.lockedReward]}>
+              <View key={reward.id} style={[styles.rewardCard, styles.lockedReward, { backgroundColor: theme.colors.surface }]}>
                 <Image source={{ uri: reward.imageUrl }} style={[styles.rewardImage, styles.lockedImage]} />
                 <View style={styles.rewardContent}>
-                  <Text style={[styles.rewardTitle, styles.lockedText]}>{reward.title}</Text>
-                  <Text style={[styles.rewardDescription, styles.lockedText]}>{reward.description}</Text>
+                  <Text style={[styles.rewardTitle, styles.lockedText, { color: theme.colors.textTertiary }]}>{reward.title}</Text>
+                  <Text style={[styles.rewardDescription, styles.lockedText, { color: theme.colors.textTertiary }]}>{reward.description}</Text>
                   <View style={styles.rewardFooter}>
-                    <View style={[styles.pointsBadge, styles.lockedBadge]}>
-                      <Star size={12} color="#9ca3af" />
-                      <Text style={styles.lockedPointsText}>{reward.points} pts</Text>
+                    <View style={[styles.pointsBadge, styles.lockedBadge, { backgroundColor: theme.colors.background }]}>
+                      <Star size={12} color={theme.colors.textTertiary} />
+                      <Text style={[styles.lockedPointsText, { color: theme.colors.textTertiary }]}>{reward.points} pts</Text>
                     </View>
-                    <Text style={styles.lockedLabel}>
+                    <Text style={[styles.lockedLabel, { color: theme.colors.textTertiary }]}>
                       {reward.points > userPoints ? `Need ${reward.points - userPoints} more pts` : 'Coming Soon'}
                     </Text>
                   </View>
@@ -246,7 +252,6 @@ export default function RewardsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   loadingContainer: {
     flex: 1,
@@ -256,7 +261,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: 'Inter-Medium',
     fontSize: 16,
-    color: '#6b7280',
   },
   scrollView: {
     flex: 1,
@@ -269,20 +273,17 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Inter-Bold',
     fontSize: 28,
-    color: '#111827',
     marginBottom: 4,
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#6b7280',
   },
   section: {
     paddingHorizontal: 20,
     marginBottom: 24,
   },
   pointsCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
@@ -303,7 +304,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#dcfce7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -314,18 +314,15 @@ const styles = StyleSheet.create({
   pointsTitle: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 4,
   },
   pointsValue: {
     fontFamily: 'Inter-Bold',
     fontSize: 32,
-    color: '#10b981',
   },
   pointsSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -336,11 +333,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
-    color: '#111827',
     marginBottom: 16,
   },
   rewardCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -366,13 +361,11 @@ const styles = StyleSheet.create({
   rewardTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#111827',
     marginBottom: 4,
   },
   rewardDescription: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 12,
   },
   rewardFooter: {
@@ -395,7 +388,6 @@ const styles = StyleSheet.create({
     color: '#f59e0b',
   },
   achievementCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -410,22 +402,13 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  achievementCompleted: {
-    backgroundColor: '#f0fdf4',
-    borderWidth: 1,
-    borderColor: '#dcfce7',
-  },
   achievementIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f9fafb',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-  },
-  achievementIconCompleted: {
-    backgroundColor: '#dcfce7',
   },
   achievementContent: {
     flex: 1,
@@ -433,16 +416,11 @@ const styles = StyleSheet.create({
   achievementTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#111827',
     marginBottom: 2,
-  },
-  achievementTitleCompleted: {
-    color: '#10b981',
   },
   achievementDescription: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
   },
   achievementPoints: {
     alignItems: 'center',
@@ -450,10 +428,6 @@ const styles = StyleSheet.create({
   achievementPointsText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 14,
-    color: '#6b7280',
-  },
-  achievementPointsCompleted: {
-    color: '#10b981',
   },
   completedBadge: {
     marginTop: 4,
@@ -464,18 +438,11 @@ const styles = StyleSheet.create({
   lockedImage: {
     opacity: 0.5,
   },
-  lockedText: {
-    color: '#9ca3af',
-  },
-  lockedBadge: {
-    backgroundColor: '#f3f4f6',
-  },
-  lockedPointsText: {
-    color: '#9ca3af',
-  },
+  lockedText: {},
+  lockedBadge: {},
+  lockedPointsText: {},
   lockedLabel: {
     fontFamily: 'Inter-Medium',
     fontSize: 12,
-    color: '#9ca3af',
   },
 });

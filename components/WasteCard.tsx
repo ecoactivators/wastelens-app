@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { WasteEntry, WasteType } from '@/types/waste';
 import { Package } from 'lucide-react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface WasteCardProps {
   entry: WasteEntry;
@@ -22,6 +23,8 @@ const wasteTypeColors: Record<WasteType, string> = {
 };
 
 export function WasteCard({ entry, onPress }: WasteCardProps) {
+  const { theme } = useTheme();
+  
   const formatTime = (date: Date) => {
     const now = new Date();
     const hours = now.getHours();
@@ -43,7 +46,7 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity style={[styles.container, { backgroundColor: theme.colors.surface }]} onPress={onPress}>
       <View style={styles.content}>
         {/* Image */}
         <View style={styles.imageContainer}>
@@ -61,17 +64,17 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
         {/* Content */}
         <View style={styles.details}>
           <View style={styles.header}>
-            <Text style={styles.itemName}>{getItemName()}</Text>
-            <Text style={styles.time}>{formatTime(entry.timestamp)}</Text>
+            <Text style={[styles.itemName, { color: theme.colors.text }]}>{getItemName()}</Text>
+            <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
           </View>
 
           <View style={styles.quantityContainer}>
-            <Package size={16} color="#111827" />
-            <Text style={styles.quantity}>Quantity: 1</Text>
+            <Package size={16} color={theme.colors.text} />
+            <Text style={[styles.quantity, { color: theme.colors.textSecondary }]}>Quantity: 1</Text>
           </View>
 
           <View style={styles.weightContainer}>
-            <Text style={styles.weight}>{entry.weight}g</Text>
+            <Text style={[styles.weight, { color: theme.colors.text }]}>{entry.weight}g</Text>
           </View>
         </View>
       </View>
@@ -81,7 +84,6 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -129,13 +131,11 @@ const styles = StyleSheet.create({
   itemName: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
-    color: '#111827',
     flex: 1,
   },
   time: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
   quantity: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-    color: '#6b7280',
   },
   weightContainer: {
     marginTop: 4,
@@ -154,6 +153,5 @@ const styles = StyleSheet.create({
   weight: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
-    color: '#111827',
   },
 });

@@ -7,15 +7,17 @@ import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
 import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
   const { entries, goals, stats, loading } = useWasteData();
+  const { theme } = useTheme();
 
   if (loading || !stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -24,16 +26,16 @@ export default function HomeScreen() {
   const recentEntries = entries.slice(0, 5);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>WasteLens</Text>
-            <Text style={styles.subtitle}>Track your waste, save the planet</Text>
+            <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
           </View>
           <TouchableOpacity
-            style={styles.addButton}
+            style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => router.push('/(tabs)/camera')}
           >
             <Plus size={24} color="#ffffff" />
@@ -46,14 +48,14 @@ export default function HomeScreen() {
             title="This Week"
             value={`${stats.weeklyWeight}g`}
             subtitle="Total waste"
-            icon={<TrendingDown size={20} color="#6b7280" />}
+            icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
           />
           <StatsCard
             title="Recycling Rate"
             value={`${Math.round(stats.recyclingRate)}%`}
             subtitle="Keep it up!"
-            color="#10b981"
-            icon={<Recycle size={20} color="#10b981" />}
+            color={theme.colors.success}
+            icon={<Recycle size={20} color={theme.colors.success} />}
           />
         </View>
 
@@ -69,14 +71,14 @@ export default function HomeScreen() {
             title="Streak"
             value={`${stats.streak} days`}
             subtitle="Amazing!"
-            color="#f59e0b"
-            icon={<Zap size={20} color="#f59e0b" />}
+            color={theme.colors.warning}
+            icon={<Zap size={20} color={theme.colors.warning} />}
           />
         </View>
 
         {/* Goals */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Goals</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
           {goals.map(goal => (
             <GoalCard key={goal.id} goal={goal} />
           ))}
@@ -85,16 +87,16 @@ export default function HomeScreen() {
         {/* Recent Entries */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recently Logged</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Logged</Text>
           </View>
           {recentEntries.map(entry => (
             <WasteCard key={entry.id} entry={entry} />
           ))}
           {recentEntries.length === 0 && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No entries yet. Start by scanning an item!</Text>
+            <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>No entries yet. Start by scanning an item!</Text>
               <TouchableOpacity
-                style={styles.scanButton}
+                style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => router.push('/(tabs)/camera')}
               >
                 <Plus size={20} color="#ffffff" />
@@ -111,7 +113,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   loadingContainer: {
     flex: 1,
@@ -121,7 +122,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: 'Inter-Medium',
     fontSize: 16,
-    color: '#6b7280',
   },
   scrollView: {
     flex: 1,
@@ -137,16 +137,13 @@ const styles = StyleSheet.create({
   greeting: {
     fontFamily: 'Inter-Bold',
     fontSize: 28,
-    color: '#111827',
     marginBottom: 4,
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#6b7280',
   },
   addButton: {
-    backgroundColor: '#10b981',
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -180,12 +177,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
-    color: '#111827',
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 40,
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: {
@@ -199,12 +194,10 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontFamily: 'Inter-Medium',
     fontSize: 16,
-    color: '#6b7280',
     marginBottom: 20,
     textAlign: 'center',
   },
   scanButton: {
-    backgroundColor: '#10b981',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

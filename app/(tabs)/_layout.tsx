@@ -4,10 +4,12 @@ import { House, Gift, Settings, Plus } from 'lucide-react-native';
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { router, usePathname } from 'expo-router';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function TabLayout() {
   const pathname = usePathname();
   const isCameraScreen = pathname === '/(tabs)/camera';
+  const { theme } = useTheme();
 
   return (
     <Tabs
@@ -15,9 +17,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: [
           {
-            backgroundColor: '#ffffff',
+            backgroundColor: theme.colors.tabBar,
             borderTopWidth: 1,
-            borderTopColor: '#f0f0f0',
+            borderTopColor: theme.colors.tabBarBorder,
             paddingBottom: Platform.OS === 'ios' ? 20 : 10,
             paddingTop: 10,
             height: Platform.OS === 'ios' ? 90 : 70,
@@ -25,8 +27,8 @@ export default function TabLayout() {
           // Hide tab bar when on camera screen
           isCameraScreen && { display: 'none' }
         ],
-        tabBarActiveTintColor: '#10b981',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarLabelStyle: {
           fontFamily: 'Inter-Medium',
           fontSize: 12,
@@ -77,13 +79,15 @@ export default function TabLayout() {
 }
 
 function CameraTabButton({ onPress, ...props }: any) {
+  const { theme } = useTheme();
+  
   return (
     <TouchableOpacity
-      style={styles.cameraButton}
+      style={[styles.cameraButton]}
       onPress={() => router.push('/(tabs)/camera')}
       {...props}
     >
-      <View style={styles.cameraButtonInner}>
+      <View style={[styles.cameraButtonInner, { backgroundColor: theme.colors.primary }]}>
         <Plus size={24} color="#ffffff" />
       </View>
     </TouchableOpacity>
@@ -100,7 +104,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#10b981',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#10b981',

@@ -4,18 +4,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { StatsCard } from '@/components/StatsCard';
 import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Recycle, Leaf, ChevronRight, Moon, Globe, Trash2 } from 'lucide-react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsScreen() {
   const { stats, loading } = useWasteData();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [dataSharing, setDataSharing] = React.useState(false);
-  const [darkMode, setDarkMode] = React.useState(false);
 
   if (loading || !stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading settings...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading settings...</Text>
         </View>
       </SafeAreaView>
     );
@@ -23,21 +24,21 @@ export default function SettingsScreen() {
 
   const accountItems = [
     {
-      icon: <User size={20} color="#6b7280" />,
+      icon: <User size={20} color={theme.colors.textSecondary} />,
       title: 'Profile',
       subtitle: 'Edit your personal information',
       onPress: () => {},
       showChevron: true,
     },
     {
-      icon: <Target size={20} color="#6b7280" />,
+      icon: <Target size={20} color={theme.colors.textSecondary} />,
       title: 'Goals',
       subtitle: 'Set and manage your waste goals',
       onPress: () => {},
       showChevron: true,
     },
     {
-      icon: <Award size={20} color="#6b7280" />,
+      icon: <Award size={20} color={theme.colors.textSecondary} />,
       title: 'Achievements',
       subtitle: 'View your progress and badges',
       onPress: () => {},
@@ -47,7 +48,7 @@ export default function SettingsScreen() {
 
   const appItems = [
     {
-      icon: <Bell size={20} color="#6b7280" />,
+      icon: <Bell size={20} color={theme.colors.textSecondary} />,
       title: 'Notifications',
       subtitle: 'Manage your notification preferences',
       onPress: () => {},
@@ -56,23 +57,23 @@ export default function SettingsScreen() {
       onSwitchChange: setNotificationsEnabled,
     },
     {
-      icon: <Moon size={20} color="#6b7280" />,
+      icon: <Moon size={20} color={theme.colors.textSecondary} />,
       title: 'Dark Mode',
       subtitle: 'Switch between light and dark themes',
-      onPress: () => {},
+      onPress: toggleTheme,
       hasSwitch: true,
-      switchValue: darkMode,
-      onSwitchChange: setDarkMode,
+      switchValue: isDark,
+      onSwitchChange: toggleTheme,
     },
     {
-      icon: <Globe size={20} color="#6b7280" />,
+      icon: <Globe size={20} color={theme.colors.textSecondary} />,
       title: 'Language',
       subtitle: 'English',
       onPress: () => {},
       showChevron: true,
     },
     {
-      icon: <Shield size={20} color="#6b7280" />,
+      icon: <Shield size={20} color={theme.colors.textSecondary} />,
       title: 'Privacy',
       subtitle: 'Data sharing and privacy settings',
       onPress: () => {},
@@ -84,21 +85,21 @@ export default function SettingsScreen() {
 
   const supportItems = [
     {
-      icon: <HelpCircle size={20} color="#6b7280" />,
+      icon: <HelpCircle size={20} color={theme.colors.textSecondary} />,
       title: 'Help & Support',
       subtitle: 'Get help and contact support',
       onPress: () => {},
       showChevron: true,
     },
     {
-      icon: <Star size={20} color="#6b7280" />,
+      icon: <Star size={20} color={theme.colors.textSecondary} />,
       title: 'Rate App',
       subtitle: 'Rate WasteLens on the App Store',
       onPress: () => {},
       showChevron: true,
     },
     {
-      icon: <Share2 size={20} color="#6b7280" />,
+      icon: <Share2 size={20} color={theme.colors.textSecondary} />,
       title: 'Share App',
       subtitle: 'Share WasteLens with friends',
       onPress: () => {},
@@ -120,18 +121,26 @@ export default function SettingsScreen() {
   const renderMenuItem = (item: any, index: number) => (
     <TouchableOpacity
       key={index}
-      style={styles.menuItem}
+      style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
       onPress={item.onPress}
     >
       <View style={styles.menuItemLeft}>
-        <View style={[styles.menuItemIcon, item.danger && styles.dangerIcon]}>
+        <View style={[
+          styles.menuItemIcon, 
+          { backgroundColor: theme.colors.background },
+          item.danger && styles.dangerIcon
+        ]}>
           {item.icon}
         </View>
         <View style={styles.menuItemContent}>
-          <Text style={[styles.menuItemTitle, item.danger && styles.dangerText]}>
+          <Text style={[
+            styles.menuItemTitle, 
+            { color: theme.colors.text },
+            item.danger && styles.dangerText
+          ]}>
             {item.title}
           </Text>
-          <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+          <Text style={[styles.menuItemSubtitle, { color: theme.colors.textSecondary }]}>{item.subtitle}</Text>
         </View>
       </View>
       <View style={styles.menuItemRight}>
@@ -139,42 +148,42 @@ export default function SettingsScreen() {
           <Switch
             value={item.switchValue}
             onValueChange={item.onSwitchChange}
-            trackColor={{ false: '#f3f4f6', true: '#dcfce7' }}
-            thumbColor={item.switchValue ? '#10b981' : '#ffffff'}
+            trackColor={{ false: theme.colors.border, true: theme.colors.primaryLight }}
+            thumbColor={item.switchValue ? theme.colors.primary : '#ffffff'}
           />
         )}
         {item.showChevron && (
-          <ChevronRight size={16} color="#9ca3af" />
+          <ChevronRight size={16} color={theme.colors.textTertiary} />
         )}
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.profileContainer}>
-            <View style={styles.avatar}>
+            <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
               <User size={32} color="#ffffff" />
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.name}>Eco Warrior</Text>
-              <Text style={styles.email}>eco.warrior@example.com</Text>
+              <Text style={[styles.name, { color: theme.colors.text }]}>Eco Warrior</Text>
+              <Text style={[styles.email, { color: theme.colors.textSecondary }]}>eco.warrior@example.com</Text>
             </View>
           </View>
         </View>
 
         {/* Achievement Badge */}
         <View style={styles.section}>
-          <View style={styles.achievementCard}>
-            <View style={styles.achievementIcon}>
+          <View style={[styles.achievementCard, { backgroundColor: theme.colors.surface }]}>
+            <View style={[styles.achievementIcon, { backgroundColor: '#fef3c7' }]}>
               <Award size={24} color="#f59e0b" />
             </View>
             <View style={styles.achievementContent}>
-              <Text style={styles.achievementTitle}>Waste Reduction Champion</Text>
-              <Text style={styles.achievementSubtitle}>
+              <Text style={[styles.achievementTitle, { color: theme.colors.text }]}>Waste Reduction Champion</Text>
+              <Text style={[styles.achievementSubtitle, { color: theme.colors.textSecondary }]}>
                 {stats.streak} day streak • Level 3
               </Text>
             </View>
@@ -187,47 +196,47 @@ export default function SettingsScreen() {
             title="Total Tracked"
             value={`${stats.totalWeight}g`}
             subtitle="All time"
-            icon={<TrendingUp size={20} color="#6b7280" />}
+            icon={<TrendingUp size={20} color={theme.colors.textSecondary} />}
           />
           <StatsCard
             title="CO₂ Saved"
             value={`${stats.co2Saved.toFixed(1)}kg`}
             subtitle="This month"
-            color="#10b981"
-            icon={<Leaf size={20} color="#10b981" />}
+            color={theme.colors.success}
+            icon={<Leaf size={20} color={theme.colors.success} />}
           />
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Account</Text>
           {accountItems.map(renderMenuItem)}
         </View>
 
         {/* App Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App Settings</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>App Settings</Text>
           {appItems.map(renderMenuItem)}
         </View>
 
         {/* Support */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Support</Text>
           {supportItems.map(renderMenuItem)}
         </View>
 
         {/* Danger Zone */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Danger Zone</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Danger Zone</Text>
           {dangerItems.map(renderMenuItem)}
         </View>
 
         {/* App Info */}
         <View style={styles.section}>
           <View style={styles.appInfo}>
-            <Text style={styles.appName}>WasteLens</Text>
-            <Text style={styles.appVersion}>Version 1.0.0</Text>
-            <Text style={styles.appDescription}>
+            <Text style={[styles.appName, { color: theme.colors.text }]}>WasteLens</Text>
+            <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
+            <Text style={[styles.appDescription, { color: theme.colors.textSecondary }]}>
               Track your waste, reduce your impact, and help save the planet one entry at a time.
             </Text>
           </View>
@@ -240,7 +249,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   loadingContainer: {
     flex: 1,
@@ -250,7 +258,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: 'Inter-Medium',
     fontSize: 16,
-    color: '#6b7280',
   },
   scrollView: {
     flex: 1,
@@ -269,7 +276,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#10b981',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -279,20 +285,17 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: 'Inter-Bold',
     fontSize: 24,
-    color: '#111827',
     marginBottom: 4,
   },
   email: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#6b7280',
   },
   section: {
     paddingHorizontal: 20,
     marginBottom: 24,
   },
   achievementCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
@@ -311,7 +314,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#fef3c7',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -321,13 +323,11 @@ const styles = StyleSheet.create({
   achievementTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#111827',
     marginBottom: 4,
   },
   achievementSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -338,11 +338,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
-    color: '#111827',
     marginBottom: 16,
   },
   menuItem: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -367,7 +365,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f9fafb',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -381,7 +378,6 @@ const styles = StyleSheet.create({
   menuItemTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#111827',
     marginBottom: 2,
   },
   dangerText: {
@@ -390,7 +386,6 @@ const styles = StyleSheet.create({
   menuItemSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
   },
   menuItemRight: {
     flexDirection: 'row',
@@ -403,19 +398,16 @@ const styles = StyleSheet.create({
   appName: {
     fontFamily: 'Inter-Bold',
     fontSize: 24,
-    color: '#111827',
     marginBottom: 4,
   },
   appVersion: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-    color: '#6b7280',
     marginBottom: 12,
   },
   appDescription: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
