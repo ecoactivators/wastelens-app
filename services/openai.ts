@@ -89,12 +89,16 @@ export class OpenAIService {
         throw new Error('No response content from OpenAI');
       }
 
+      // Clean the content by removing markdown code block delimiters
+      const cleanedContent = this.cleanMarkdownCodeBlocks(content);
+
       // Parse the JSON response with enhanced error handling
       let analysisResult;
       try {
-        analysisResult = JSON.parse(content);
+        analysisResult = JSON.parse(cleanedContent);
       } catch (parseError) {
         console.error('JSON Parse Error - Raw content:', content);
+        console.error('Cleaned content:', cleanedContent);
         console.error('Parse error details:', parseError);
         throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
       }
@@ -183,12 +187,16 @@ export class OpenAIService {
         throw new Error('No response content from OpenAI');
       }
 
+      // Clean the content by removing markdown code block delimiters
+      const cleanedContent = this.cleanMarkdownCodeBlocks(content);
+
       // Parse the JSON response with enhanced error handling
       let correctedAnalysis;
       try {
-        correctedAnalysis = JSON.parse(content);
+        correctedAnalysis = JSON.parse(cleanedContent);
       } catch (parseError) {
         console.error('JSON Parse Error - Raw content:', content);
+        console.error('Cleaned content:', cleanedContent);
         console.error('Parse error details:', parseError);
         throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
       }
@@ -214,6 +222,15 @@ export class OpenAIService {
         throw new Error('Failed to update analysis. Please check your internet connection and try again.');
       }
     }
+  }
+
+  private cleanMarkdownCodeBlocks(content: string): string {
+    // Remove markdown code block delimiters
+    return content
+      .replace(/^```json\s*/i, '') // Remove opening ```json
+      .replace(/^```\s*/m, '') // Remove opening ``` (alternative format)
+      .replace(/\s*```\s*$/m, '') // Remove closing ```
+      .trim();
   }
 
   private async convertImageToBase64(imageUri: string): Promise<string> {
