@@ -144,6 +144,16 @@ export default function AnalysisScreen() {
       if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
       else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
 
+      console.log('Adding entry from analysis:', {
+        type: wasteType,
+        category: category,
+        weight: analysis.weight,
+        description: analysis.itemName,
+        imageUrl: photoUri,
+        recyclable: analysis.recyclable,
+        compostable: analysis.compostable,
+      });
+
       // Add entry to the data
       addEntry({
         type: wasteType,
@@ -158,7 +168,10 @@ export default function AnalysisScreen() {
       Alert.alert('Success', 'Item has been logged successfully!', [
         {
           text: 'OK',
-          onPress: () => router.push('/')
+          onPress: () => {
+            // Navigate back to home screen
+            router.push('/');
+          }
         }
       ]);
     } else {

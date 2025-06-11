@@ -121,14 +121,24 @@ export function useWasteData() {
       id: Date.now().toString(),
       timestamp: new Date(),
     };
-    setEntries(prev => [newEntry, ...prev]);
+    
+    console.log('Adding new entry:', newEntry); // Debug log
+    
+    setEntries(prev => {
+      const updated = [newEntry, ...prev];
+      console.log('Updated entries:', updated); // Debug log
+      return updated;
+    });
     
     // Update goals based on the new entry
     setGoals(prev => prev.map(goal => {
       if (goal.type === 'reduce') {
         return { ...goal, current: goal.current + entry.weight };
       } else if (goal.type === 'recycle' && entry.recyclable) {
-        const newRecyclingRate = ((goal.current * (entries.length + 1) / 100) + 1) / (entries.length + 2) * 100;
+        // Calculate new recycling rate
+        const totalEntries = entries.length + 1;
+        const recyclableEntries = entries.filter(e => e.recyclable).length + (entry.recyclable ? 1 : 0);
+        const newRecyclingRate = (recyclableEntries / totalEntries) * 100;
         return { ...goal, current: Math.min(newRecyclingRate, 100) };
       }
       return goal;

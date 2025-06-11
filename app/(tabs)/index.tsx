@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
@@ -6,12 +6,19 @@ import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
 import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
   const { entries, goals, stats, loading } = useWasteData();
   const { theme } = useTheme();
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Home screen focused, entries:', entries.length); // Debug log
+    }, [entries])
+  );
 
   if (loading || !stats) {
     return (
@@ -24,6 +31,7 @@ export default function HomeScreen() {
   }
 
   const recentEntries = entries.slice(0, 5);
+  console.log('Recent entries to display:', recentEntries.length); // Debug log
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -88,13 +96,22 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Logged</Text>
+            {entries.length > 0 && (
+              <Text style={[styles.entryCount, { color: theme.colors.textSecondary }]}>
+                {entries.length} item{entries.length !== 1 ? 's' : ''}
+              </Text>
+            )}
           </View>
-          {recentEntries.map(entry => (
-            <WasteCard key={entry.id} entry={entry} />
-          ))}
-          {recentEntries.length === 0 && (
+          
+          {recentEntries.length > 0 ? (
+            recentEntries.map(entry => (
+              <WasteCard key={entry.id} entry={entry} />
+            ))
+          ) : (
             <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
-              <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>No entries yet. Start by scanning an item!</Text>
+              <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+                No entries yet. Start by scanning an item!
+              </Text>
               <TouchableOpacity
                 style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => router.push('/camera')}
@@ -177,6 +194,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
+  },
+  entryCount: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
   },
   emptyState: {
     alignItems: 'center',
