@@ -73,7 +73,7 @@ function CameraTabButton({ onPress, ...props }: any) {
   return (
     <TouchableOpacity
       style={styles.cameraButton}
-      onPress={() => router.push('/camera')}
+      onPress={() => router.push('/(tabs)/camera')}
       {...props}
     >
       <View style={styles.cameraButtonInner}>
