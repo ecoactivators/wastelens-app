@@ -21,7 +21,7 @@ export default function HomeScreen() {
     );
   }
 
-  const recentEntries = entries.slice(0, 3);
+  const recentEntries = entries.slice(0, 5);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,7 +34,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => router.push('/track')}
+            onPress={() => router.push('/(tabs)/camera')}
           >
             <Plus size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -85,14 +85,23 @@ export default function HomeScreen() {
         {/* Recent Entries */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Entries</Text>
-            <TouchableOpacity onPress={() => router.push('/insights')}>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+            <Text style={styles.sectionTitle}>Recently Logged</Text>
           </View>
           {recentEntries.map(entry => (
             <WasteCard key={entry.id} entry={entry} />
           ))}
+          {recentEntries.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No entries yet. Start by scanning an item!</Text>
+              <TouchableOpacity
+                style={styles.scanButton}
+                onPress={() => router.push('/(tabs)/camera')}
+              >
+                <Plus size={20} color="#ffffff" />
+                <Text style={styles.scanButtonText}>Scan Item</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -173,9 +182,39 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#111827',
   },
-  seeAllText: {
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  emptyStateText: {
     fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: '#10b981',
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  scanButton: {
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  scanButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#ffffff',
   },
 });

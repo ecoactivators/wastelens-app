@@ -5,6 +5,8 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { openAIService } from '@/services/openai';
+import { useWasteData } from '@/hooks/useWasteData';
+import { WasteType, WasteCategory } from '@/types/waste';
 
 interface WasteAnalysis {
   itemName: string;
@@ -21,6 +23,7 @@ interface WasteAnalysis {
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
+  const { addEntry } = useWasteData();
   const [analysis, setAnalysis] = useState<WasteAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState('1');
@@ -122,10 +125,43 @@ export default function AnalysisScreen() {
 
   const handleDone = () => {
     if (analysis) {
-      // Here you would typically save the analysis to your database
-      console.log('Saving analysis:', analysis);
+      // Determine waste type based on material
+      let wasteType = WasteType.OTHER;
+      const material = analysis.material.toLowerCase();
+      
+      if (material.includes('plastic')) wasteType = WasteType.PLASTIC;
+      else if (material.includes('paper') || material.includes('cardboard')) wasteType = WasteType.PAPER;
+      else if (material.includes('glass')) wasteType = WasteType.GLASS;
+      else if (material.includes('metal') || material.includes('aluminum')) wasteType = WasteType.METAL;
+      else if (material.includes('food') || material.includes('organic')) wasteType = WasteType.FOOD;
+      else if (material.includes('textile') || material.includes('fabric')) wasteType = WasteType.TEXTILE;
+      else if (material.includes('electronic')) wasteType = WasteType.ELECTRONIC;
+
+      // Determine category
+      let category = WasteCategory.LANDFILL;
+      if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
+      else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
+
+      // Add entry to the data
+      addEntry({
+        type: wasteType,
+        category: category,
+        weight: analysis.weight,
+        description: analysis.itemName,
+        imageUrl: photoUri,
+        recyclable: analysis.recyclable,
+        compostable: analysis.compostable,
+      });
+
+      Alert.alert('Success', 'Item has been logged successfully!', [
+        {
+          text: 'OK',
+          onPress: () => router.push('/')
+        }
+      ]);
+    } else {
+      router.push('/');
     }
-    router.push('/');
   };
 
   const getScoreColor = (score: number) => {
