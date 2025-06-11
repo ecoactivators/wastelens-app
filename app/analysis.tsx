@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { openAIService } from '@/services/openai';
 
 interface WasteAnalysis {
   itemName: string;
@@ -15,6 +16,7 @@ interface WasteAnalysis {
   compostable: boolean;
   carbonFootprint: number;
   suggestions: string[];
+  confidence?: number;
 }
 
 export default function AnalysisScreen() {
@@ -25,6 +27,7 @@ export default function AnalysisScreen() {
   const [showFixModal, setShowFixModal] = useState(false);
   const [fixMessage, setFixMessage] = useState('');
   const [fixLoading, setFixLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (photoUri) {
@@ -34,31 +37,36 @@ export default function AnalysisScreen() {
 
   const analyzeWaste = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      // Simulate API call to OpenAI
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await openAIService.analyzeWasteImage(photoUri);
+      setAnalysis(result);
+      setQuantity(result.quantity.toString());
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to analyze waste');
       
-      // Mock analysis result
+      // Fallback to mock data if API fails
       const mockAnalysis: WasteAnalysis = {
-        itemName: 'Plastic Water Bottle',
+        itemName: 'Unidentified Item',
         quantity: 1,
-        weight: 25,
-        material: 'PET Plastic',
-        environmentScore: 3,
-        recyclable: true,
+        weight: 50,
+        material: 'Mixed Material',
+        environmentScore: 5,
+        recyclable: false,
         compostable: false,
-        carbonFootprint: 0.15,
+        carbonFootprint: 0.1,
         suggestions: [
-          'Rinse before recycling',
-          'Remove cap and label',
-          'Consider reusable alternatives'
-        ]
+          'Check local recycling guidelines',
+          'Consider reusable alternatives',
+          'Dispose of responsibly'
+        ],
+        confidence: 0.3
       };
       
       setAnalysis(mockAnalysis);
       setQuantity(mockAnalysis.quantity.toString());
-    } catch (error) {
-      Alert.alert('Error', 'Failed to analyze waste. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -70,33 +78,27 @@ export default function AnalysisScreen() {
       return;
     }
 
+    if (!analysis) {
+      Alert.alert('Error', 'No analysis to fix.');
+      return;
+    }
+
     setFixLoading(true);
     try {
-      // Simulate API call to fix results
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const correctedAnalysis = await openAIService.fixAnalysisWithFeedback(
+        analysis,
+        fixMessage,
+        photoUri
+      );
       
-      // Mock updated analysis
-      const updatedAnalysis: WasteAnalysis = {
-        ...analysis!,
-        itemName: 'Aluminum Can',
-        material: 'Aluminum',
-        weight: 15,
-        environmentScore: 7,
-        recyclable: true,
-        compostable: false,
-        carbonFootprint: 0.08,
-        suggestions: [
-          'Rinse thoroughly',
-          'Crush to save space',
-          'High recycling value'
-        ]
-      };
-      
-      setAnalysis(updatedAnalysis);
+      setAnalysis(correctedAnalysis);
+      setQuantity(correctedAnalysis.quantity.toString());
       setShowFixModal(false);
       setFixMessage('');
+      setError(null);
       Alert.alert('Success', 'Analysis has been updated based on your feedback.');
     } catch (error) {
+      console.error('Fix error:', error);
       Alert.alert('Error', 'Failed to update analysis. Please try again.');
     } finally {
       setFixLoading(false);
@@ -119,7 +121,10 @@ export default function AnalysisScreen() {
   };
 
   const handleDone = () => {
-    // Save the analysis and navigate back to home
+    if (analysis) {
+      // Here you would typically save the analysis to your database
+      console.log('Saving analysis:', analysis);
+    }
     router.push('/');
   };
 
@@ -135,13 +140,27 @@ export default function AnalysisScreen() {
     return ['#ef4444', '#dc2626'];
   };
 
+  const getConfidenceColor = (confidence?: number) => {
+    if (!confidence) return '#6b7280';
+    if (confidence >= 0.8) return '#10b981';
+    if (confidence >= 0.6) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  const getConfidenceText = (confidence?: number) => {
+    if (!confidence) return 'Unknown';
+    if (confidence >= 0.8) return 'High Confidence';
+    if (confidence >= 0.6) return 'Medium Confidence';
+    return 'Low Confidence';
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10b981" />
-          <Text style={styles.loadingText}>Analyzing waste...</Text>
-          <Text style={styles.loadingSubtext}>Using AI to identify your item</Text>
+          <Text style={styles.loadingText}>Analyzing waste with AI...</Text>
+          <Text style={styles.loadingSubtext}>This may take a few seconds</Text>
         </View>
       </SafeAreaView>
     );
@@ -151,7 +170,9 @@ export default function AnalysisScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
+          <AlertCircle size={48} color="#ef4444" />
           <Text style={styles.errorText}>Failed to analyze waste</Text>
+          <Text style={styles.errorSubtext}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={analyzeWaste}>
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
@@ -167,7 +188,7 @@ export default function AnalysisScreen() {
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Waste Analysis</Text>
+        <Text style={styles.headerTitle}>AI Analysis</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleDelete}>
           <Trash2 size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -181,10 +202,29 @@ export default function AnalysisScreen() {
             colors={['transparent', 'rgba(0,0,0,0.3)']}
             style={styles.imageOverlay}
           />
+          
+          {/* Confidence Badge */}
+          {analysis.confidence !== undefined && (
+            <View style={[styles.confidenceBadge, { backgroundColor: getConfidenceColor(analysis.confidence) }]}>
+              <Text style={styles.confidenceText}>
+                {getConfidenceText(analysis.confidence)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Analysis Card */}
         <View style={styles.analysisCard}>
+          {/* Error Banner */}
+          {error && (
+            <View style={styles.errorBanner}>
+              <AlertCircle size={16} color="#f59e0b" />
+              <Text style={styles.errorBannerText}>
+                Using fallback analysis - API unavailable
+              </Text>
+            </View>
+          )}
+
           {/* Item Info */}
           <View style={styles.itemHeader}>
             <View style={styles.itemInfo}>
@@ -232,6 +272,11 @@ export default function AnalysisScreen() {
                 <Text style={styles.compostableText}>Compostable</Text>
               </View>
             )}
+            {!analysis.recyclable && !analysis.compostable && (
+              <View style={[styles.propertyBadge, styles.landfillBadge]}>
+                <Text style={styles.landfillText}>Landfill</Text>
+              </View>
+            )}
           </View>
 
           {/* Environment Score */}
@@ -253,9 +298,9 @@ export default function AnalysisScreen() {
             </View>
           </View>
 
-          {/* Suggestions */}
+          {/* AI Suggestions */}
           <View style={styles.suggestionsContainer}>
-            <Text style={styles.suggestionsTitle}>Recommendations</Text>
+            <Text style={styles.suggestionsTitle}>AI Recommendations</Text>
             {analysis.suggestions.map((suggestion, index) => (
               <View key={index} style={styles.suggestionItem}>
                 <View style={styles.suggestionDot} />
@@ -296,13 +341,13 @@ export default function AnalysisScreen() {
           
           <View style={styles.modalContent}>
             <Text style={styles.modalSubtitle}>
-              Tell us what we got wrong and we'll improve the analysis
+              Tell our AI what we got wrong and we'll improve the analysis
             </Text>
             <TextInput
               style={styles.fixInput}
               value={fixMessage}
               onChangeText={setFixMessage}
-              placeholder="Describe what needs to be corrected..."
+              placeholder="Example: This is actually a glass bottle, not plastic..."
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -317,7 +362,7 @@ export default function AnalysisScreen() {
               ) : (
                 <>
                   <Send size={16} color="#ffffff" />
-                  <Text style={styles.sendButtonText}>Send Feedback</Text>
+                  <Text style={styles.sendButtonText}>Send to AI</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -361,7 +406,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     color: '#ffffff',
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginBottom: 24,
   },
   retryButton: {
     backgroundColor: '#10b981',
@@ -413,6 +466,19 @@ const styles = StyleSheet.create({
     right: 0,
     height: 100,
   },
+  confidenceBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  confidenceText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#ffffff',
+  },
   analysisCard: {
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
@@ -421,6 +487,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 120,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 24,
+    gap: 8,
+  },
+  errorBannerText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: '#92400e',
+    flex: 1,
   },
   itemHeader: {
     flexDirection: 'row',
@@ -505,6 +587,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     fontSize: 12,
     color: '#f59e0b',
+  },
+  landfillBadge: {
+    backgroundColor: '#fee2e2',
+  },
+  landfillText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    color: '#dc2626',
   },
   scoreContainer: {
     marginBottom: 32,
