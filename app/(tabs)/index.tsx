@@ -5,7 +5,7 @@ import { useWasteData } from '@/hooks/useWasteData';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
-import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
+import { Plus, Zap, Recycle, Leaf, TrendingDown, RefreshCw } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -14,13 +14,14 @@ export default function HomeScreen() {
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = React.useState(false);
   const [debugInfo, setDebugInfo] = React.useState<any>(null);
+  const [debugRefreshKey, setDebugRefreshKey] = React.useState(0);
 
   // Update debug info whenever data changes
   useEffect(() => {
     const info = getDebugInfo();
     setDebugInfo(info);
     console.log('🏠 Home screen data updated:', info);
-  }, [entries, stats, lastUpdate, getDebugInfo]);
+  }, [entries, stats, lastUpdate, getDebugInfo, debugRefreshKey]);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
@@ -39,6 +40,21 @@ export default function HomeScreen() {
       setRefreshing(false);
     }, 1000);
   }, [refreshData]);
+
+  const handleDebugRefresh = React.useCallback(() => {
+    console.log('🔄 Manual debug refresh triggered');
+    
+    // Force refresh the debug info
+    const freshInfo = getDebugInfo();
+    setDebugInfo(freshInfo);
+    setDebugRefreshKey(prev => prev + 1);
+    
+    console.log('📊 Fresh debug info:', freshInfo);
+    console.log('🔢 Debug refresh key:', debugRefreshKey + 1);
+    
+    // Also refresh the main data
+    refreshData();
+  }, [getDebugInfo, refreshData, debugRefreshKey]);
 
   if (loading || !stats) {
     return (
@@ -174,49 +190,61 @@ export default function HomeScreen() {
         </View>
 
         {/* Real-time Debug Info */}
-        {__DEV__ && debugInfo && (
+        {__DEV__ && (
           <View style={[styles.debugSection, { backgroundColor: theme.colors.surface }]}>
-            <Text style={[styles.debugTitle, { color: theme.colors.text }]}>🔍 Real-time Debug Info</Text>
-            <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-              Total entries: {debugInfo.entriesCount}
-            </Text>
-            <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-              Recent entries: {debugInfo.recentEntries?.length || 0}
-            </Text>
-            <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-              Last update: {new Date(debugInfo.lastUpdate).toLocaleTimeString()}
-            </Text>
-            {debugInfo.stats && (
+            <View style={styles.debugHeader}>
+              <Text style={[styles.debugTitle, { color: theme.colors.text }]}>🔍 Real-time Debug Info</Text>
+              <Text style={[styles.debugKey, { color: theme.colors.textTertiary }]}>
+                Key: {debugRefreshKey}
+              </Text>
+            </View>
+            
+            {debugInfo ? (
               <>
                 <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Total weight: {debugInfo.stats.totalWeight}g
+                  Total entries: {debugInfo.entriesCount}
                 </Text>
                 <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Weekly weight: {debugInfo.stats.weeklyWeight}g
+                  Recent entries: {debugInfo.recentEntries?.length || 0}
                 </Text>
                 <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Recycling rate: {debugInfo.stats.recyclingRate}%
+                  Last update: {new Date(debugInfo.lastUpdate).toLocaleTimeString()}
                 </Text>
+                {debugInfo.stats && (
+                  <>
+                    <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                      Total weight: {debugInfo.stats.totalWeight}g
+                    </Text>
+                    <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                      Weekly weight: {debugInfo.stats.weeklyWeight}g
+                    </Text>
+                    <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                      Recycling rate: {debugInfo.stats.recyclingRate}%
+                    </Text>
+                  </>
+                )}
+                {debugInfo.recentEntries && debugInfo.recentEntries.length > 0 && (
+                  <View style={styles.debugEntries}>
+                    <Text style={[styles.debugSubtitle, { color: theme.colors.text }]}>Recent Entries:</Text>
+                    {debugInfo.recentEntries.map((entry: any, index: number) => (
+                      <Text key={index} style={[styles.debugEntryText, { color: theme.colors.textTertiary }]}>
+                        • {entry.description} ({entry.weight}g) - {new Date(entry.timestamp).toLocaleTimeString()}
+                      </Text>
+                    ))}
+                  </View>
+                )}
               </>
+            ) : (
+              <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                No debug info available
+              </Text>
             )}
-            {debugInfo.recentEntries && debugInfo.recentEntries.length > 0 && (
-              <View style={styles.debugEntries}>
-                <Text style={[styles.debugSubtitle, { color: theme.colors.text }]}>Recent Entries:</Text>
-                {debugInfo.recentEntries.map((entry: any, index: number) => (
-                  <Text key={index} style={[styles.debugEntryText, { color: theme.colors.textTertiary }]}>
-                    • {entry.description} ({entry.weight}g) - {new Date(entry.timestamp).toLocaleTimeString()}
-                  </Text>
-                ))}
-              </View>
-            )}
+            
             <TouchableOpacity 
               style={[styles.refreshDebugButton, { backgroundColor: theme.colors.primary }]}
-              onPress={() => {
-                const info = getDebugInfo();
-                setDebugInfo(info);
-                console.log('🔄 Manual debug refresh:', info);
-              }}
+              onPress={handleDebugRefresh}
             >
+              <RefreshCw size={16} color="#ffffff" />
               <Text style={styles.refreshDebugText}>Refresh Debug Info</Text>
             </TouchableOpacity>
           </View>
@@ -361,10 +389,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#10b981',
   },
+  debugHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   debugTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 16,
-    marginBottom: 12,
+  },
+  debugKey: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
   },
   debugText: {
     fontFamily: 'Inter-Regular',
@@ -391,6 +428,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   refreshDebugText: {
     fontFamily: 'Inter-SemiBold',
