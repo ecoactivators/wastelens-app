@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Chrome as Home, Gift, Settings, Plus } from 'lucide-react-native';
+import { House, Gift, Settings, Plus } from 'lucide-react-native';
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { router, usePathname } from 'expo-router';
@@ -38,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ size, color }) => (
-            <Home size={size} color={color} />
+            <House size={size} color={color} />
           ),
         }}
       />
