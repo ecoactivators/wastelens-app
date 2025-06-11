@@ -76,18 +76,28 @@ export class OpenAIService {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error('OpenAI API Error Response:', errorBody);
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}. Response: ${errorBody}`);
       }
 
       const data = await response.json();
       const content = data.choices[0]?.message?.content;
 
       if (!content) {
+        console.error('OpenAI API Response:', JSON.stringify(data, null, 2));
         throw new Error('No response content from OpenAI');
       }
 
-      // Parse the JSON response
-      const analysisResult = JSON.parse(content);
+      // Parse the JSON response with enhanced error handling
+      let analysisResult;
+      try {
+        analysisResult = JSON.parse(content);
+      } catch (parseError) {
+        console.error('JSON Parse Error - Raw content:', content);
+        console.error('Parse error details:', parseError);
+        throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+      }
       
       // Validate the response structure
       this.validateAnalysisResult(analysisResult);
@@ -95,7 +105,21 @@ export class OpenAIService {
       return analysisResult;
     } catch (error) {
       console.error('Error analyzing waste image:', error);
-      throw new Error('Failed to analyze waste image. Please try again.');
+      
+      // Provide more specific error messages based on error type
+      if (error.message.includes('API error: 401')) {
+        throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+      } else if (error.message.includes('API error: 429')) {
+        throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+      } else if (error.message.includes('API error: 403')) {
+        throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+      } else if (error.message.includes('malformed JSON')) {
+        throw error; // Re-throw the specific JSON parsing error
+      } else if (error.message.includes('Failed to convert image')) {
+        throw new Error('Failed to process the image. Please try with a different image.');
+      } else {
+        throw new Error('Failed to analyze waste image. Please check your internet connection and try again.');
+      }
     }
   }
 
@@ -146,29 +170,60 @@ export class OpenAIService {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error('OpenAI API Error Response:', errorBody);
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}. Response: ${errorBody}`);
       }
 
       const data = await response.json();
       const content = data.choices[0]?.message?.content;
 
       if (!content) {
+        console.error('OpenAI API Response:', JSON.stringify(data, null, 2));
         throw new Error('No response content from OpenAI');
       }
 
-      const correctedAnalysis = JSON.parse(content);
+      // Parse the JSON response with enhanced error handling
+      let correctedAnalysis;
+      try {
+        correctedAnalysis = JSON.parse(content);
+      } catch (parseError) {
+        console.error('JSON Parse Error - Raw content:', content);
+        console.error('Parse error details:', parseError);
+        throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+      }
+      
       this.validateAnalysisResult(correctedAnalysis);
       
       return correctedAnalysis;
     } catch (error) {
       console.error('Error fixing analysis:', error);
-      throw new Error('Failed to update analysis. Please try again.');
+      
+      // Provide more specific error messages based on error type
+      if (error.message.includes('API error: 401')) {
+        throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+      } else if (error.message.includes('API error: 429')) {
+        throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+      } else if (error.message.includes('API error: 403')) {
+        throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+      } else if (error.message.includes('malformed JSON')) {
+        throw error; // Re-throw the specific JSON parsing error
+      } else if (error.message.includes('Failed to convert image')) {
+        throw new Error('Failed to process the image. Please try with a different image.');
+      } else {
+        throw new Error('Failed to update analysis. Please check your internet connection and try again.');
+      }
     }
   }
 
   private async convertImageToBase64(imageUri: string): Promise<string> {
     try {
       const response = await fetch(imageUri);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+      
       const blob = await response.blob();
       
       return new Promise((resolve, reject) => {
@@ -177,10 +232,13 @@ export class OpenAIService {
           const base64 = (reader.result as string).split(',')[1];
           resolve(base64);
         };
-        reader.onerror = reject;
+        reader.onerror = () => {
+          reject(new Error('Failed to read image file'));
+        };
         reader.readAsDataURL(blob);
       });
     } catch (error) {
+      console.error('Image conversion error:', error);
       throw new Error('Failed to convert image to base64');
     }
   }
