@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useWasteData } from '@/hooks/useWasteData';
+import { useItems } from '@/contexts/ItemsContext';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
@@ -10,7 +10,15 @@ import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
-  const { entries, goals, stats, loading, refreshData, getDebugInfo, lastUpdate } = useWasteData();
+  const { 
+    recentItems, 
+    goals, 
+    stats, 
+    loading, 
+    refreshData, 
+    getDebugInfo, 
+    lastUpdate 
+  } = useItems();
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = React.useState(false);
   const [debugInfo, setDebugInfo] = React.useState<any>(null);
@@ -20,16 +28,16 @@ export default function HomeScreen() {
   useEffect(() => {
     const info = getDebugInfo();
     setDebugInfo(info);
-    console.log('🏠 Home screen data updated:', info);
-  }, [entries, stats, lastUpdate, getDebugInfo, debugRefreshKey]);
+    console.log('🏠 [HomeScreen] Data updated:', info);
+  }, [recentItems, stats, lastUpdate, getDebugInfo, debugRefreshKey]);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      console.log('🏠 Home screen focused');
+      console.log('🏠 [HomeScreen] Screen focused');
       const info = getDebugInfo();
       setDebugInfo(info);
-      console.log('📊 Current debug info:', info);
+      console.log('📊 [HomeScreen] Current debug info:', info);
     }, [getDebugInfo])
   );
 
@@ -42,15 +50,15 @@ export default function HomeScreen() {
   }, [refreshData]);
 
   const handleDebugRefresh = React.useCallback(() => {
-    console.log('🔄 Manual debug refresh triggered');
+    console.log('🔄 [HomeScreen] Manual debug refresh triggered');
     
     // Force refresh the debug info
     const freshInfo = getDebugInfo();
     setDebugInfo(freshInfo);
     setDebugRefreshKey(prev => prev + 1);
     
-    console.log('📊 Fresh debug info:', freshInfo);
-    console.log('🔢 Debug refresh key:', debugRefreshKey + 1);
+    console.log('📊 [HomeScreen] Fresh debug info:', freshInfo);
+    console.log('🔢 [HomeScreen] Debug refresh key:', debugRefreshKey + 1);
     
     // Also refresh the main data
     refreshData();
@@ -66,8 +74,7 @@ export default function HomeScreen() {
     );
   }
 
-  const recentEntries = entries.slice(0, 5);
-  console.log('🎨 Rendering home screen with', recentEntries.length, 'recent entries');
+  console.log('🎨 [HomeScreen] Rendering with', recentItems.length, 'recent items');
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -138,37 +145,37 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Recently Logged */}
+        {/* Recently Scanned Items */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Logged</Text>
-            {entries.length > 0 && (
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
+            {recentItems.length > 0 && (
               <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
                 <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
-                  {entries.length}
+                  {recentItems.length}
                 </Text>
               </View>
             )}
           </View>
           
-          {recentEntries.length > 0 ? (
+          {recentItems.length > 0 ? (
             <>
-              {recentEntries.map(entry => {
-                console.log('🎯 Rendering entry:', entry.id, entry.description);
+              {recentItems.slice(0, 5).map(item => {
+                console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
                 return (
-                  <WasteCard key={entry.id} entry={entry} />
+                  <WasteCard key={item.id} entry={item} />
                 );
               })}
-              {entries.length > 5 && (
+              {recentItems.length > 5 && (
                 <TouchableOpacity 
                   style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
                   onPress={() => {
                     // Navigate to a full list view - for now just show an alert
-                    console.log('View all entries');
+                    console.log('View all items');
                   }}
                 >
                   <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
-                    View all {entries.length} entries
+                    View all {recentItems.length} items
                   </Text>
                 </TouchableOpacity>
               )}
@@ -176,7 +183,7 @@ export default function HomeScreen() {
           ) : (
             <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
               <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
-                No entries yet. Start by scanning an item!
+                No items scanned yet. Start by scanning an item!
               </Text>
               <TouchableOpacity
                 style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
@@ -193,7 +200,7 @@ export default function HomeScreen() {
         {__DEV__ && (
           <View style={[styles.debugSection, { backgroundColor: theme.colors.surface }]}>
             <View style={styles.debugHeader}>
-              <Text style={[styles.debugTitle, { color: theme.colors.text }]}>🔍 Real-time Debug Info</Text>
+              <Text style={[styles.debugTitle, { color: theme.colors.text }]}>🔍 Items Context Debug</Text>
               <Text style={[styles.debugKey, { color: theme.colors.textTertiary }]}>
                 Key: {debugRefreshKey}
               </Text>
@@ -202,10 +209,10 @@ export default function HomeScreen() {
             {debugInfo ? (
               <>
                 <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Total entries: {debugInfo.entriesCount}
+                  Total items: {debugInfo.itemsCount}
                 </Text>
                 <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-                  Recent entries: {debugInfo.recentEntries?.length || 0}
+                  Recent items: {debugInfo.recentItemsCount}
                 </Text>
                 <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
                   Last update: {new Date(debugInfo.lastUpdate).toLocaleTimeString()}
@@ -223,12 +230,12 @@ export default function HomeScreen() {
                     </Text>
                   </>
                 )}
-                {debugInfo.recentEntries && debugInfo.recentEntries.length > 0 && (
+                {debugInfo.recentItems && debugInfo.recentItems.length > 0 && (
                   <View style={styles.debugEntries}>
-                    <Text style={[styles.debugSubtitle, { color: theme.colors.text }]}>Recent Entries:</Text>
-                    {debugInfo.recentEntries.map((entry: any, index: number) => (
+                    <Text style={[styles.debugSubtitle, { color: theme.colors.text }]}>Recent Items:</Text>
+                    {debugInfo.recentItems.map((item: any, index: number) => (
                       <Text key={index} style={[styles.debugEntryText, { color: theme.colors.textTertiary }]}>
-                        • {entry.description} ({entry.weight}g) - {new Date(entry.timestamp).toLocaleTimeString()}
+                        • {item.description} ({item.weight}g) - {new Date(item.timestamp).toLocaleTimeString()}
                       </Text>
                     ))}
                   </View>

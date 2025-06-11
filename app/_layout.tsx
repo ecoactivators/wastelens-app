@@ -11,6 +11,7 @@ import {
 import { SplashScreen } from 'expo-router'
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
+import { ItemsProvider } from '@/contexts/ItemsContext';
 
 declare global {
   interface Window {
@@ -58,7 +59,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <RootLayoutContent />
+      <ItemsProvider>
+        <RootLayoutContent />
+      </ItemsProvider>
     </ThemeProvider>
   );
 }

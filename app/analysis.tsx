@@ -5,7 +5,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { openAIService } from '@/services/openai';
-import { useWasteData } from '@/hooks/useWasteData';
+import { useItems } from '@/contexts/ItemsContext';
 import { WasteType, WasteCategory } from '@/types/waste';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -24,7 +24,7 @@ interface WasteAnalysis {
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
-  const { addEntry, getDebugInfo } = useWasteData();
+  const { addItem, getDebugInfo } = useItems();
   const { theme } = useTheme();
   const [analysis, setAnalysis] = useState<WasteAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
@@ -144,7 +144,7 @@ export default function AnalysisScreen() {
       if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
       else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
 
-      console.log('💾 Adding entry from analysis:', {
+      console.log('💾 [AnalysisScreen] Adding item to ItemsContext:', {
         type: wasteType,
         category: category,
         weight: analysis.weight,
@@ -156,10 +156,10 @@ export default function AnalysisScreen() {
 
       // Get debug info before adding
       const debugBefore = getDebugInfo();
-      console.log('📊 Debug info BEFORE adding entry:', debugBefore);
+      console.log('📊 [AnalysisScreen] Debug info BEFORE adding item:', debugBefore);
 
-      // Add entry to the data
-      const newEntry = addEntry({
+      // Add item to the ItemsContext
+      const newItem = addItem({
         type: wasteType,
         category: category,
         weight: analysis.weight,
@@ -169,21 +169,22 @@ export default function AnalysisScreen() {
         compostable: analysis.compostable,
       });
 
-      console.log('✅ Entry added successfully:', newEntry);
+      console.log('✅ [AnalysisScreen] Item added successfully:', newItem);
 
       // Get debug info after adding
       setTimeout(() => {
         const debugAfter = getDebugInfo();
-        console.log('📊 Debug info AFTER adding entry:', debugAfter);
+        console.log('📊 [AnalysisScreen] Debug info AFTER adding item:', debugAfter);
       }, 100);
 
       Alert.alert(
         'Success!', 
-        `${analysis.itemName} has been logged successfully!\n\nWeight: ${analysis.weight}g\nType: ${wasteType}\nRecyclable: ${analysis.recyclable ? 'Yes' : 'No'}`, 
+        `${analysis.itemName} has been scanned and logged!\n\nWeight: ${analysis.weight}g\nType: ${wasteType}\nRecyclable: ${analysis.recyclable ? 'Yes' : 'No'}`, 
         [
           {
             text: 'View in Home',
             onPress: () => {
+              console.log('🏠 [AnalysisScreen] Navigating to home screen');
               // Navigate back to home screen
               router.push('/');
             }
