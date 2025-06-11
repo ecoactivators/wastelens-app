@@ -8,7 +8,8 @@ import {
   Inter_600SemiBold,
   Inter_700Bold
 } from '@expo-google-fonts/inter';
-import { SplashScreen } from 'expo-router';
+import { SplashScreen } from 'expo-router'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 declare global {
   interface Window {
@@ -19,6 +20,7 @@ declare global {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useFrameworkReady();
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
