@@ -1,6 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { Chrome as Home, Gift, Settings, Plus } from 'lucide-react-native';
+import React from 'react';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 
 export default function TabLayout() {
   return (
@@ -65,10 +68,6 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
 
 function CameraTabButton({ onPress, ...props }: any) {
   return (

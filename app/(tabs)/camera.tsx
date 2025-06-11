@@ -28,7 +28,7 @@ export default function CameraScreen() {
         <View style={styles.permissionContainer}>
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
           <Text style={styles.permissionText}>
-            We need access to your camera to take photos of waste items for tracking.
+            We need access to your camera to take photos of waste items for analysis.
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
             <Text style={styles.permissionButtonText}>Grant Permission</Text>
@@ -66,9 +66,9 @@ export default function CameraScreen() {
         });
         
         if (photo) {
-          // Navigate to track screen with the photo
+          // Navigate to analysis screen with the photo
           router.push({
-            pathname: '/track',
+            pathname: '/analysis',
             params: { photoUri: photo.uri }
           });
         }
@@ -89,9 +89,9 @@ export default function CameraScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        // Navigate to track screen with the selected image
+        // Navigate to analysis screen with the selected image
         router.push({
-          pathname: '/track',
+          pathname: '/analysis',
           params: { photoUri: result.assets[0].uri }
         });
       }
