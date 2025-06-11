@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useWasteData } from '@/hooks/useWasteData';
+import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
 import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Recycle, Leaf, ChevronRight, Moon, Globe, Trash2 } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsScreen() {
-  const { stats, loading } = useWasteData();
+  const { stats, loading, clearAllData } = useItems();
   const { theme, toggleTheme, isDark } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [dataSharing, setDataSharing] = React.useState(false);
@@ -21,6 +21,24 @@ export default function SettingsScreen() {
       </SafeAreaView>
     );
   }
+
+  const handleClearAllData = () => {
+    Alert.alert(
+      'Clear All Data',
+      'This will permanently delete all your scanned items and reset your goals. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete All', 
+          style: 'destructive',
+          onPress: () => {
+            clearAllData();
+            Alert.alert('Success', 'All data has been cleared.');
+          }
+        }
+      ]
+    );
+  };
 
   const accountItems = [
     {
@@ -112,7 +130,7 @@ export default function SettingsScreen() {
       icon: <Trash2 size={20} color="#ef4444" />,
       title: 'Clear All Data',
       subtitle: 'Delete all your waste entries',
-      onPress: () => {},
+      onPress: handleClearAllData,
       showChevron: true,
       danger: true,
     },

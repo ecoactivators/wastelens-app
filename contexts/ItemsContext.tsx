@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { WasteEntry, WasteStats, WasteType, WasteCategory, WasteGoal } from '@/types/waste';
+import { StorageService } from '@/services/storage';
 
 interface ItemsContextType {
   // Items state
@@ -19,14 +20,13 @@ interface ItemsContextType {
   removeItem: (id: string) => void;
   updateGoal: (goal: WasteGoal) => void;
   refreshData: () => void;
+  clearAllData: () => void;
 }
 
 const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
-// Initial empty state - no sample data
-const initialItems: WasteEntry[] = [];
-
-const mockGoals: WasteGoal[] = [
+// Default goals that will be created if none exist
+const createDefaultGoals = (): WasteGoal[] => [
   {
     id: '1',
     type: 'reduce',
@@ -48,8 +48,8 @@ const mockGoals: WasteGoal[] = [
 ];
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<WasteEntry[]>(initialItems);
-  const [goals, setGoals] = useState<WasteGoal[]>(mockGoals);
+  const [items, setItems] = useState<WasteEntry[]>([]);
+  const [goals, setGoals] = useState<WasteGoal[]>([]);
   const [stats, setStats] = useState<WasteStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -58,6 +58,60 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const recentItems = items
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     .slice(0, 10);
+
+  // Load data from storage on mount
+  useEffect(() => {
+    const loadStoredData = async () => {
+      console.log('🔄 [ItemsContext] Loading data from storage...');
+      setLoading(true);
+      
+      try {
+        const [storedItems, storedGoals] = await Promise.all([
+          StorageService.loadItems(),
+          StorageService.loadGoals()
+        ]);
+
+        setItems(storedItems);
+        
+        // Use stored goals or create defaults if none exist
+        if (storedGoals.length > 0) {
+          setGoals(storedGoals);
+        } else {
+          const defaultGoals = createDefaultGoals();
+          setGoals(defaultGoals);
+          await StorageService.saveGoals(defaultGoals);
+        }
+
+        console.log('✅ [ItemsContext] Data loaded successfully:', {
+          items: storedItems.length,
+          goals: storedGoals.length > 0 ? storedGoals.length : 'using defaults'
+        });
+      } catch (error) {
+        console.error('❌ [ItemsContext] Failed to load data:', error);
+        // Initialize with defaults on error
+        const defaultGoals = createDefaultGoals();
+        setGoals(defaultGoals);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStoredData();
+  }, []);
+
+  // Save items to storage whenever items change
+  useEffect(() => {
+    if (!loading && items.length >= 0) {
+      StorageService.saveItems(items);
+    }
+  }, [items, loading]);
+
+  // Save goals to storage whenever goals change
+  useEffect(() => {
+    if (!loading && goals.length > 0) {
+      StorageService.saveGoals(goals);
+    }
+  }, [goals, loading]);
 
   // Calculate stats from items
   const calculateStats = useCallback((): WasteStats => {
@@ -151,12 +205,13 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
   // Recalculate stats when items change
   useEffect(() => {
-    console.log('🔄 [ItemsContext] Items changed, recalculating stats. Count:', items.length);
-    const newStats = calculateStats();
-    setStats(newStats);
-    setLastUpdate(new Date());
-    setLoading(false);
-  }, [items, calculateStats]);
+    if (!loading) {
+      console.log('🔄 [ItemsContext] Items changed, recalculating stats. Count:', items.length);
+      const newStats = calculateStats();
+      setStats(newStats);
+      setLastUpdate(new Date());
+    }
+  }, [items, calculateStats, loading]);
 
   // Add new item
   const addItem = useCallback((itemData: Omit<WasteEntry, 'id' | 'timestamp'>) => {
@@ -178,11 +233,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     setItems(prev => {
       const updated = [newItem, ...prev];
       console.log('✅ [ItemsContext] Items updated. New count:', updated.length);
-      console.log('📋 [ItemsContext] Recent items:', updated.slice(0, 3).map(i => ({
-        id: i.id,
-        description: i.description,
-        weight: i.weight
-      })));
       return updated;
     });
     
@@ -199,7 +249,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       return goal;
     }));
 
-    console.log('🎯 [ItemsContext] Item added successfully, stats will recalculate');
+    console.log('🎯 [ItemsContext] Item added successfully, will be saved to storage');
     return newItem;
   }, [items]);
 
@@ -216,6 +266,17 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   // Update goal
   const updateGoal = useCallback((goal: WasteGoal) => {
     setGoals(prev => prev.map(g => g.id === goal.id ? goal : g));
+  }, []);
+
+  // Clear all data
+  const clearAllData = useCallback(async () => {
+    console.log('🗑️ [ItemsContext] Clearing all data...');
+    setItems([]);
+    const defaultGoals = createDefaultGoals();
+    setGoals(defaultGoals);
+    await StorageService.clearAllData();
+    await StorageService.saveGoals(defaultGoals);
+    console.log('✅ [ItemsContext] All data cleared');
   }, []);
 
   // Refresh data
@@ -241,6 +302,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     removeItem,
     updateGoal,
     refreshData,
+    clearAllData,
   };
 
   return (
