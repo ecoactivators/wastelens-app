@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWasteData } from '@/hooks/useWasteData';
 import { StatsCard } from '@/components/StatsCard';
-import { Gift, Star, Trophy, Target, Zap, Leaf, Award, ChevronRight } from 'lucide-react-native';
+import { Gift, Star, Trophy } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface Reward {
@@ -51,49 +51,14 @@ const mockRewards: Reward[] = [
     points: 300,
     imageUrl: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg',
     category: 'eco',
-    available: false,
-  },
-];
-
-const achievements = [
-  {
-    id: '1',
-    title: 'First Entry',
-    description: 'Log your first waste item',
-    icon: <Star size={20} color="#f59e0b" />,
-    completed: true,
-    points: 50,
-  },
-  {
-    id: '2',
-    title: 'Week Warrior',
-    description: 'Track waste for 7 consecutive days',
-    icon: <Zap size={20} color="#3b82f6" />,
-    completed: true,
-    points: 100,
-  },
-  {
-    id: '3',
-    title: 'Recycling Champion',
-    description: 'Recycle 80% of your waste this month',
-    icon: <Leaf size={20} color="#10b981" />,
-    completed: false,
-    points: 200,
-  },
-  {
-    id: '4',
-    title: 'Waste Reducer',
-    description: 'Reduce waste by 50% compared to last month',
-    icon: <Trophy size={20} color="#ef4444" />,
-    completed: false,
-    points: 300,
+    available: true,
   },
 ];
 
 export default function RewardsScreen() {
   const { stats, loading } = useWasteData();
   const { theme } = useTheme();
-  const userPoints = 750; // Mock user points
+  const userPoints = 0; // Start with 0 points
 
   if (loading || !stats) {
     return (
@@ -106,7 +71,7 @@ export default function RewardsScreen() {
   }
 
   const availableRewards = mockRewards.filter(reward => reward.available && reward.points <= userPoints);
-  const unavailableRewards = mockRewards.filter(reward => !reward.available || reward.points > userPoints);
+  const lockedRewards = mockRewards.filter(reward => reward.points > userPoints);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -130,7 +95,7 @@ export default function RewardsScreen() {
               </View>
             </View>
             <Text style={[styles.pointsSubtitle, { color: theme.colors.textSecondary }]}>
-              Keep tracking to earn more points!
+              Start tracking waste to earn your first points!
             </Text>
           </View>
         </View>
@@ -146,7 +111,7 @@ export default function RewardsScreen() {
           />
           <StatsCard
             title="Total Earned"
-            value={`${userPoints + 250}`}
+            value={`${userPoints}`}
             subtitle="All time points"
             color="#3b82f6"
             icon={<Trophy size={20} color="#3b82f6" />}
@@ -154,94 +119,60 @@ export default function RewardsScreen() {
         </View>
 
         {/* Available Rewards */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Available Rewards</Text>
-          {availableRewards.map(reward => (
-            <TouchableOpacity key={reward.id} style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
-              <Image source={{ uri: reward.imageUrl }} style={styles.rewardImage} />
-              <View style={styles.rewardContent}>
-                <Text style={[styles.rewardTitle, { color: theme.colors.text }]}>{reward.title}</Text>
-                <Text style={[styles.rewardDescription, { color: theme.colors.textSecondary }]}>{reward.description}</Text>
-                <View style={styles.rewardFooter}>
-                  <View style={styles.pointsBadge}>
-                    <Star size={12} color="#f59e0b" />
-                    <Text style={styles.pointsText}>{reward.points} pts</Text>
+        {availableRewards.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Available Rewards</Text>
+            {availableRewards.map(reward => (
+              <TouchableOpacity key={reward.id} style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
+                <Image source={{ uri: reward.imageUrl }} style={styles.rewardImage} />
+                <View style={styles.rewardContent}>
+                  <Text style={[styles.rewardTitle, { color: theme.colors.text }]}>{reward.title}</Text>
+                  <Text style={[styles.rewardDescription, { color: theme.colors.textSecondary }]}>{reward.description}</Text>
+                  <View style={styles.rewardFooter}>
+                    <View style={styles.pointsBadge}>
+                      <Star size={12} color="#f59e0b" />
+                      <Text style={styles.pointsText}>{reward.points} pts</Text>
+                    </View>
                   </View>
-                  <ChevronRight size={16} color={theme.colors.textSecondary} />
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-        {/* Achievements */}
+        {/* Locked Rewards */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Achievements</Text>
-          {achievements.map(achievement => (
-            <View key={achievement.id} style={[
-              styles.achievementCard,
-              { backgroundColor: theme.colors.surface },
-              achievement.completed && { backgroundColor: theme.colors.primaryLight }
-            ]}>
-              <View style={[
-                styles.achievementIcon,
-                { backgroundColor: theme.colors.background },
-                achievement.completed && { backgroundColor: theme.colors.primaryLight }
-              ]}>
-                {achievement.icon}
-              </View>
-              <View style={styles.achievementContent}>
-                <Text style={[
-                  styles.achievementTitle,
-                  { color: theme.colors.text },
-                  achievement.completed && { color: theme.colors.primary }
-                ]}>
-                  {achievement.title}
-                </Text>
-                <Text style={[styles.achievementDescription, { color: theme.colors.textSecondary }]}>
-                  {achievement.description}
-                </Text>
-              </View>
-              <View style={styles.achievementPoints}>
-                <Text style={[
-                  styles.achievementPointsText,
-                  { color: theme.colors.textSecondary },
-                  achievement.completed && { color: theme.colors.primary }
-                ]}>
-                  +{achievement.points}
-                </Text>
-                {achievement.completed && (
-                  <View style={styles.completedBadge}>
-                    <Award size={12} color={theme.colors.success} />
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Earn Points to Unlock</Text>
+          {lockedRewards.map(reward => (
+            <View key={reward.id} style={[styles.rewardCard, styles.lockedReward, { backgroundColor: theme.colors.surface }]}>
+              <Image source={{ uri: reward.imageUrl }} style={[styles.rewardImage, styles.lockedImage]} />
+              <View style={styles.rewardContent}>
+                <Text style={[styles.rewardTitle, { color: theme.colors.textTertiary }]}>{reward.title}</Text>
+                <Text style={[styles.rewardDescription, { color: theme.colors.textTertiary }]}>{reward.description}</Text>
+                <View style={styles.rewardFooter}>
+                  <View style={[styles.pointsBadge, styles.lockedBadge, { backgroundColor: theme.colors.background }]}>
+                    <Star size={12} color={theme.colors.textTertiary} />
+                    <Text style={[styles.lockedPointsText, { color: theme.colors.textTertiary }]}>{reward.points} pts</Text>
                   </View>
-                )}
+                  <Text style={[styles.lockedLabel, { color: theme.colors.textTertiary }]}>
+                    Need {reward.points} points
+                  </Text>
+                </View>
               </View>
             </View>
           ))}
         </View>
 
-        {/* Locked Rewards */}
-        {unavailableRewards.length > 0 && (
+        {/* Empty State for New Users */}
+        {userPoints === 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Coming Soon</Text>
-            {unavailableRewards.map(reward => (
-              <View key={reward.id} style={[styles.rewardCard, styles.lockedReward, { backgroundColor: theme.colors.surface }]}>
-                <Image source={{ uri: reward.imageUrl }} style={[styles.rewardImage, styles.lockedImage]} />
-                <View style={styles.rewardContent}>
-                  <Text style={[styles.rewardTitle, styles.lockedText, { color: theme.colors.textTertiary }]}>{reward.title}</Text>
-                  <Text style={[styles.rewardDescription, styles.lockedText, { color: theme.colors.textTertiary }]}>{reward.description}</Text>
-                  <View style={styles.rewardFooter}>
-                    <View style={[styles.pointsBadge, styles.lockedBadge, { backgroundColor: theme.colors.background }]}>
-                      <Star size={12} color={theme.colors.textTertiary} />
-                      <Text style={[styles.lockedPointsText, { color: theme.colors.textTertiary }]}>{reward.points} pts</Text>
-                    </View>
-                    <Text style={[styles.lockedLabel, { color: theme.colors.textTertiary }]}>
-                      {reward.points > userPoints ? `Need ${reward.points - userPoints} more pts` : 'Coming Soon'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))}
+            <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+              <Gift size={48} color={theme.colors.textTertiary} />
+              <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>Start Earning Points!</Text>
+              <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+                Track your waste items to earn points and unlock amazing eco-friendly rewards.
+              </Text>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -387,12 +318,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#f59e0b',
   },
-  achievementCard: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
+  lockedReward: {
+    opacity: 0.6,
+  },
+  lockedImage: {
+    opacity: 0.5,
+  },
+  lockedBadge: {},
+  lockedPointsText: {},
+  lockedLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+  },
+  emptyState: {
     alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -402,47 +344,16 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  achievementIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  emptyStateTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  achievementContent: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  achievementDescription: {
+  emptyStateText: {
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
-  },
-  achievementPoints: {
-    alignItems: 'center',
-  },
-  achievementPointsText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-  },
-  completedBadge: {
-    marginTop: 4,
-  },
-  lockedReward: {
-    opacity: 0.6,
-  },
-  lockedImage: {
-    opacity: 0.5,
-  },
-  lockedText: {},
-  lockedBadge: {},
-  lockedPointsText: {},
-  lockedLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
