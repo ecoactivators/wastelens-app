@@ -24,7 +24,7 @@ interface WasteAnalysis {
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
-  const { addItem, getDebugInfo } = useItems();
+  const { addItem } = useItems();
   const { theme } = useTheme();
   const [analysis, setAnalysis] = useState<WasteAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
@@ -154,10 +154,6 @@ export default function AnalysisScreen() {
         compostable: analysis.compostable,
       });
 
-      // Get debug info before adding
-      const debugBefore = getDebugInfo();
-      console.log('📊 [AnalysisScreen] Debug info BEFORE adding item:', debugBefore);
-
       // Add item to the ItemsContext
       const newItem = addItem({
         type: wasteType,
@@ -170,12 +166,6 @@ export default function AnalysisScreen() {
       });
 
       console.log('✅ [AnalysisScreen] Item added successfully:', newItem);
-
-      // Get debug info after adding
-      setTimeout(() => {
-        const debugAfter = getDebugInfo();
-        console.log('📊 [AnalysisScreen] Debug info AFTER adding item:', debugAfter);
-      }, 100);
 
       Alert.alert(
         'Success!', 
