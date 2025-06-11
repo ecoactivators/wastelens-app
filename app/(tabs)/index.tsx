@@ -10,16 +10,16 @@ import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
-  const { entries, goals, stats, loading } = useWasteData();
+  const { entries, goals, stats, loading, refreshData } = useWasteData();
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = React.useState(false);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Home screen focused');
-      console.log('Current entries count:', entries.length);
-      console.log('Recent entries:', entries.slice(0, 3).map(e => ({ 
+      console.log('🏠 Home screen focused');
+      console.log('📊 Current entries count:', entries.length);
+      console.log('📋 Recent entries:', entries.slice(0, 3).map(e => ({ 
         id: e.id, 
         description: e.description, 
         weight: e.weight,
@@ -30,11 +30,11 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simulate refresh - in a real app, you'd refetch data
+    refreshData();
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
-  }, []);
+  }, [refreshData]);
 
   if (loading || !stats) {
     return (
@@ -47,7 +47,7 @@ export default function HomeScreen() {
   }
 
   const recentEntries = entries.slice(0, 5);
-  console.log('Rendering recent entries:', recentEntries.length);
+  console.log('🎨 Rendering recent entries:', recentEntries.length);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -133,9 +133,12 @@ export default function HomeScreen() {
           
           {recentEntries.length > 0 ? (
             <>
-              {recentEntries.map(entry => (
-                <WasteCard key={entry.id} entry={entry} />
-              ))}
+              {recentEntries.map(entry => {
+                console.log('🎯 Rendering entry:', entry.id, entry.description);
+                return (
+                  <WasteCard key={entry.id} entry={entry} />
+                );
+              })}
               {entries.length > 5 && (
                 <TouchableOpacity 
                   style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
@@ -165,6 +168,22 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
+
+        {/* Debug Info (remove in production) */}
+        {__DEV__ && (
+          <View style={[styles.debugSection, { backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.debugTitle, { color: theme.colors.text }]}>Debug Info</Text>
+            <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+              Total entries: {entries.length}
+            </Text>
+            <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+              Recent entries: {recentEntries.length}
+            </Text>
+            <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+              Last update: {new Date().toLocaleTimeString()}
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -296,5 +315,23 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
+  },
+  debugSection: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  debugTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  debugText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    marginBottom: 4,
   },
 });

@@ -81,9 +81,6 @@ export function useWasteData() {
         return acc;
       }, {} as Record<WasteCategory, number>);
 
-      // Calculate CO2 saved (rough estimate: 1kg waste = 0.5kg CO2)
-      const co2Saved = (recyclableWeight + compostableWeight) * 0.0005;
-
       // Calculate streak based on consecutive days with entries
       let streak = 0;
       if (entries.length > 0) {
@@ -109,6 +106,9 @@ export function useWasteData() {
         }
       }
 
+      // Calculate CO2 saved (rough estimate: 1kg waste = 0.5kg CO2)
+      const co2Saved = (recyclableWeight + compostableWeight) * 0.0005;
+
       return {
         totalWeight,
         weeklyWeight,
@@ -123,8 +123,14 @@ export function useWasteData() {
     };
 
     const newStats = calculateStats();
-    console.log('Calculated stats:', newStats);
-    console.log('Current entries:', entries.length);
+    console.log('📊 Calculated stats:', newStats);
+    console.log('📝 Current entries count:', entries.length);
+    console.log('📋 Entries list:', entries.map(e => ({ 
+      id: e.id, 
+      description: e.description, 
+      weight: e.weight,
+      timestamp: e.timestamp.toISOString()
+    })));
     setStats(newStats);
     setLoading(false);
   }, [entries]);
@@ -136,12 +142,23 @@ export function useWasteData() {
       timestamp: new Date(),
     };
     
-    console.log('Adding new entry:', newEntry);
+    console.log('➕ Adding new entry:', {
+      id: newEntry.id,
+      description: newEntry.description,
+      weight: newEntry.weight,
+      type: newEntry.type,
+      timestamp: newEntry.timestamp.toISOString()
+    });
     
     setEntries(prev => {
       const updated = [newEntry, ...prev];
-      console.log('Updated entries count:', updated.length);
-      console.log('All entries:', updated.map(e => ({ id: e.id, description: e.description, timestamp: e.timestamp })));
+      console.log('✅ Updated entries count:', updated.length);
+      console.log('📋 All entries after update:', updated.map(e => ({ 
+        id: e.id, 
+        description: e.description, 
+        weight: e.weight,
+        timestamp: e.timestamp.toISOString()
+      })));
       return updated;
     });
     
@@ -158,14 +175,31 @@ export function useWasteData() {
       }
       return goal;
     }));
+
+    return newEntry; // Return the new entry for confirmation
   };
 
   const deleteEntry = (id: string) => {
-    setEntries(prev => prev.filter(entry => entry.id !== id));
+    console.log('🗑️ Deleting entry:', id);
+    setEntries(prev => {
+      const updated = prev.filter(entry => entry.id !== id);
+      console.log('✅ Entries after deletion:', updated.length);
+      return updated;
+    });
   };
 
   const updateGoal = (goal: WasteGoal) => {
     setGoals(prev => prev.map(g => g.id === goal.id ? goal : g));
+  };
+
+  // Add a refresh function for manual data refresh
+  const refreshData = () => {
+    console.log('🔄 Refreshing data...');
+    setLoading(true);
+    // Simulate a brief loading state
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
   };
 
   return {
@@ -176,5 +210,6 @@ export function useWasteData() {
     addEntry,
     deleteEntry,
     updateGoal,
+    refreshData,
   };
 }

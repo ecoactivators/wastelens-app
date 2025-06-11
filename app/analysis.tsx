@@ -144,7 +144,7 @@ export default function AnalysisScreen() {
       if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
       else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
 
-      console.log('Adding entry from analysis:', {
+      console.log('💾 Adding entry from analysis:', {
         type: wasteType,
         category: category,
         weight: analysis.weight,
@@ -155,7 +155,7 @@ export default function AnalysisScreen() {
       });
 
       // Add entry to the data
-      addEntry({
+      const newEntry = addEntry({
         type: wasteType,
         category: category,
         weight: analysis.weight,
@@ -164,6 +164,8 @@ export default function AnalysisScreen() {
         recyclable: analysis.recyclable,
         compostable: analysis.compostable,
       });
+
+      console.log('✅ Entry added successfully:', newEntry);
 
       Alert.alert('Success', 'Item has been logged successfully!', [
         {
