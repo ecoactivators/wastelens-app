@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Chrome as Home, ChartBar as BarChart3, Settings, Plus } from 'lucide-react-native';
+import { Chrome as Home, Camera, ChartBar as BarChart3, User, Trash2 } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -9,24 +9,17 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#ffffff',
-          borderTopWidth: 0,
-          paddingBottom: Platform.OS === 'ios' ? 34 : 10,
+          borderTopWidth: 1,
+          borderTopColor: '#f0f0f0',
+          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
           paddingTop: 10,
           height: Platform.OS === 'ios' ? 90 : 70,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: -2,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          elevation: 8,
         },
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: '#10b981',
+        tabBarInactiveTintColor: '#6b7280',
         tabBarLabelStyle: {
           fontFamily: 'Inter-Medium',
-          fontSize: 11,
+          fontSize: 12,
           marginTop: 4,
         },
       }}>
@@ -35,56 +28,34 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ size, color }) => (
-            <Home size={size} color={color} strokeWidth={2} />
+            <Home size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="progress"
+        name="track"
         options={{
-          title: 'Progress',
+          title: 'Track',
           tabBarIcon: ({ size, color }) => (
-            <BarChart3 size={size} color={color} strokeWidth={2} />
+            <Camera size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="insights"
         options={{
-          title: 'Settings',
+          title: 'Insights',
           tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} strokeWidth={2} />
+            <BarChart3 size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="add"
+        name="profile"
         options={{
-          title: '',
+          title: 'Profile',
           tabBarIcon: ({ size, color }) => (
-            <Plus size={28} color="#ffffff" strokeWidth={2.5} />
-          ),
-          tabBarButton: (props) => (
-            <TouchableOpacity
-              {...props}
-              style={{
-                top: -10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: '#000000',
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 4,
-                },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-            />
+            <User size={size} color={color} />
           ),
         }}
       />
