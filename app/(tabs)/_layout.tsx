@@ -20,19 +20,24 @@ export default function TabLayout() {
             backgroundColor: theme.colors.tabBar,
             borderTopWidth: 1,
             borderTopColor: theme.colors.tabBarBorder,
-            paddingBottom: Platform.OS === 'ios' ? 35 : 25, // Increased bottom padding
-            paddingTop: 20, // Increased top padding
-            height: Platform.OS === 'ios' ? 110 : 90, // Increased height to accommodate padding
+            paddingBottom: Platform.OS === 'ios' ? 35 : 25,
+            paddingTop: 20,
+            height: Platform.OS === 'ios' ? 110 : 90,
           },
-          // Hide tab bar when on camera screen
-          isCameraScreen && { display: 'none' }
+          // Completely hide tab bar when on camera screen
+          isCameraScreen && { 
+            display: 'none',
+            height: 0,
+            paddingBottom: 0,
+            paddingTop: 0,
+          }
         ],
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarLabelStyle: {
           fontFamily: 'Inter-Medium',
           fontSize: 12,
-          marginTop: 6, // Slightly increased margin
+          marginTop: 6,
         },
       }}>
       <Tabs.Screen
@@ -96,7 +101,7 @@ function CameraTabButton({ onPress, ...props }: any) {
 
 const styles = StyleSheet.create({
   cameraButton: {
-    top: -20, // Adjusted to work with increased padding
+    top: -20,
     justifyContent: 'center',
     alignItems: 'center',
   },
