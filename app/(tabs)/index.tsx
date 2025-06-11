@@ -10,22 +10,26 @@ import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
-  const { entries, goals, stats, loading, refreshData } = useWasteData();
+  const { entries, goals, stats, loading, refreshData, getDebugInfo, lastUpdate } = useWasteData();
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [debugInfo, setDebugInfo] = React.useState<any>(null);
+
+  // Update debug info whenever data changes
+  useEffect(() => {
+    const info = getDebugInfo();
+    setDebugInfo(info);
+    console.log('🏠 Home screen data updated:', info);
+  }, [entries, stats, lastUpdate, getDebugInfo]);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       console.log('🏠 Home screen focused');
-      console.log('📊 Current entries count:', entries.length);
-      console.log('📋 Recent entries:', entries.slice(0, 3).map(e => ({ 
-        id: e.id, 
-        description: e.description, 
-        weight: e.weight,
-        timestamp: e.timestamp.toLocaleString()
-      })));
-    }, [entries])
+      const info = getDebugInfo();
+      setDebugInfo(info);
+      console.log('📊 Current debug info:', info);
+    }, [getDebugInfo])
   );
 
   const onRefresh = React.useCallback(() => {
@@ -47,7 +51,7 @@ export default function HomeScreen() {
   }
 
   const recentEntries = entries.slice(0, 5);
-  console.log('🎨 Rendering recent entries:', recentEntries.length);
+  console.log('🎨 Rendering home screen with', recentEntries.length, 'recent entries');
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -118,7 +122,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Recent Entries */}
+        {/* Recently Logged */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Logged</Text>
@@ -169,19 +173,52 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Debug Info (remove in production) */}
-        {__DEV__ && (
+        {/* Real-time Debug Info */}
+        {__DEV__ && debugInfo && (
           <View style={[styles.debugSection, { backgroundColor: theme.colors.surface }]}>
-            <Text style={[styles.debugTitle, { color: theme.colors.text }]}>Debug Info</Text>
+            <Text style={[styles.debugTitle, { color: theme.colors.text }]}>🔍 Real-time Debug Info</Text>
             <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-              Total entries: {entries.length}
+              Total entries: {debugInfo.entriesCount}
             </Text>
             <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-              Recent entries: {recentEntries.length}
+              Recent entries: {debugInfo.recentEntries?.length || 0}
             </Text>
             <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
-              Last update: {new Date().toLocaleTimeString()}
+              Last update: {new Date(debugInfo.lastUpdate).toLocaleTimeString()}
             </Text>
+            {debugInfo.stats && (
+              <>
+                <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                  Total weight: {debugInfo.stats.totalWeight}g
+                </Text>
+                <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                  Weekly weight: {debugInfo.stats.weeklyWeight}g
+                </Text>
+                <Text style={[styles.debugText, { color: theme.colors.textSecondary }]}>
+                  Recycling rate: {debugInfo.stats.recyclingRate}%
+                </Text>
+              </>
+            )}
+            {debugInfo.recentEntries && debugInfo.recentEntries.length > 0 && (
+              <View style={styles.debugEntries}>
+                <Text style={[styles.debugSubtitle, { color: theme.colors.text }]}>Recent Entries:</Text>
+                {debugInfo.recentEntries.map((entry: any, index: number) => (
+                  <Text key={index} style={[styles.debugEntryText, { color: theme.colors.textTertiary }]}>
+                    • {entry.description} ({entry.weight}g) - {new Date(entry.timestamp).toLocaleTimeString()}
+                  </Text>
+                ))}
+              </View>
+            )}
+            <TouchableOpacity 
+              style={[styles.refreshDebugButton, { backgroundColor: theme.colors.primary }]}
+              onPress={() => {
+                const info = getDebugInfo();
+                setDebugInfo(info);
+                console.log('🔄 Manual debug refresh:', info);
+              }}
+            >
+              <Text style={styles.refreshDebugText}>Refresh Debug Info</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -321,17 +358,43 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderWidth: 2,
+    borderColor: '#10b981',
   },
   debugTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 16,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   debugText: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     marginBottom: 4,
+  },
+  debugSubtitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  debugEntries: {
+    marginTop: 8,
+  },
+  debugEntryText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  refreshDebugButton: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  refreshDebugText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#ffffff',
   },
 });

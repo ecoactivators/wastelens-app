@@ -24,7 +24,7 @@ interface WasteAnalysis {
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
-  const { addEntry } = useWasteData();
+  const { addEntry, getDebugInfo } = useWasteData();
   const { theme } = useTheme();
   const [analysis, setAnalysis] = useState<WasteAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
@@ -154,6 +154,10 @@ export default function AnalysisScreen() {
         compostable: analysis.compostable,
       });
 
+      // Get debug info before adding
+      const debugBefore = getDebugInfo();
+      console.log('📊 Debug info BEFORE adding entry:', debugBefore);
+
       // Add entry to the data
       const newEntry = addEntry({
         type: wasteType,
@@ -167,15 +171,25 @@ export default function AnalysisScreen() {
 
       console.log('✅ Entry added successfully:', newEntry);
 
-      Alert.alert('Success', 'Item has been logged successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Navigate back to home screen
-            router.push('/');
+      // Get debug info after adding
+      setTimeout(() => {
+        const debugAfter = getDebugInfo();
+        console.log('📊 Debug info AFTER adding entry:', debugAfter);
+      }, 100);
+
+      Alert.alert(
+        'Success!', 
+        `${analysis.itemName} has been logged successfully!\n\nWeight: ${analysis.weight}g\nType: ${wasteType}\nRecyclable: ${analysis.recyclable ? 'Yes' : 'No'}`, 
+        [
+          {
+            text: 'View in Home',
+            onPress: () => {
+              // Navigate back to home screen
+              router.push('/');
+            }
           }
-        }
-      ]);
+        ]
+      );
     } else {
       router.push('/');
     }
