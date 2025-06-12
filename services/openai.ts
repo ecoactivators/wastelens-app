@@ -22,6 +22,14 @@ export class OpenAIService {
     }
   }
 
+  // Helper function to capitalize item names properly
+  private capitalizeItemName(name: string): string {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   async analyzeWasteImage(imageUri: string): Promise<WasteAnalysisResult> {
     if (!this.apiKey) {
       throw new Error('OpenAI API key not configured. Please set EXPO_PUBLIC_OPENAI_API_KEY in your environment variables.');
@@ -48,7 +56,7 @@ CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code bloc
 
 Return your response as a JSON object with this exact structure:
 {
-  "itemName": "string - name of the primary waste item",
+  "itemName": "string - name of the primary waste item (use proper capitalization like 'Plastic Water Bottle' not 'plastic water bottle')",
   "quantity": "number - estimated number of items",
   "weight": "number - estimated weight in grams",
   "material": "string - primary material type",
@@ -60,6 +68,8 @@ Return your response as a JSON object with this exact structure:
   "confidence": "number - confidence level from 0-1"
 }
 
+IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
+
 Consider factors like material type, recyclability, environmental impact, and provide practical disposal advice.`
             },
             {
@@ -67,7 +77,7 @@ Consider factors like material type, recyclability, environmental impact, and pr
               content: [
                 {
                   type: 'text',
-                  text: 'Please analyze this waste item and provide detailed environmental information. Return only valid JSON with no formatting.'
+                  text: 'Please analyze this waste item and provide detailed environmental information. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.'
                 },
                 {
                   type: 'image_url',
@@ -125,6 +135,11 @@ Consider factors like material type, recyclability, environmental impact, and pr
       // Validate the response structure
       this.validateAnalysisResult(analysisResult);
       
+      // Ensure proper capitalization of item name
+      if (analysisResult.itemName) {
+        analysisResult.itemName = this.capitalizeItemName(analysisResult.itemName);
+      }
+      
       return analysisResult;
     } catch (error) {
       console.error('Error analyzing waste image:', error);
@@ -179,6 +194,8 @@ Consider factors like material type, recyclability, environmental impact, and pr
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
+IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
+
 Return your response as a JSON object with the same structure as before.`
             },
             {
@@ -190,7 +207,7 @@ Return your response as a JSON object with the same structure as before.`
                   
                   The user provided this feedback: "${userFeedback}"
                   
-                  Please provide a corrected analysis based on this feedback and re-examine the image. Return only valid JSON with no formatting.`
+                  Please provide a corrected analysis based on this feedback and re-examine the image. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
                 },
                 {
                   type: 'image_url',
@@ -246,6 +263,11 @@ Return your response as a JSON object with the same structure as before.`
       }
       
       this.validateAnalysisResult(correctedAnalysis);
+      
+      // Ensure proper capitalization of item name
+      if (correctedAnalysis.itemName) {
+        correctedAnalysis.itemName = this.capitalizeItemName(correctedAnalysis.itemName);
+      }
       
       return correctedAnalysis;
     } catch (error) {
