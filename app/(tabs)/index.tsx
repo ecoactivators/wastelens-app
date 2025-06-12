@@ -228,7 +228,7 @@ export default function HomeScreen() {
                       <Text style={styles.scanButtonText}>Scan Your First Item</Text>
                     </LinearGradient>
                   </TouchableOpacity>
-                </LinearGradient>
+                </View>
               </View>
             )}
           </View>
