@@ -9,6 +9,7 @@ import { GoalCard } from '@/components/GoalCard';
 import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Platform } from 'react-native';
 
 export default function HomeScreen() {
   const { 
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120, // Add padding to account for tab bar
+    paddingBottom: 140, // Increased padding to account for tab bar + floating button
   },
   header: {
     flexDirection: 'row',
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
   },
   floatingCameraButton: {
     position: 'absolute',
-    bottom: 30,
+    bottom: Platform.OS === 'ios' ? 120 : 100, // Position above tab bar
     right: 20,
     width: 64,
     height: 64,
@@ -320,5 +321,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
+    zIndex: 1000, // Ensure it's above other elements
   },
 });
