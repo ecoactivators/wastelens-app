@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { WasteEntry, WasteType } from '@/types/waste';
-import { Package } from 'lucide-react-native';
+import { Package, Weight } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface WasteCardProps {
@@ -50,7 +50,7 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
   };
 
   return (
-    <TouchableOpacity style={[styles.container, { backgroundColor: theme.colors.surface }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.container, { backgroundColor: '#f8f9fa' }]} onPress={onPress}>
       <View style={styles.content}>
         {/* Image */}
         <View style={styles.imageContainer}>
@@ -69,7 +69,9 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
         <View style={styles.details}>
           <View style={styles.header}>
             <Text style={[styles.itemName, { color: theme.colors.text }]}>{getItemName()}</Text>
-            <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
+            <View style={styles.timeContainer}>
+              <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
+            </View>
           </View>
 
           <View style={styles.quantityContainer}>
@@ -78,6 +80,7 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
           </View>
 
           <View style={styles.weightContainer}>
+            <Weight size={18} color={theme.colors.text} />
             <Text style={[styles.weight, { color: theme.colors.text }]}>{formatWeight(entry.weight)}</Text>
           </View>
         </View>
@@ -137,9 +140,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     flex: 1,
   },
+  timeContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
   time: {
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
+    fontSize: 12,
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -152,6 +163,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   weightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginTop: 4,
   },
   weight: {
