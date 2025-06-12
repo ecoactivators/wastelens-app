@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { WasteEntry, WasteType } from '@/types/waste';
-import { Package, Weight, Clock, Recycle, Leaf } from 'lucide-react-native';
+import { Package, Weight } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface WasteCardProps {
@@ -28,97 +27,64 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
   
   const formatTime = (date: Date) => {
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      return 'Just now';
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
-    }
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    return `${displayHours}:${displayMinutes} ${period}`;
   };
 
   const getItemName = () => {
+    // Extract a more descriptive name from the description or use type
     if (entry.description) {
-      return entry.description.length > 25 
-        ? entry.description.substring(0, 25) + '...'
+      return entry.description.length > 20 
+        ? entry.description.substring(0, 20) + '...'
         : entry.description;
     }
     return entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
   };
 
   const formatWeight = (weight: number) => {
-    if (weight >= 1000) {
-      return `${(weight / 1000).toFixed(1)}kg`;
-    }
-    return `${weight}g`;
+    return `${weight} Grams`;
   };
 
-  const getTypeColor = () => wasteTypeColors[entry.type];
-
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <LinearGradient
-        colors={['#ffffff', '#f8fafc']}
-        style={styles.gradient}
-      >
-        <View style={styles.content}>
-          {/* Image */}
-          <View style={styles.imageContainer}>
-            {entry.imageUrl ? (
-              <Image source={{ uri: entry.imageUrl }} style={styles.image} />
-            ) : (
-              <View style={[styles.placeholderImage, { backgroundColor: getTypeColor() + '20' }]}>
-                <Text style={[styles.placeholderText, { color: getTypeColor() }]}>
-                  {entry.type.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
-            
-            {/* Type Badge */}
-            <View style={[styles.typeBadge, { backgroundColor: getTypeColor() }]}>
-              <Text style={styles.typeBadgeText}>
-                {entry.type.charAt(0).toUpperCase() + entry.type.slice(1, 3)}
+    <TouchableOpacity style={[styles.container, { backgroundColor: '#f8f9fa' }]} onPress={onPress}>
+      <View style={styles.content}>
+        {/* Image */}
+        <View style={styles.imageContainer}>
+          {entry.imageUrl ? (
+            <Image source={{ uri: entry.imageUrl }} style={styles.image} />
+          ) : (
+            <View style={[styles.placeholderImage, { backgroundColor: wasteTypeColors[entry.type] + '20' }]}>
+              <Text style={[styles.placeholderText, { color: wasteTypeColors[entry.type] }]}>
+                {entry.type.charAt(0).toUpperCase()}
               </Text>
             </View>
+          )}
+        </View>
+
+        {/* Content */}
+        <View style={styles.details}>
+          <View style={styles.header}>
+            <Text style={[styles.itemName, { color: theme.colors.text }]}>{getItemName()}</Text>
+            <View style={styles.timeContainer}>
+              <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
+            </View>
           </View>
 
-          {/* Content */}
-          <View style={styles.details}>
-            <View style={styles.header}>
-              <Text style={[styles.itemName, { color: theme.colors.text }]}>{getItemName()}</Text>
-              <View style={styles.timeContainer}>
-                <Clock size={12} color={theme.colors.textSecondary} />
-                <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
-              </View>
-            </View>
+          <View style={styles.quantityContainer}>
+            <Package size={16} color={theme.colors.text} />
+            <Text style={[styles.quantity, { color: theme.colors.textSecondary }]}>Quantity: 1</Text>
+          </View>
 
-            <View style={styles.metaContainer}>
-              <View style={styles.weightContainer}>
-                <Weight size={16} color={theme.colors.text} />
-                <Text style={[styles.weight, { color: theme.colors.text }]}>{formatWeight(entry.weight)}</Text>
-              </View>
-
-              <View style={styles.propertiesContainer}>
-                {entry.recyclable && (
-                  <View style={[styles.propertyBadge, styles.recyclableBadge]}>
-                    <Recycle size={12} color="#10b981" />
-                    <Text style={styles.recyclableText}>Recyclable</Text>
-                  </View>
-                )}
-                {entry.compostable && (
-                  <View style={[styles.propertyBadge, styles.compostableBadge]}>
-                    <Leaf size={12} color="#f59e0b" />
-                    <Text style={styles.compostableText}>Compostable</Text>
-                  </View>
-                )}
-              </View>
-            </View>
+          <View style={styles.weightContainer}>
+            <Weight size={18} color={theme.colors.text} />
+            <Text style={[styles.weight, { color: theme.colors.text }]}>{formatWeight(entry.weight)}</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -126,6 +92,7 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
 const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -135,10 +102,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-    overflow: 'hidden',
-  },
-  gradient: {
-    padding: 16,
   },
   content: {
     flexDirection: 'row',
@@ -146,7 +109,6 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     marginRight: 16,
-    position: 'relative',
   },
   image: {
     width: 80,
@@ -164,87 +126,50 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     fontSize: 24,
   },
-  typeBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    minWidth: 24,
-    alignItems: 'center',
-  },
-  typeBadgeText: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 10,
-    color: '#ffffff',
-  },
   details: {
     flex: 1,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   itemName: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
+    fontSize: 18,
     flex: 1,
-    marginRight: 8,
   },
   timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    gap: 4,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   time: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
   },
-  metaContainer: {
-    gap: 8,
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 6,
+  },
+  quantity: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
   },
   weightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    marginTop: 4,
   },
   weight: {
     fontFamily: 'Inter-Bold',
-    fontSize: 18,
-  },
-  propertiesContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  propertyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  recyclableBadge: {
-    backgroundColor: '#dcfce7',
-  },
-  recyclableText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 11,
-    color: '#10b981',
-  },
-  compostableBadge: {
-    backgroundColor: '#fef3c7',
-  },
-  compostableText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 11,
-    color: '#f59e0b',
+    fontSize: 20,
   },
 });
