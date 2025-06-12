@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WasteGoal } from '@/types/waste';
-import { Target, TrendingDown, Recycle, Leaf, CheckCircle } from 'lucide-react-native';
+import { Target, TrendingDown, Recycle, Leaf, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface GoalCardProps {
