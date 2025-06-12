@@ -10,103 +10,99 @@ export default function TabLayout() {
   const { theme } = useTheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopWidth: 1,
-          borderTopColor: '#f0f0f0',
-          paddingBottom: Platform.OS === 'ios' ? 35 : 25,
-          paddingTop: 20,
-          height: Platform.OS === 'ios' ? 110 : 90,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textSecondary,
-        tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium',
-          fontSize: 12,
-          marginTop: 6,
-        },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ size, color }) => (
-            <House size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="rewards"
-        options={{
-          title: 'Rewards',
-          tabBarIcon: ({ size, color }) => (
-            <Gift size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="camera"
-        options={{
-          href: null, // Hide this tab from the tab bar
-        }}
-      />
-    </Tabs>
-  );
-}
+    <View style={styles.container}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: '#ffffff',
+            borderTopWidth: 1,
+            borderTopColor: '#f0f0f0',
+            paddingBottom: Platform.OS === 'ios' ? 35 : 25,
+            paddingTop: 20,
+            height: Platform.OS === 'ios' ? 110 : 90,
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textSecondary,
+          tabBarLabelStyle: {
+            fontFamily: 'Inter-Medium',
+            fontSize: 12,
+            marginTop: 6,
+          },
+        }}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ size, color }) => (
+              <House size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="rewards"
+          options={{
+            title: 'Rewards',
+            tabBarIcon: ({ size, color }) => (
+              <Gift size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: 'Settings',
+            tabBarIcon: ({ size, color }) => (
+              <Settings size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="camera"
+          options={{
+            href: null, // Hide this tab from the tab bar
+          }}
+        />
+      </Tabs>
 
-function CameraTabButton({ onPress, ...props }: any) {
-  const { theme } = useTheme();
-  
-  return (
-    <TouchableOpacity
-      style={[styles.cameraButton]}
-      onPress={() => router.push('/camera')}
-      {...props}
-    >
-      <View style={[styles.cameraButtonInner, { backgroundColor: theme.colors.primary }]}>
-        <Plus size={24} color="#ffffff" />
-      </View>
-    </TouchableOpacity>
+      {/* Floating Camera Button - Positioned within tab bar area */}
+      <TouchableOpacity
+        style={[styles.floatingCameraButton, { backgroundColor: '#2d3748' }]}
+        onPress={() => router.push('/camera')}
+      >
+        <Plus size={28} color="#ffffff" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cameraButton: {
-    top: -20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  container: {
+    flex: 1,
   },
-  cameraButtonInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  floatingCameraButton: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 75 : 55, // Positioned within the tab bar area
+    right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#10b981',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 1000,
   },
 });

@@ -173,14 +173,6 @@ export default function HomeScreen() {
             )}
           </View>
         </ScrollView>
-
-        {/* Floating Camera Button */}
-        <TouchableOpacity
-          style={[styles.floatingCameraButton, { backgroundColor: theme.colors.text }]}
-          onPress={() => router.push('/camera')}
-        >
-          <Plus size={28} color="#ffffff" />
-        </TouchableOpacity>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -206,7 +198,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 180, // Extra padding to account for floating button
+    paddingBottom: 140, // Adjusted padding for tab bar integration
   },
   header: {
     flexDirection: 'row',
@@ -303,24 +295,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
-  },
-  floatingCameraButton: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 140 : 120, // Positioned right above tab bar with proper spacing
-    right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 1000,
   },
 });
