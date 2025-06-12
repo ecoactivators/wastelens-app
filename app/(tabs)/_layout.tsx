@@ -14,13 +14,22 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: theme.colors.tabBar,
-          borderTopWidth: 1,
-          borderTopColor: theme.colors.tabBarBorder,
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
           paddingBottom: Platform.OS === 'ios' ? 35 : 25,
           paddingTop: 20,
           height: Platform.OS === 'ios' ? 110 : 90,
+          position: 'absolute',
+          elevation: 0,
+          shadowOpacity: 0,
         },
+        tabBarBackground: () => (
+          <View style={{
+            flex: 1,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+          }} />
+        ),
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarLabelStyle: {
