@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { WasteEntry, WasteType } from '@/types/waste';
 import { Package, Weight } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { router } from 'expo-router';
 
 interface WasteCardProps {
   entry: WasteEntry;
@@ -49,8 +50,17 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
     return `${weight} Grams`;
   };
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      // Navigate to item detail page
+      router.push(`/item/${entry.id}`);
+    }
+  };
+
   return (
-    <TouchableOpacity style={[styles.container, { backgroundColor: '#f8f9fa' }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.container, { backgroundColor: '#f8f9fa' }]} onPress={handlePress}>
       <View style={styles.content}>
         {/* Image */}
         <View style={styles.imageContainer}>
