@@ -224,13 +224,11 @@ export default function HomeScreen() {
                       colors={['#10b981', '#059669']}
                       style={styles.scanButtonGradient}
                     >
-                      <View style={styles.scanButtonContent}>
-                        <Plus size={20} color="#ffffff" />
-                        <Text style={styles.scanButtonText}>Scan Your First Item</Text>
-                      </View>
+                      <Plus size={20} color="#ffffff" />
+                      <Text style={styles.scanButtonText}>Scan Your First Item</Text>
                     </LinearGradient>
                   </TouchableOpacity>
-                </LinearGradient>
+                </View>
               </View>
             )}
           </View>
@@ -494,14 +492,12 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   scanButtonGradient: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 16,
-  },
-  scanButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
   },
   scanButtonText: {
     fontFamily: 'Inter-Bold',
