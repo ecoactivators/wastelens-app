@@ -27,8 +27,8 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             shadowOpacity: 0,
-            paddingLeft: 10, // Shift tabs to the left
-            paddingRight: 100, // Create space on the right for the plus button
+            paddingLeft: 20, // Increased left padding to shift icons further left
+            paddingRight: 120, // Increased right padding to create more space for plus button
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
