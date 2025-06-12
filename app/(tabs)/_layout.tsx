@@ -27,8 +27,8 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             shadowOpacity: 0,
-            paddingLeft: 30, // Increased for better spacing
-            paddingRight: 140, // More space for plus button
+            paddingLeft: 20, // Reduced left padding
+            paddingRight: 100, // Reduced right padding to bring settings closer to plus
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
@@ -41,7 +41,7 @@ export default function TabLayout() {
             marginBottom: 2,
           },
           tabBarItemStyle: {
-            paddingHorizontal: 8, // Add horizontal padding to each tab item for better spacing
+            paddingHorizontal: 12, // Increased padding for better spacing
           },
         }}>
         <Tabs.Screen
