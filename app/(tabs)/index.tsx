@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
@@ -37,10 +38,15 @@ export default function HomeScreen() {
 
   if (loading || !stats) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#e5e7eb', '#f9fafb', '#ffffff']}
+          style={styles.gradientBackground}
+        >
+          <View style={styles.loadingContainer}>
+            <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
+          </View>
+        </LinearGradient>
       </SafeAreaView>
     );
   }
@@ -48,133 +54,141 @@ export default function HomeScreen() {
   console.log('🎨 [HomeScreen] Rendering with', recentItems.length, 'recent items');
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.colors.primary}
-          />
-        }
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#e5e7eb', '#f9fafb', '#ffffff']}
+        style={styles.gradientBackground}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
+        <ScrollView 
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.colors.primary}
+            />
+          }
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
+              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
+            </View>
           </View>
-        </View>
 
-        {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <StatsCard
-            title="This Week"
-            value={`${stats.weeklyWeight} Grams`}
-            subtitle="Total waste"
-            icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
-          />
-          <StatsCard
-            title="Recycling Rate"
-            value={`${Math.round(stats.recyclingRate)}%`}
-            subtitle="Keep it up!"
-            color={theme.colors.success}
-            icon={<Recycle size={20} color={theme.colors.success} />}
-          />
-        </View>
+          {/* Quick Stats */}
+          <View style={styles.statsContainer}>
+            <StatsCard
+              title="This Week"
+              value={`${stats.weeklyWeight} Grams`}
+              subtitle="Total waste"
+              icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
+            />
+            <StatsCard
+              title="Recycling Rate"
+              value={`${Math.round(stats.recyclingRate)}%`}
+              subtitle="Keep it up!"
+              color={theme.colors.success}
+              icon={<Recycle size={20} color={theme.colors.success} />}
+            />
+          </View>
 
-        <View style={styles.statsContainer}>
-          <StatsCard
-            title="CO₂ Saved"
-            value={`${stats.co2Saved.toFixed(1)}kg`}
-            subtitle="This month"
-            color="#3b82f6"
-            icon={<Leaf size={20} color="#3b82f6" />}
-          />
-          <StatsCard
-            title="Streak"
-            value={`${stats.streak} days`}
-            subtitle="Amazing!"
-            color={theme.colors.warning}
-            icon={<Zap size={20} color={theme.colors.warning} />}
-          />
-        </View>
+          <View style={styles.statsContainer}>
+            <StatsCard
+              title="CO₂ Saved"
+              value={`${stats.co2Saved.toFixed(1)}kg`}
+              subtitle="This month"
+              color="#3b82f6"
+              icon={<Leaf size={20} color="#3b82f6" />}
+            />
+            <StatsCard
+              title="Streak"
+              value={`${stats.streak} days`}
+              subtitle="Amazing!"
+              color={theme.colors.warning}
+              icon={<Zap size={20} color={theme.colors.warning} />}
+            />
+          </View>
 
-        {/* Goals */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
-          {goals.map(goal => (
-            <GoalCard key={goal.id} goal={goal} />
-          ))}
-        </View>
+          {/* Goals */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
+            {goals.map(goal => (
+              <GoalCard key={goal.id} goal={goal} />
+            ))}
+          </View>
 
-        {/* Recently Scanned Items */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
-            {recentItems.length > 0 && (
-              <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
-                <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
-                  {recentItems.length}
+          {/* Recently Scanned Items */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
+              {recentItems.length > 0 && (
+                <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
+                  <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
+                    {recentItems.length}
+                  </Text>
+                </View>
+              )}
+            </View>
+            
+            {recentItems.length > 0 ? (
+              <>
+                {recentItems.slice(0, 5).map(item => {
+                  console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
+                  return (
+                    <WasteCard key={item.id} entry={item} />
+                  );
+                })}
+                {recentItems.length > 5 && (
+                  <TouchableOpacity 
+                    style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
+                    onPress={() => {
+                      // Navigate to a full list view - for now just show an alert
+                      console.log('View all items');
+                    }}
+                  >
+                    <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
+                      View all {recentItems.length} items
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+                <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+                  No items scanned yet. Start by scanning an item!
                 </Text>
+                <TouchableOpacity
+                  style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => router.push('/camera')}
+                >
+                  <Plus size={20} color="#ffffff" />
+                  <Text style={styles.scanButtonText}>Scan Item</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
-          
-          {recentItems.length > 0 ? (
-            <>
-              {recentItems.slice(0, 5).map(item => {
-                console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
-                return (
-                  <WasteCard key={item.id} entry={item} />
-                );
-              })}
-              {recentItems.length > 5 && (
-                <TouchableOpacity 
-                  style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
-                  onPress={() => {
-                    // Navigate to a full list view - for now just show an alert
-                    console.log('View all items');
-                  }}
-                >
-                  <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
-                    View all {recentItems.length} items
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </>
-          ) : (
-            <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
-              <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
-                No items scanned yet. Start by scanning an item!
-              </Text>
-              <TouchableOpacity
-                style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
-                onPress={() => router.push('/camera')}
-              >
-                <Plus size={20} color="#ffffff" />
-                <Text style={styles.scanButtonText}>Scan Item</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      {/* Floating Camera Button */}
-      <TouchableOpacity
-        style={[styles.floatingCameraButton, { backgroundColor: theme.colors.primary }]}
-        onPress={() => router.push('/camera')}
-      >
-        <Plus size={28} color="#ffffff" />
-      </TouchableOpacity>
+        {/* Floating Camera Button */}
+        <TouchableOpacity
+          style={[styles.floatingCameraButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => router.push('/camera')}
+        >
+          <Plus size={28} color="#ffffff" />
+        </TouchableOpacity>
+      </LinearGradient>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  gradientBackground: {
     flex: 1,
   },
   loadingContainer: {
