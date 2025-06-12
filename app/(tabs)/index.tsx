@@ -179,7 +179,7 @@ export default function HomeScreen() {
           style={[styles.floatingCameraButton, { backgroundColor: theme.colors.primary }]}
           onPress={() => router.push('/camera')}
         >
-          <Plus size={28} color="#ffffff" />
+          <Plus size={32} color="#ffffff" />
         </TouchableOpacity>
       </LinearGradient>
     </SafeAreaView>
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140, // Increased padding to account for tab bar + floating button
+    paddingBottom: 160, // Increased padding to account for larger floating button
   },
   header: {
     flexDirection: 'row',
@@ -306,11 +306,11 @@ const styles = StyleSheet.create({
   },
   floatingCameraButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : 100, // Position above tab bar
+    bottom: Platform.OS === 'ios' ? 130 : 110, // Positioned right above tab bar
     right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72, // Increased from 64
+    height: 72, // Increased from 64
+    borderRadius: 36, // Adjusted for new size
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#10b981',
