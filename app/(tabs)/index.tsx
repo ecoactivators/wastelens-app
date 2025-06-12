@@ -1,15 +1,17 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
-import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
+import { Plus, Zap, Recycle, Leaf, TrendingDown, Camera, Sparkles } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Platform } from 'react-native';
+
+const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const { 
@@ -41,11 +43,15 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={['#e5e7eb', '#f9fafb', '#ffffff']}
+          colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
           style={styles.gradientBackground}
         >
           <View style={styles.loadingContainer}>
-            <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
+            <View style={styles.loadingSpinner}>
+              <Sparkles size={32} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.loadingText, { color: theme.colors.text }]}>Analyzing your impact...</Text>
+            <Text style={[styles.loadingSubtext, { color: theme.colors.textSecondary }]}>Just a moment</Text>
           </View>
         </LinearGradient>
       </SafeAreaView>
@@ -57,7 +63,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#e5e7eb', '#f9fafb', '#ffffff']}
+        colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
         style={styles.gradientBackground}
       >
         <ScrollView 
@@ -69,63 +75,108 @@ export default function HomeScreen() {
               refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={theme.colors.primary}
+              colors={[theme.colors.primary]}
             />
           }
         >
           {/* Header */}
           <View style={styles.header}>
-            <View>
-              <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
-              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
+            <View style={styles.headerContent}>
+              <View style={styles.titleContainer}>
+                <LinearGradient
+                  colors={['#10b981', '#059669']}
+                  style={styles.logoGradient}
+                >
+                  <Leaf size={24} color="#ffffff" />
+                </LinearGradient>
+                <View style={styles.titleText}>
+                  <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
+                  <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track • Reduce • Impact</Text>
+                </View>
+              </View>
+              
+              {/* Quick Scan Button */}
+              <TouchableOpacity
+                style={[styles.quickScanButton, { backgroundColor: theme.colors.primary }]}
+                onPress={() => router.push('/camera')}
+              >
+                <Camera size={20} color="#ffffff" />
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Stats */}
-          <View style={styles.statsContainer}>
-            <StatsCard
-              title="This Week"
-              value={`${stats.weeklyWeight} Grams`}
-              subtitle="Total waste"
-              icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
-            />
-            <StatsCard
-              title="Recycling Rate"
-              value={`${Math.round(stats.recyclingRate)}%`}
-              subtitle="Keep it up!"
-              color={theme.colors.success}
-              icon={<Recycle size={20} color={theme.colors.success} />}
-            />
+          {/* Hero Stats Card */}
+          <View style={styles.heroSection}>
+            <LinearGradient
+              colors={['#10b981', '#059669']}
+              style={styles.heroCard}
+            >
+              <View style={styles.heroContent}>
+                <Text style={styles.heroTitle}>Your Environmental Impact</Text>
+                <View style={styles.heroStats}>
+                  <View style={styles.heroStatItem}>
+                    <Text style={styles.heroStatValue}>{stats.co2Saved.toFixed(1)}kg</Text>
+                    <Text style={styles.heroStatLabel}>CO₂ Saved</Text>
+                  </View>
+                  <View style={styles.heroStatDivider} />
+                  <View style={styles.heroStatItem}>
+                    <Text style={styles.heroStatValue}>{stats.streak}</Text>
+                    <Text style={styles.heroStatLabel}>Day Streak</Text>
+                  </View>
+                  <View style={styles.heroStatDivider} />
+                  <View style={styles.heroStatItem}>
+                    <Text style={styles.heroStatValue}>{Math.round(stats.recyclingRate)}%</Text>
+                    <Text style={styles.heroStatLabel}>Recycled</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.heroDecoration}>
+                <Sparkles size={40} color="rgba(255, 255, 255, 0.2)" />
+              </View>
+            </LinearGradient>
           </View>
 
-          <View style={styles.statsContainer}>
-            <StatsCard
-              title="CO₂ Saved"
-              value={`${stats.co2Saved.toFixed(1)}kg`}
-              subtitle="This month"
-              color="#3b82f6"
-              icon={<Leaf size={20} color="#3b82f6" />}
-            />
-            <StatsCard
-              title="Streak"
-              value={`${stats.streak} days`}
-              subtitle="Amazing!"
-              color={theme.colors.warning}
-              icon={<Zap size={20} color={theme.colors.warning} />}
-            />
+          {/* Quick Stats Grid */}
+          <View style={styles.statsSection}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>This Week</Text>
+            <View style={styles.statsGrid}>
+              <StatsCard
+                title="Total Waste"
+                value={`${stats.weeklyWeight}g`}
+                subtitle="Tracked items"
+                icon={<TrendingDown size={18} color="#6b7280" />}
+                compact
+              />
+              <StatsCard
+                title="Items Scanned"
+                value={`${recentItems.length}`}
+                subtitle="This week"
+                color="#3b82f6"
+                icon={<Camera size={18} color="#3b82f6" />}
+                compact
+              />
+            </View>
           </View>
 
-          {/* Goals */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
-            {goals.map(goal => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
-          </View>
+          {/* Goals Section */}
+          {goals.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
+                <TouchableOpacity style={styles.sectionAction}>
+                  <Text style={[styles.sectionActionText, { color: theme.colors.primary }]}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              {goals.slice(0, 2).map(goal => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+            </View>
+          )}
 
           {/* Recently Scanned Items */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Scans</Text>
               {recentItems.length > 0 && (
                 <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
                   <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
@@ -137,13 +188,13 @@ export default function HomeScreen() {
             
             {recentItems.length > 0 ? (
               <>
-                {recentItems.slice(0, 5).map(item => {
+                {recentItems.slice(0, 4).map(item => {
                   console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
                   return (
                     <WasteCard key={item.id} entry={item} />
                   );
                 })}
-                {recentItems.length > 5 && (
+                {recentItems.length > 4 && (
                   <TouchableOpacity 
                     style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
                     onPress={() => {
@@ -159,19 +210,33 @@ export default function HomeScreen() {
               </>
             ) : (
               <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
-                <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
-                  No items scanned yet. Start by scanning an item!
-                </Text>
-                <TouchableOpacity
-                  style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
-                  onPress={() => router.push('/camera')}
+                <LinearGradient
+                  colors={['#f0f9ff', '#e0f2fe']}
+                  style={styles.emptyStateGradient}
                 >
-                  <Plus size={20} color="#ffffff" />
-                  <Text style={styles.scanButtonText}>Scan Item</Text>
-                </TouchableOpacity>
+                  <View style={styles.emptyStateIcon}>
+                    <Camera size={32} color={theme.colors.primary} />
+                  </View>
+                  <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>
+                    Start Your Journey
+                  </Text>
+                  <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+                    Scan your first waste item to begin tracking your environmental impact
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
+                    onPress={() => router.push('/camera')}
+                  >
+                    <Camera size={20} color="#ffffff" />
+                    <Text style={styles.scanButtonText}>Scan First Item</Text>
+                  </TouchableOpacity>
+                </LinearGradient>
               </View>
             )}
           </View>
+
+          {/* Bottom Spacing for Tab Bar */}
+          <View style={styles.bottomSpacing} />
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -189,39 +254,142 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  loadingSpinner: {
+    marginBottom: 20,
   },
   loadingText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    marginBottom: 8,
+  },
+  loadingSubtext: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140, // Adjusted padding for tab bar integration
+    paddingBottom: 140,
   },
   header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleText: {
+    flex: 1,
   },
   greeting: {
     fontFamily: 'Inter-Bold',
-    fontSize: 28,
-    marginBottom: 4,
+    fontSize: 24,
+    marginBottom: 2,
   },
   subtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
   },
-  statsContainer: {
-    flexDirection: 'row',
+  quickScanButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  heroSection: {
     paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  heroCard: {
+    borderRadius: 20,
+    padding: 24,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#10b981',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  heroContent: {
+    zIndex: 1,
+  },
+  heroTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#ffffff',
+    marginBottom: 16,
+    opacity: 0.9,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heroStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  heroStatValue: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 24,
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  heroStatLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    color: '#ffffff',
+    opacity: 0.8,
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: 16,
+  },
+  heroDecoration: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 0,
+  },
+  statsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  statsGrid: {
+    flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
   },
   section: {
     paddingHorizontal: 20,
@@ -237,6 +405,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     fontSize: 20,
   },
+  sectionAction: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  sectionActionText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+  },
   entryCountBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -249,8 +425,8 @@ const styles = StyleSheet.create({
   viewAllButton: {
     alignItems: 'center',
     paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 8,
+    borderRadius: 16,
+    marginTop: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -265,35 +441,66 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    borderRadius: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  emptyStateGradient: {
+    alignItems: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 32,
+  },
+  emptyStateIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyStateTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   emptyStateText: {
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: 'center',
+    lineHeight: 24,
   },
   scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: '#10b981',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   scanButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
+  },
+  bottomSpacing: {
+    height: 20,
   },
 });

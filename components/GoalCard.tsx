@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { WasteGoal } from '@/types/waste';
-import { Target, TrendingDown, Recycle, Leaf } from 'lucide-react-native';
+import { Target, TrendingDown, Recycle, Leaf, CheckCircle } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface GoalCardProps {
@@ -20,51 +21,90 @@ const goalColors = {
   compost: '#f59e0b',
 };
 
+const goalGradients = {
+  reduce: ['#fef2f2', '#fee2e2'],
+  recycle: ['#f0fdf4', '#dcfce7'],
+  compost: ['#fffbeb', '#fef3c7'],
+};
+
 export function GoalCard({ goal }: GoalCardProps) {
   const { theme } = useTheme();
   const progress = Math.min((goal.current / goal.target) * 100, 100);
   const isCompleted = goal.current >= goal.target;
 
+  const getGoalTitle = () => {
+    switch (goal.type) {
+      case 'reduce':
+        return 'Waste Reduction';
+      case 'recycle':
+        return 'Recycling Rate';
+      case 'compost':
+        return 'Composting Goal';
+      default:
+        return goal.type.charAt(0).toUpperCase() + goal.type.slice(1);
+    }
+  };
+
+  const getProgressText = () => {
+    const unit = goal.type === 'reduce' ? 'g' : '%';
+    return `${Math.round(goal.current)}${unit} / ${goal.target}${unit}`;
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
-      <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          {goalIcons[goal.type]}
-          <Text style={[styles.title, { color: theme.colors.text }]}>
-            {goal.type.charAt(0).toUpperCase() + goal.type.slice(1)} Goal
-          </Text>
-        </View>
-        <Text style={[styles.period, { color: theme.colors.textSecondary }]}>{goal.period}</Text>
-      </View>
-
-      <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { backgroundColor: theme.colors.border }]}>
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${progress}%`,
-                backgroundColor: goalColors[goal.type],
-              },
-            ]}
-          />
-        </View>
-        <Text style={[styles.progressText, { color: theme.colors.text }]}>
-          {Math.round(progress)}%
-        </Text>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={[styles.current, { color: theme.colors.textSecondary }]}>
-          {goal.current}{goal.type === 'reduce' ? 'g' : '%'} / {goal.target}{goal.type === 'reduce' ? 'g' : '%'}
-        </Text>
-        {isCompleted && (
-          <View style={[styles.completedBadge, { backgroundColor: theme.colors.primaryLight }]}>
-            <Target size={12} color={theme.colors.success} />
-            <Text style={[styles.completedText, { color: theme.colors.success }]}>Completed!</Text>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={goalGradients[goal.type]}
+        style={styles.gradient}
+      >
+        <View style={styles.header}>
+          <View style={styles.titleContainer}>
+            <View style={[styles.iconContainer, { backgroundColor: goalColors[goal.type] + '20' }]}>
+              {goalIcons[goal.type]}
+            </View>
+            <View style={styles.titleText}>
+              <Text style={[styles.title, { color: theme.colors.text }]}>
+                {getGoalTitle()}
+              </Text>
+              <Text style={[styles.period, { color: theme.colors.textSecondary }]}>
+                {goal.period.charAt(0).toUpperCase() + goal.period.slice(1)} goal
+              </Text>
+            </View>
           </View>
-        )}
-      </View>
+          
+          {isCompleted && (
+            <View style={[styles.completedBadge, { backgroundColor: goalColors[goal.type] }]}>
+              <CheckCircle size={16} color="#ffffff" />
+            </View>
+          )}
+        </View>
+
+        <View style={styles.progressSection}>
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressBar, { backgroundColor: theme.colors.border }]}>
+              <LinearGradient
+                colors={[goalColors[goal.type], goalColors[goal.type] + 'CC']}
+                style={[styles.progressFill, { width: `${progress}%` }]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+            </View>
+            <Text style={[styles.progressPercentage, { color: goalColors[goal.type] }]}>
+              {Math.round(progress)}%
+            </Text>
+          </View>
+          
+          <View style={styles.footer}>
+            <Text style={[styles.progressText, { color: theme.colors.textSecondary }]}>
+              {getProgressText()}
+            </Text>
+            {isCompleted && (
+              <Text style={[styles.completedText, { color: goalColors[goal.type] }]}>
+                Goal achieved! 🎉
+              </Text>
+            )}
+          </View>
+        </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -72,7 +112,6 @@ export function GoalCard({ goal }: GoalCardProps) {
 const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
-    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -82,6 +121,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    overflow: 'hidden',
+  },
+  gradient: {
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
@@ -92,22 +135,42 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    flex: 1,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  titleText: {
+    flex: 1,
   },
   title: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
+    marginBottom: 2,
   },
   period: {
     fontFamily: 'Inter-Medium',
     fontSize: 12,
-    textTransform: 'capitalize',
+  },
+  completedBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressSection: {
+    gap: 12,
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
   },
   progressBar: {
     flex: 1,
@@ -119,9 +182,9 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  progressText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
+  progressPercentage: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
     minWidth: 40,
     textAlign: 'right',
   },
@@ -130,20 +193,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  current: {
+  progressText: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
   },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
   completedText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
   },
 });
