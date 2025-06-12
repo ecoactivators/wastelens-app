@@ -39,21 +39,11 @@ export default function HomeScreen() {
     }, 1000);
   }, [refreshData]);
 
-  const handleItemPress = (item: any) => {
-    // Navigate to analysis screen with the item's image
-    if (item.imageUrl) {
-      router.push({
-        pathname: '/analysis',
-        params: { photoUri: item.imageUrl }
-      });
-    }
-  };
-
   if (loading || !stats) {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={['#f3f4f6', '#e5e7eb', '#ffffff']}
+          colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
           style={styles.gradientBackground}
         >
           <View style={styles.loadingContainer}>
@@ -72,7 +62,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#f3f4f6', '#e5e7eb', '#ffffff']}
+        colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
         style={styles.gradientBackground}
       >
         <ScrollView 
@@ -88,37 +78,34 @@ export default function HomeScreen() {
             />
           }
         >
-          {/* App Title */}
-          <View style={styles.appHeader}>
-            <Text style={styles.appTitle}>WasteLens</Text>
-            <Text style={styles.appSubtitle}>Track • Reduce • Impact</Text>
-          </View>
-
-          {/* Environmental Impact Card */}
-          <View style={styles.impactSection}>
+          {/* Hero Header */}
+          <View style={styles.heroSection}>
             <LinearGradient
               colors={['#10b981', '#059669', '#047857']}
-              style={styles.impactGradient}
+              style={styles.heroGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <View style={styles.impactHeader}>
-                <Text style={styles.impactTitle}>Your Environmental Impact</Text>
-                <View style={styles.impactIcon}>
-                  <Sparkles size={24} color="#ffffff" />
+              <View style={styles.heroContent}>
+                <View style={styles.heroText}>
+                  <Text style={styles.heroTitle}>WasteLens</Text>
+                  <Text style={styles.heroSubtitle}>Track your waste, save the planet</Text>
+                </View>
+                <View style={styles.heroIcon}>
+                  <Leaf size={32} color="#ffffff" />
                 </View>
               </View>
               
-              {/* Impact Stats */}
-              <View style={styles.impactStats}>
-                <View style={styles.impactItem}>
-                  <Text style={styles.impactValue}>{stats.co2Saved.toFixed(1)}kg</Text>
-                  <Text style={styles.impactLabel}>CO₂ Saved</Text>
-                </View>
-                <View style={styles.impactDivider} />
+              {/* Impact Summary */}
+              <View style={styles.impactSummary}>
                 <View style={styles.impactItem}>
                   <Text style={styles.impactValue}>{stats.streak}</Text>
                   <Text style={styles.impactLabel}>Day Streak</Text>
+                </View>
+                <View style={styles.impactDivider} />
+                <View style={styles.impactItem}>
+                  <Text style={styles.impactValue}>{stats.co2Saved.toFixed(1)}kg</Text>
+                  <Text style={styles.impactLabel}>CO₂ Saved</Text>
                 </View>
                 <View style={styles.impactDivider} />
                 <View style={styles.impactItem}>
@@ -205,11 +192,7 @@ export default function HomeScreen() {
                 {recentItems.slice(0, 5).map(item => {
                   console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
                   return (
-                    <WasteCard 
-                      key={item.id} 
-                      entry={item} 
-                      onPress={() => handleItemPress(item)}
-                    />
+                    <WasteCard key={item.id} entry={item} />
                   );
                 })}
                 {recentItems.length > 5 && (
@@ -285,30 +268,13 @@ const styles = StyleSheet.create({
     paddingBottom: 140,
   },
   
-  // App Header
-  appHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    marginBottom: 24,
-  },
-  appTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 32,
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  appSubtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: '#6b7280',
-  },
-
-  // Environmental Impact Section
-  impactSection: {
+  // Hero Section
+  heroSection: {
     marginHorizontal: 20,
-    marginBottom: 40,
+    marginTop: 20,
+    marginBottom: 32,
   },
-  impactGradient: {
+  heroGradient: {
     borderRadius: 24,
     padding: 24,
     shadowColor: '#10b981',
@@ -320,34 +286,41 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  impactHeader: {
+  heroContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
-  impactTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#ffffff',
+  heroText: {
     flex: 1,
   },
-  impactIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  heroTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 32,
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  impactStats: {
+  impactSummary: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 16,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    padding: 16,
   },
   impactItem: {
     flex: 1,
@@ -355,21 +328,20 @@ const styles = StyleSheet.create({
   },
   impactValue: {
     fontFamily: 'Inter-Bold',
-    fontSize: 28,
+    fontSize: 20,
     color: '#ffffff',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   impactLabel: {
     fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   impactDivider: {
     width: 1,
-    height: 50,
+    height: 32,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 20,
+    marginHorizontal: 16,
   },
 
   // Stats Section
