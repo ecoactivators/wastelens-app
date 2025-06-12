@@ -27,17 +27,18 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             shadowOpacity: 0,
-            paddingHorizontal: 20, // Add horizontal padding to compress tabs
+            paddingLeft: 10, // Shift tabs to the left
+            paddingRight: 100, // Create space on the right for the plus button
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
           tabBarLabelStyle: {
             fontFamily: 'Inter-Medium',
-            fontSize: 11, // Slightly smaller font
-            marginTop: 4, // Reduced margin
+            fontSize: 11,
+            marginTop: 4,
           },
           tabBarIconStyle: {
-            marginBottom: 2, // Reduced margin between icon and label
+            marginBottom: 2,
           },
         }}>
         <Tabs.Screen
@@ -45,7 +46,7 @@ export default function TabLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({ size, color }) => (
-              <House size={22} color={color} /> // Reduced from 24 to 22
+              <House size={22} color={color} />
             ),
           }}
         />
@@ -54,7 +55,7 @@ export default function TabLayout() {
           options={{
             title: 'Rewards',
             tabBarIcon: ({ size, color }) => (
-              <Gift size={22} color={color} /> // Reduced from 24 to 22
+              <Gift size={22} color={color} />
             ),
           }}
         />
@@ -63,7 +64,7 @@ export default function TabLayout() {
           options={{
             title: 'Settings',
             tabBarIcon: ({ size, color }) => (
-              <Settings size={22} color={color} /> // Reduced from 24 to 22
+              <Settings size={22} color={color} />
             ),
           }}
         />
