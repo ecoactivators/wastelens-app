@@ -61,6 +61,7 @@ export default function HomeScreen() {
       >
         <ScrollView 
           style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -202,6 +203,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120, // Add padding to account for tab bar
   },
   header: {
     flexDirection: 'row',
