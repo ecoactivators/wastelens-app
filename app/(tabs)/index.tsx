@@ -39,6 +39,16 @@ export default function HomeScreen() {
     }, 1000);
   }, [refreshData]);
 
+  const handleItemPress = (item: any) => {
+    // Navigate to analysis screen with the item's image
+    if (item.imageUrl) {
+      router.push({
+        pathname: '/analysis',
+        params: { photoUri: item.imageUrl }
+      });
+    }
+  };
+
   if (loading || !stats) {
     return (
       <SafeAreaView style={styles.container}>
@@ -195,7 +205,11 @@ export default function HomeScreen() {
                 {recentItems.slice(0, 5).map(item => {
                   console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
                   return (
-                    <WasteCard key={item.id} entry={item} />
+                    <WasteCard 
+                      key={item.id} 
+                      entry={item} 
+                      onPress={() => handleItemPress(item)}
+                    />
                   );
                 })}
                 {recentItems.length > 5 && (
@@ -310,7 +324,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   impactTitle: {
     fontFamily: 'Inter-Bold',
@@ -332,7 +346,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 16,
-    padding: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
   },
   impactItem: {
     flex: 1,
@@ -340,20 +355,21 @@ const styles = StyleSheet.create({
   },
   impactValue: {
     fontFamily: 'Inter-Bold',
-    fontSize: 24,
+    fontSize: 28,
     color: '#ffffff',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   impactLabel: {
     fontFamily: 'Inter-Medium',
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
   },
   impactDivider: {
     width: 1,
-    height: 40,
+    height: 50,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 16,
+    marginHorizontal: 20,
   },
 
   // Stats Section
