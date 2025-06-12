@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { House, Gift, Settings, Plus } from 'lucide-react-native';
 import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -14,22 +14,13 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'transparent',
-          borderTopWidth: 0,
+          backgroundColor: theme.colors.tabBar,
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.tabBarBorder,
           paddingBottom: Platform.OS === 'ios' ? 35 : 25,
           paddingTop: 20,
           height: Platform.OS === 'ios' ? 110 : 90,
-          position: 'absolute',
-          elevation: 0,
-          shadowOpacity: 0,
         },
-        tabBarBackground: () => (
-          <View style={{
-            flex: 1,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-          }} />
-        ),
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarLabelStyle: {
