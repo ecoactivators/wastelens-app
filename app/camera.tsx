@@ -1,15 +1,19 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Modal, Image } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
-import { X, Zap, Image as ImageIcon, RotateCcw } from 'lucide-react-native';
+import { X, Zap, Image as ImageIcon, RotateCcw, CheckCircle, XCircle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [flash, setFlash] = useState<FlashMode>('off');
   const [permission, requestPermission] = useCameraPermissions();
+  const [showGuidelines, setShowGuidelines] = useState(true);
   const cameraRef = useRef<CameraView>(null);
+  const { theme } = useTheme();
 
   if (!permission) {
     return (
@@ -112,6 +116,111 @@ export default function CameraScreen() {
     }
   };
 
+  const handleScanNow = () => {
+    setShowGuidelines(false);
+  };
+
+  const handleCloseGuidelines = () => {
+    router.back();
+  };
+
+  // Guidelines Modal
+  if (showGuidelines) {
+    return (
+      <SafeAreaView style={[styles.guidelinesContainer, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.guidelinesModal, { backgroundColor: theme.colors.surface }]}>
+          {/* Header */}
+          <View style={styles.guidelinesHeader}>
+            <TouchableOpacity onPress={handleCloseGuidelines}>
+              <X size={24} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Title */}
+          <Text style={[styles.guidelinesTitle, { color: theme.colors.text }]}>
+            Best scanning practices
+          </Text>
+
+          {/* Do and Don't Examples */}
+          <View style={styles.examplesContainer}>
+            <View style={styles.exampleColumn}>
+              <View style={styles.exampleHeader}>
+                <CheckCircle size={20} color="#10b981" />
+                <Text style={[styles.exampleHeaderText, { color: theme.colors.text }]}>Do</Text>
+              </View>
+              <View style={[styles.exampleImageContainer, { backgroundColor: theme.colors.border }]}>
+                <Image 
+                  source={{ uri: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg' }}
+                  style={styles.exampleImage}
+                />
+                <View style={styles.scanFrame}>
+                  <View style={[styles.scanCorner, styles.scanCornerTopLeft]} />
+                  <View style={[styles.scanCorner, styles.scanCornerTopRight]} />
+                  <View style={[styles.scanCorner, styles.scanCornerBottomLeft]} />
+                  <View style={[styles.scanCorner, styles.scanCornerBottomRight]} />
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.exampleColumn}>
+              <View style={styles.exampleHeader}>
+                <XCircle size={20} color="#ef4444" />
+                <Text style={[styles.exampleHeaderText, { color: theme.colors.text }]}>Don't</Text>
+              </View>
+              <View style={[styles.exampleImageContainer, { backgroundColor: theme.colors.border }]}>
+                <Image 
+                  source={{ uri: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg' }}
+                  style={[styles.exampleImage, styles.blurredImage]}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Tips */}
+          <View style={styles.tipsContainer}>
+            <Text style={[styles.tipsTitle, { color: theme.colors.text }]}>General tips:</Text>
+            <View style={styles.tipsList}>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Keep the item inside the scan lines
+                </Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Hold your phone still so the image is not blurry
+                </Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Don't take the picture at obscure angles
+                </Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Ensure good lighting for better recognition
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Scan Now Button */}
+          <TouchableOpacity 
+            style={[styles.scanNowButton, { backgroundColor: theme.colors.text }]} 
+            onPress={handleScanNow}
+          >
+            <Text style={[styles.scanNowButtonText, { color: theme.colors.surface }]}>
+              Scan now
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <CameraView
@@ -135,6 +244,19 @@ export default function CameraScreen() {
           >
             {getFlashIcon()}
           </TouchableOpacity>
+        </View>
+
+        {/* Scan Frame */}
+        <View style={styles.scanFrameContainer}>
+          <View style={styles.scanFrame}>
+            <View style={[styles.scanCorner, styles.scanCornerTopLeft]} />
+            <View style={[styles.scanCorner, styles.scanCornerTopRight]} />
+            <View style={[styles.scanCorner, styles.scanCornerBottomLeft]} />
+            <View style={[styles.scanCorner, styles.scanCornerBottomRight]} />
+          </View>
+          <Text style={styles.scanInstructions}>
+            Position the waste item within the frame
+          </Text>
         </View>
 
         {/* Bottom Controls */}
@@ -215,6 +337,144 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ffffff',
   },
+  // Guidelines Modal Styles
+  guidelinesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  guidelinesModal: {
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  guidelinesHeader: {
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+  guidelinesTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
+    marginBottom: 32,
+    textAlign: 'left',
+  },
+  examplesContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 32,
+  },
+  exampleColumn: {
+    flex: 1,
+  },
+  exampleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  exampleHeaderText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+  },
+  exampleImageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    aspectRatio: 0.75,
+    position: 'relative',
+  },
+  exampleImage: {
+    width: '100%',
+    height: '100%',
+  },
+  blurredImage: {
+    opacity: 0.7,
+  },
+  scanFrame: {
+    position: 'absolute',
+    top: '20%',
+    left: '20%',
+    right: '20%',
+    bottom: '20%',
+  },
+  scanCorner: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderColor: '#10b981',
+    borderWidth: 3,
+  },
+  scanCornerTopLeft: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+  },
+  scanCornerTopRight: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+  },
+  scanCornerBottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+  },
+  scanCornerBottomRight: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+  },
+  tipsContainer: {
+    marginBottom: 32,
+  },
+  tipsTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    marginBottom: 16,
+  },
+  tipsList: {
+    gap: 12,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  tipBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 6,
+  },
+  tipText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+  },
+  scanNowButton: {
+    borderRadius: 16,
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  scanNowButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+  },
+  // Camera Styles
   camera: {
     flex: 1,
   },
@@ -243,6 +503,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  scanFrameContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -120 }, { translateY: -120 }],
+    width: 240,
+    height: 240,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanInstructions: {
+    position: 'absolute',
+    bottom: -40,
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: '#ffffff',
+    textAlign: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   bottomControls: {
     position: 'absolute',
