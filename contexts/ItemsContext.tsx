@@ -256,12 +256,42 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   // Remove item
   const removeItem = useCallback((id: string) => {
     console.log('🗑️ [ItemsContext] Removing item:', id);
+    
+    // Find the item to be removed to get its weight
+    const itemToRemove = items.find(item => item.id === id);
+    
     setItems(prev => {
       const updated = prev.filter(item => item.id !== id);
       console.log('✅ [ItemsContext] Item removed. New count:', updated.length);
       return updated;
     });
-  }, []);
+
+    // Update goals - subtract the removed item's weight from reduce goal
+    if (itemToRemove) {
+      setGoals(prev => prev.map(goal => {
+        if (goal.type === 'reduce') {
+          const newCurrent = Math.max(0, goal.current - itemToRemove.weight);
+          console.log('🎯 [ItemsContext] Updating reduce goal:', {
+            oldCurrent: goal.current,
+            removedWeight: itemToRemove.weight,
+            newCurrent
+          });
+          return { ...goal, current: newCurrent };
+        } else if (goal.type === 'recycle') {
+          // Recalculate recycling rate without the removed item
+          const remainingItems = items.filter(item => item.id !== id);
+          if (remainingItems.length > 0) {
+            const recyclableItems = remainingItems.filter(i => i.recyclable).length;
+            const newRecyclingRate = (recyclableItems / remainingItems.length) * 100;
+            return { ...goal, current: Math.min(newRecyclingRate, 100) };
+          } else {
+            return { ...goal, current: 0 };
+          }
+        }
+        return goal;
+      }));
+    }
+  }, [items]);
 
   // Update goal
   const updateGoal = useCallback((goal: WasteGoal) => {
