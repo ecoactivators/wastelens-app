@@ -43,7 +43,7 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
+          colors={['#f3f4f6', '#e5e7eb', '#ffffff']}
           style={styles.gradientBackground}
         >
           <View style={styles.loadingContainer}>
@@ -62,7 +62,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
+        colors={['#f3f4f6', '#e5e7eb', '#ffffff']}
         style={styles.gradientBackground}
       >
         <ScrollView 
@@ -78,34 +78,37 @@ export default function HomeScreen() {
             />
           }
         >
-          {/* Hero Header */}
-          <View style={styles.heroSection}>
+          {/* App Title */}
+          <View style={styles.appHeader}>
+            <Text style={styles.appTitle}>WasteLens</Text>
+            <Text style={styles.appSubtitle}>Track • Reduce • Impact</Text>
+          </View>
+
+          {/* Environmental Impact Card */}
+          <View style={styles.impactSection}>
             <LinearGradient
               colors={['#10b981', '#059669', '#047857']}
-              style={styles.heroGradient}
+              style={styles.impactGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <View style={styles.heroContent}>
-                <View style={styles.heroText}>
-                  <Text style={styles.heroTitle}>WasteLens</Text>
-                  <Text style={styles.heroSubtitle}>Track your waste, save the planet</Text>
-                </View>
-                <View style={styles.heroIcon}>
-                  <Leaf size={32} color="#ffffff" />
+              <View style={styles.impactHeader}>
+                <Text style={styles.impactTitle}>Your Environmental Impact</Text>
+                <View style={styles.impactIcon}>
+                  <Sparkles size={24} color="#ffffff" />
                 </View>
               </View>
               
-              {/* Impact Summary */}
-              <View style={styles.impactSummary}>
-                <View style={styles.impactItem}>
-                  <Text style={styles.impactValue}>{stats.streak}</Text>
-                  <Text style={styles.impactLabel}>Day Streak</Text>
-                </View>
-                <View style={styles.impactDivider} />
+              {/* Impact Stats */}
+              <View style={styles.impactStats}>
                 <View style={styles.impactItem}>
                   <Text style={styles.impactValue}>{stats.co2Saved.toFixed(1)}kg</Text>
                   <Text style={styles.impactLabel}>CO₂ Saved</Text>
+                </View>
+                <View style={styles.impactDivider} />
+                <View style={styles.impactItem}>
+                  <Text style={styles.impactValue}>{stats.streak}</Text>
+                  <Text style={styles.impactLabel}>Day Streak</Text>
                 </View>
                 <View style={styles.impactDivider} />
                 <View style={styles.impactItem}>
@@ -268,13 +271,30 @@ const styles = StyleSheet.create({
     paddingBottom: 140,
   },
   
-  // Hero Section
-  heroSection: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 32,
+  // App Header
+  appHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 24,
   },
-  heroGradient: {
+  appTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 32,
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  appSubtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#6b7280',
+  },
+
+  // Environmental Impact Section
+  impactSection: {
+    marginHorizontal: 20,
+    marginBottom: 40,
+  },
+  impactGradient: {
     borderRadius: 24,
     padding: 24,
     shadowColor: '#10b981',
@@ -286,41 +306,33 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  heroContent: {
+  impactHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
   },
-  heroText: {
+  impactTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 24,
+    color: '#ffffff',
     flex: 1,
   },
-  heroTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 32,
-    color: '#ffffff',
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  impactIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  impactSummary: {
+  impactStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
   },
   impactItem: {
     flex: 1,
@@ -328,18 +340,18 @@ const styles = StyleSheet.create({
   },
   impactValue: {
     fontFamily: 'Inter-Bold',
-    fontSize: 20,
+    fontSize: 24,
     color: '#ffffff',
     marginBottom: 4,
   },
   impactLabel: {
     fontFamily: 'Inter-Medium',
-    fontSize: 12,
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.8)',
   },
   impactDivider: {
     width: 1,
-    height: 32,
+    height: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     marginHorizontal: 16,
   },
