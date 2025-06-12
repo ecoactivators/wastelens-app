@@ -1,17 +1,15 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
-import { Plus, Zap, Recycle, Leaf, TrendingDown, Sparkles, Target, Award } from 'lucide-react-native';
+import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Platform } from 'react-native';
-
-const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const { 
@@ -43,14 +41,11 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient
-          colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
+          colors={['#e5e7eb', '#f9fafb', '#ffffff']}
           style={styles.gradientBackground}
         >
           <View style={styles.loadingContainer}>
-            <View style={styles.loadingSpinner}>
-              <Sparkles size={32} color={theme.colors.primary} />
-            </View>
-            <Text style={[styles.loadingText, { color: theme.colors.text }]}>Analyzing your impact...</Text>
+            <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
           </View>
         </LinearGradient>
       </SafeAreaView>
@@ -62,7 +57,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#f0f9ff', '#e0f2fe', '#ffffff']}
+        colors={['#e5e7eb', '#f9fafb', '#ffffff']}
         style={styles.gradientBackground}
       >
         <ScrollView 
@@ -74,121 +69,74 @@ export default function HomeScreen() {
               refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={theme.colors.primary}
-              colors={[theme.colors.primary]}
             />
           }
         >
-          {/* Hero Header */}
-          <View style={styles.heroSection}>
-            <LinearGradient
-              colors={['#10b981', '#059669', '#047857']}
-              style={styles.heroGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={styles.heroContent}>
-                <View style={styles.heroText}>
-                  <Text style={styles.heroTitle}>WasteLens</Text>
-                  <Text style={styles.heroSubtitle}>Track your waste, save the planet</Text>
-                </View>
-                <View style={styles.heroIcon}>
-                  <Leaf size={32} color="#ffffff" />
-                </View>
-              </View>
-              
-              {/* Impact Summary */}
-              <View style={styles.impactSummary}>
-                <View style={styles.impactItem}>
-                  <Text style={styles.impactValue}>{stats.streak}</Text>
-                  <Text style={styles.impactLabel}>Day Streak</Text>
-                </View>
-                <View style={styles.impactDivider} />
-                <View style={styles.impactItem}>
-                  <Text style={styles.impactValue}>{stats.co2Saved.toFixed(1)}kg</Text>
-                  <Text style={styles.impactLabel}>CO₂ Saved</Text>
-                </View>
-                <View style={styles.impactDivider} />
-                <View style={styles.impactItem}>
-                  <Text style={styles.impactValue}>{Math.round(stats.recyclingRate)}%</Text>
-                  <Text style={styles.impactLabel}>Recycled</Text>
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
-
-          {/* Quick Stats Grid */}
-          <View style={styles.statsSection}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>This Week's Impact</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statsRow}>
-                <StatsCard
-                  title="Total Waste"
-                  value={`${stats.weeklyWeight}g`}
-                  subtitle="Tracked this week"
-                  icon={<TrendingDown size={20} color="#6366f1" />}
-                  color="#6366f1"
-                />
-                <StatsCard
-                  title="Recycling"
-                  value={`${Math.round(stats.recyclingRate)}%`}
-                  subtitle="Great progress!"
-                  color="#10b981"
-                  icon={<Recycle size={20} color="#10b981" />}
-                />
-              </View>
-              <View style={styles.statsRow}>
-                <StatsCard
-                  title="CO₂ Impact"
-                  value={`${stats.co2Saved.toFixed(1)}kg`}
-                  subtitle="Carbon saved"
-                  color="#f59e0b"
-                  icon={<Leaf size={20} color="#f59e0b" />}
-                />
-                <StatsCard
-                  title="Streak"
-                  value={`${stats.streak} days`}
-                  subtitle="Keep it up!"
-                  color="#ef4444"
-                  icon={<Zap size={20} color="#ef4444" />}
-                />
-              </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
+              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
             </View>
           </View>
 
-          {/* Goals Section */}
+          {/* Quick Stats */}
+          <View style={styles.statsContainer}>
+            <StatsCard
+              title="This Week"
+              value={`${stats.weeklyWeight} Grams`}
+              subtitle="Total waste"
+              icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
+            />
+            <StatsCard
+              title="Recycling Rate"
+              value={`${Math.round(stats.recyclingRate)}%`}
+              subtitle="Keep it up!"
+              color={theme.colors.success}
+              icon={<Recycle size={20} color={theme.colors.success} />}
+            />
+          </View>
+
+          <View style={styles.statsContainer}>
+            <StatsCard
+              title="CO₂ Saved"
+              value={`${stats.co2Saved.toFixed(1)}kg`}
+              subtitle="This month"
+              color="#3b82f6"
+              icon={<Leaf size={20} color="#3b82f6" />}
+            />
+            <StatsCard
+              title="Streak"
+              value={`${stats.streak} days`}
+              subtitle="Amazing!"
+              color={theme.colors.warning}
+              icon={<Zap size={20} color={theme.colors.warning} />}
+            />
+          </View>
+
+          {/* Goals */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
+            {goals.map(goal => (
+              <GoalCard key={goal.id} goal={goal} />
+            ))}
+          </View>
+
+          {/* Recently Scanned Items */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleContainer}>
-                <Target size={24} color={theme.colors.primary} />
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
-              </View>
-              <TouchableOpacity style={styles.sectionAction}>
-                <Text style={[styles.sectionActionText, { color: theme.colors.primary }]}>View All</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.goalsContainer}>
-              {goals.map(goal => (
-                <GoalCard key={goal.id} goal={goal} />
-              ))}
-            </View>
-          </View>
-
-          {/* Recent Activity */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleContainer}>
-                <Award size={24} color={theme.colors.primary} />
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Activity</Text>
-              </View>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
               {recentItems.length > 0 && (
-                <View style={styles.entryCountBadge}>
-                  <Text style={styles.entryCount}>{recentItems.length}</Text>
+                <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
+                  <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
+                    {recentItems.length}
+                  </Text>
                 </View>
               )}
             </View>
             
             {recentItems.length > 0 ? (
-              <View style={styles.recentItemsContainer}>
+              <>
                 {recentItems.slice(0, 5).map(item => {
                   console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
                   return (
@@ -196,39 +144,31 @@ export default function HomeScreen() {
                   );
                 })}
                 {recentItems.length > 5 && (
-                  <TouchableOpacity style={styles.viewAllButton}>
-                    <Text style={styles.viewAllText}>
+                  <TouchableOpacity 
+                    style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
+                    onPress={() => {
+                      // Navigate to a full list view - for now just show an alert
+                      console.log('View all items');
+                    }}
+                  >
+                    <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
                       View all {recentItems.length} items
                     </Text>
                   </TouchableOpacity>
                 )}
-              </View>
+              </>
             ) : (
-              <View style={styles.emptyState}>
-                <LinearGradient
-                  colors={['#f8fafc', '#f1f5f9']}
-                  style={styles.emptyStateGradient}
+              <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+                <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+                  No items scanned yet. Start by scanning an item!
+                </Text>
+                <TouchableOpacity
+                  style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => router.push('/camera')}
                 >
-                  <View style={styles.emptyStateIcon}>
-                    <Sparkles size={48} color="#94a3b8" />
-                  </View>
-                  <Text style={styles.emptyStateTitle}>Start Your Journey</Text>
-                  <Text style={styles.emptyStateText}>
-                    Begin tracking your waste to see your environmental impact and earn rewards!
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.scanButton}
-                    onPress={() => router.push('/camera')}
-                  >
-                    <LinearGradient
-                      colors={['#10b981', '#059669']}
-                      style={styles.scanButtonGradient}
-                    >
-                      <Plus size={20} color="#ffffff" />
-                      <Text style={styles.scanButtonText}>Scan Your First Item</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
+                  <Plus size={20} color="#ffffff" />
+                  <Text style={styles.scanButtonText}>Scan Item</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -249,258 +189,110 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  loadingSpinner: {
-    marginBottom: 16,
   },
   loadingText: {
     fontFamily: 'Inter-Medium',
-    fontSize: 18,
-    textAlign: 'center',
+    fontSize: 16,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140,
+    paddingBottom: 140, // Adjusted padding for tab bar integration
   },
-  
-  // Hero Section
-  heroSection: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 32,
-  },
-  heroGradient: {
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#10b981',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  heroContent: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
   },
-  heroText: {
-    flex: 1,
-  },
-  heroTitle: {
+  greeting: {
     fontFamily: 'Inter-Bold',
-    fontSize: 32,
-    color: '#ffffff',
+    fontSize: 28,
     marginBottom: 4,
   },
-  heroSubtitle: {
+  subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
   },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  impactSummary: {
+  statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 16,
-  },
-  impactItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  impactValue: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 20,
-    color: '#ffffff',
-    marginBottom: 4,
-  },
-  impactLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  impactDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 16,
-  },
-
-  // Stats Section
-  statsSection: {
     paddingHorizontal: 20,
-    marginBottom: 32,
-  },
-  statsGrid: {
     gap: 12,
+    marginBottom: 12,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-
-  // Section Styles
   section: {
     paddingHorizontal: 20,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontFamily: 'Inter-Bold',
-    fontSize: 22,
-  },
-  sectionAction: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  },
-  sectionActionText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-  },
-
-  // Goals
-  goalsContainer: {
-    gap: 12,
-  },
-
-  // Recent Items
-  recentItemsContainer: {
-    gap: 12,
+    fontSize: 20,
   },
   entryCountBadge: {
-    backgroundColor: '#10b981',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    shadowColor: '#10b981',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
   entryCount: {
-    fontFamily: 'Inter-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
-    color: '#ffffff',
   },
   viewAllButton: {
     alignItems: 'center',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     marginTop: 8,
-    backgroundColor: '#f8fafc',
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    borderStyle: 'dashed',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   viewAllText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#64748b',
   },
-
-  // Empty State
   emptyState: {
-    borderRadius: 20,
-    overflow: 'hidden',
+    alignItems: 'center',
+    paddingVertical: 40,
+    borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  emptyStateGradient: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 32,
-  },
-  emptyStateIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
+      height: 2,
     },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
-  },
-  emptyStateTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1e293b',
-    marginBottom: 12,
-    textAlign: 'center',
+    elevation: 3,
   },
   emptyStateText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Inter-Medium',
     fontSize: 16,
-    color: '#64748b',
+    marginBottom: 20,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
   },
   scanButton: {
-    borderRadius: 16,
-    shadowColor: '#10b981',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  scanButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 16,
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   scanButtonText: {
-    fontFamily: 'Inter-Bold',
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
   },
