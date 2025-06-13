@@ -76,7 +76,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Quick Stats */}
+          {/* Primary Stats - Focus on waste tracking */}
           <View style={styles.statsContainer}>
             <StatsCard
               title="This Week"
@@ -85,28 +85,28 @@ export default function HomeScreen() {
               icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
             />
             <StatsCard
-              title="Recycling Rate"
-              value={`${Math.round(stats.recyclingRate)}%`}
+              title="Streak"
+              value={`${stats.streak} days`}
               subtitle="Keep it up!"
-              color={theme.colors.success}
-              icon={<Recycle size={20} color={theme.colors.success} />}
+              color={theme.colors.warning}
+              icon={<Zap size={20} color={theme.colors.warning} />}
             />
           </View>
 
           <View style={styles.statsContainer}>
             <StatsCard
-              title="CO₂ Saved"
-              value={`${stats.co2Saved.toFixed(1)}kg`}
-              subtitle="This month"
-              color="#3b82f6"
-              icon={<Leaf size={20} color="#3b82f6" />}
+              title="Recycling Rate"
+              value={`${Math.round(stats.recyclingRate)}%`}
+              subtitle="Great progress!"
+              color={theme.colors.success}
+              icon={<Recycle size={20} color={theme.colors.success} />}
             />
             <StatsCard
-              title="Streak"
-              value={`${stats.streak} days`}
-              subtitle="Amazing!"
-              color={theme.colors.warning}
-              icon={<Zap size={20} color={theme.colors.warning} />}
+              title="Items Tracked"
+              value={`${stats.totalWeight > 0 ? Math.ceil(stats.totalWeight / 50) : 0}`}
+              subtitle="All time"
+              color="#3b82f6"
+              icon={<TrendingDown size={20} color="#3b82f6" />}
             />
           </View>
 
@@ -126,7 +126,7 @@ export default function HomeScreen() {
                 Ready to track your waste?
               </Text>
               <Text style={[styles.getStartedDescription, { color: theme.colors.textSecondary }]}>
-                Start by scanning your first waste item. Every scan helps you understand your environmental impact and work towards a more sustainable lifestyle.
+                Start by scanning your first waste item. Every scan helps you understand your waste patterns and work towards reducing your environmental footprint.
               </Text>
               <TouchableOpacity
                 style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
@@ -140,7 +140,7 @@ export default function HomeScreen() {
 
           {/* Tips Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Eco Tips</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Waste Reduction Tips</Text>
             <View style={[styles.tipsCard, { backgroundColor: theme.colors.surface }]}>
               <View style={styles.tipItem}>
                 <View style={[styles.tipBullet, { backgroundColor: theme.colors.success }]} />
@@ -151,14 +151,35 @@ export default function HomeScreen() {
               <View style={styles.tipItem}>
                 <View style={[styles.tipBullet, { backgroundColor: theme.colors.warning }]} />
                 <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Compost organic waste to reduce methane emissions from landfills
+                  Choose reusable alternatives to reduce single-use waste
                 </Text>
               </View>
               <View style={styles.tipItem}>
                 <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
                 <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Choose reusable alternatives to reduce single-use waste
+                  Track your waste patterns to identify reduction opportunities
                 </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Environmental Impact - Moved to bottom */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Environmental Impact</Text>
+            <View style={[styles.impactCard, { backgroundColor: theme.colors.surface }]}>
+              <View style={styles.impactRow}>
+                <Leaf size={20} color="#3b82f6" />
+                <View style={styles.impactContent}>
+                  <Text style={[styles.impactLabel, { color: theme.colors.textSecondary }]}>
+                    CO₂ Impact This Month
+                  </Text>
+                  <Text style={[styles.impactValue, { color: "#3b82f6" }]}>
+                    {stats.co2Saved.toFixed(1)}kg CO₂ saved
+                  </Text>
+                  <Text style={[styles.impactDescription, { color: theme.colors.textTertiary }]}>
+                    Through proper waste sorting and recycling
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -288,5 +309,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     flex: 1,
     lineHeight: 20,
+  },
+  impactCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  impactContent: {
+    flex: 1,
+  },
+  impactLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  impactValue: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    marginBottom: 4,
+  },
+  impactDescription: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

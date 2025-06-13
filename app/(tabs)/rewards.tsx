@@ -175,6 +175,26 @@ export default function RewardsScreen() {
             </View>
           </View>
         )}
+
+        {/* Environmental Impact - Moved to bottom */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Environmental Impact</Text>
+          <View style={[styles.impactCard, { backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.impactDescription, { color: theme.colors.textSecondary }]}>
+              By tracking and properly disposing of your waste, you've contributed to environmental conservation.
+            </Text>
+            <View style={styles.impactStats}>
+              <View style={styles.impactStat}>
+                <Text style={[styles.impactValue, { color: "#3b82f6" }]}>
+                  {stats.co2Saved.toFixed(1)}kg
+                </Text>
+                <Text style={[styles.impactLabel, { color: theme.colors.textTertiary }]}>
+                  CO₂ saved this month
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -355,5 +375,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  impactCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  impactDescription: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  impactStats: {
+    alignItems: 'center',
+  },
+  impactStat: {
+    alignItems: 'center',
+  },
+  impactValue: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  impactLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
   },
 });

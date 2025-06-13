@@ -217,11 +217,11 @@ export default function SettingsScreen() {
             icon={<TrendingUp size={20} color={theme.colors.textSecondary} />}
           />
           <StatsCard
-            title="CO₂ Saved"
-            value={`${stats.co2Saved.toFixed(1)}kg`}
-            subtitle="This month"
+            title="Recycling Rate"
+            value={`${Math.round(stats.recyclingRate)}%`}
+            subtitle="Current rate"
             color={theme.colors.success}
-            icon={<Leaf size={20} color={theme.colors.success} />}
+            icon={<Recycle size={20} color={theme.colors.success} />}
           />
         </View>
 
@@ -247,6 +247,27 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Danger Zone</Text>
           {dangerItems.map(renderMenuItem)}
+        </View>
+
+        {/* Environmental Impact - Moved to bottom */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Environmental Impact</Text>
+          <View style={[styles.impactCard, { backgroundColor: theme.colors.surface }]}>
+            <View style={styles.impactRow}>
+              <Leaf size={20} color="#3b82f6" />
+              <View style={styles.impactContent}>
+                <Text style={[styles.impactLabel, { color: theme.colors.textSecondary }]}>
+                  CO₂ Impact This Month
+                </Text>
+                <Text style={[styles.impactValue, { color: "#3b82f6" }]}>
+                  {stats.co2Saved.toFixed(1)}kg CO₂ saved
+                </Text>
+                <Text style={[styles.impactDescription, { color: theme.colors.textTertiary }]}>
+                  Through proper waste sorting and recycling
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* App Info */}
@@ -408,6 +429,41 @@ const styles = StyleSheet.create({
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  impactCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  impactContent: {
+    flex: 1,
+  },
+  impactLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  impactValue: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    marginBottom: 4,
+  },
+  impactDescription: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    lineHeight: 16,
   },
   appInfo: {
     alignItems: 'center',
