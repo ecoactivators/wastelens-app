@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Modal, Image } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
-import { X, Zap, Image as ImageIcon, Home, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
+import { X, Zap, Image as ImageIcon, Chrome as Home, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
