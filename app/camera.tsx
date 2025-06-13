@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Modal, Image } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
@@ -6,14 +6,34 @@ import { X, Zap, Image as ImageIcon, RotateCcw, CircleCheck as CheckCircle, Circ
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
+import { StorageService } from '@/services/storage';
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [flash, setFlash] = useState<FlashMode>('off');
   const [permission, requestPermission] = useCameraPermissions();
-  const [showGuidelines, setShowGuidelines] = useState(true);
+  const [showGuidelines, setShowGuidelines] = useState(false);
+  const [guidelinesLoading, setGuidelinesLoading] = useState(true);
   const cameraRef = useRef<CameraView>(null);
   const { theme } = useTheme();
+
+  // Check if user has seen guidelines before
+  useEffect(() => {
+    const checkGuidelines = async () => {
+      try {
+        const hasSeenGuidelines = await StorageService.hasSeenGuidelines();
+        setShowGuidelines(!hasSeenGuidelines);
+      } catch (error) {
+        console.error('Error checking guidelines status:', error);
+        // Default to showing guidelines if there's an error
+        setShowGuidelines(true);
+      } finally {
+        setGuidelinesLoading(false);
+      }
+    };
+
+    checkGuidelines();
+  }, []);
 
   if (!permission) {
     return (
@@ -36,6 +56,17 @@ export default function CameraScreen() {
           <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
             <Text style={styles.permissionButtonText}>Grant Permission</Text>
           </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Show loading while checking guidelines status
+  if (guidelinesLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </View>
     );
@@ -116,8 +147,16 @@ export default function CameraScreen() {
     }
   };
 
-  const handleScanNow = () => {
-    setShowGuidelines(false);
+  const handleScanNow = async () => {
+    try {
+      // Mark guidelines as seen
+      await StorageService.setGuidelinesSeen();
+      setShowGuidelines(false);
+    } catch (error) {
+      console.error('Error saving guidelines status:', error);
+      // Still hide guidelines even if saving fails
+      setShowGuidelines(false);
+    }
   };
 
   const handleCloseGuidelines = () => {

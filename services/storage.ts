@@ -4,6 +4,7 @@ import { WasteEntry, WasteGoal } from '@/types/waste';
 
 const ITEMS_KEY = 'waste_items';
 const GOALS_KEY = 'waste_goals';
+const GUIDELINES_SEEN_KEY = 'guidelines_seen';
 
 // Web fallback using localStorage
 const webStorage = {
@@ -101,10 +102,32 @@ export class StorageService {
     }
   }
 
+  static async setGuidelinesSeen(): Promise<void> {
+    try {
+      await storage.setItem(GUIDELINES_SEEN_KEY, 'true');
+      console.log('📋 [StorageService] Marked guidelines as seen');
+    } catch (error) {
+      console.error('❌ [StorageService] Failed to save guidelines seen status:', error);
+    }
+  }
+
+  static async hasSeenGuidelines(): Promise<boolean> {
+    try {
+      const seen = await storage.getItem(GUIDELINES_SEEN_KEY);
+      const hasSeen = seen === 'true';
+      console.log('📋 [StorageService] Guidelines seen status:', hasSeen);
+      return hasSeen;
+    } catch (error) {
+      console.error('❌ [StorageService] Failed to load guidelines seen status:', error);
+      return false;
+    }
+  }
+
   static async clearAllData(): Promise<void> {
     try {
       await storage.deleteItem(ITEMS_KEY);
       await storage.deleteItem(GOALS_KEY);
+      await storage.deleteItem(GUIDELINES_SEEN_KEY);
       console.log('🗑️ [StorageService] Cleared all data from storage');
     } catch (error) {
       console.error('❌ [StorageService] Failed to clear data:', error);
