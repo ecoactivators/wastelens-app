@@ -72,7 +72,7 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <View>
               <Text style={[styles.greeting, { color: theme.colors.text }]}>Waste Lens</Text>
-              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
+              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Snap your waste, reduce your bill</Text>
             </View>
           </View>
 
