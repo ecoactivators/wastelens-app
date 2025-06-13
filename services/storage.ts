@@ -26,8 +26,21 @@ const webStorage = {
   }
 };
 
+// Native storage adapter for SecureStore
+const nativeStorage = {
+  async setItem(key: string, value: string) {
+    return await SecureStore.setItemAsync(key, value);
+  },
+  async getItem(key: string): Promise<string | null> {
+    return await SecureStore.getItemAsync(key);
+  },
+  async deleteItem(key: string) {
+    return await SecureStore.deleteItemAsync(key);
+  }
+};
+
 // Platform-specific storage
-const storage = Platform.OS === 'web' ? webStorage : SecureStore;
+const storage = Platform.OS === 'web' ? webStorage : nativeStorage;
 
 export class StorageService {
   static async saveItems(items: WasteEntry[]): Promise<void> {
