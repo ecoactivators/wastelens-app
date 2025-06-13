@@ -160,8 +160,7 @@ export default function CameraScreen() {
   };
 
   const handleCloseGuidelines = () => {
-    // Navigate to home tab instead of going back
-    router.push('/(tabs)/');
+    router.back();
   };
 
   // Guidelines Modal
@@ -273,7 +272,7 @@ export default function CameraScreen() {
         <View style={styles.topControls}>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => router.push('/(tabs)/')}
+            onPress={() => router.back()}
           >
             <X size={24} color="#ffffff" />
           </TouchableOpacity>
