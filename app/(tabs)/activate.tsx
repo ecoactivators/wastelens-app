@@ -42,8 +42,8 @@ export default function ActivateScreen() {
   const challenges: Challenge[] = [
     {
       id: '1',
-      title: 'Daily Scanner',
-      description: 'Scan 3 items today',
+      title: 'Daily Snapper',
+      description: 'Snap 3 items today',
       points: 50,
       progress: Math.min(recentItems.length, 3),
       target: 3,
@@ -67,7 +67,7 @@ export default function ActivateScreen() {
     {
       id: '3',
       title: 'Waste Warrior',
-      description: 'Track 100g of waste this month',
+      description: 'Snap 100g of waste this month',
       points: 500,
       progress: Math.min(stats?.monthlyWeight || 0, 100),
       target: 100,
@@ -94,8 +94,8 @@ export default function ActivateScreen() {
   const achievements: Achievement[] = [
     {
       id: '1',
-      title: 'First Scan',
-      description: 'Scanned your first waste item',
+      title: 'First Snap',
+      description: 'Snapped your first waste item',
       icon: <Zap size={24} color="#f59e0b" />,
       unlocked: recentItems.length > 0,
       unlockedAt: recentItems.length > 0 ? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) : undefined,
@@ -104,7 +104,7 @@ export default function ActivateScreen() {
     {
       id: '2',
       title: 'Eco Beginner',
-      description: 'Tracked 10 items',
+      description: 'Snapped 10 items',
       icon: <Flame size={24} color="#10b981" />,
       unlocked: recentItems.length >= 10,
       unlockedAt: recentItems.length >= 10 ? new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) : undefined,
@@ -185,7 +185,7 @@ export default function ActivateScreen() {
             <View>
               <Text style={[styles.greeting, { color: theme.colors.text }]}>Activate</Text>
               <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-                Complete challenges and track your progress
+                Complete challenges and snap your progress
               </Text>
             </View>
             <View style={[styles.streakBadge, { backgroundColor: theme.colors.primaryLight }]}>
@@ -214,10 +214,10 @@ export default function ActivateScreen() {
             />
           </View>
 
-          {/* Recently Scanned Items */}
+          {/* Recently Snapped Items */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Snapped</Text>
               {recentItems.length > 0 && (
                 <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
                   <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
@@ -252,14 +252,14 @@ export default function ActivateScreen() {
             ) : (
               <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
                 <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
-                  No items scanned yet. Start by scanning an item!
+                  No items snapped yet. Start by snapping an item!
                 </Text>
                 <TouchableOpacity
                   style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
                   onPress={() => router.push('/camera')}
                 >
                   <Plus size={20} color="#ffffff" />
-                  <Text style={styles.scanButtonText}>Scan Item</Text>
+                  <Text style={styles.scanButtonText}>Snap Item</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -409,7 +409,7 @@ export default function ActivateScreen() {
                       Daily Reminders
                     </Text>
                     <Text style={[styles.settingSubtitle, { color: theme.colors.textSecondary }]}>
-                      Remind me to track waste daily
+                      Remind me to snap waste daily
                     </Text>
                   </View>
                 </View>

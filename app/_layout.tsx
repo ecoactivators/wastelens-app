@@ -13,6 +13,7 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { ItemsProvider } from '@/contexts/ItemsContext';
 import { LocationService } from '@/services/location';
+import { router } from 'expo-router';
 
 declare global {
   interface Window {
@@ -74,6 +75,10 @@ export default function RootLayout() {
 
     if (fontsLoaded || fontError) {
       requestLocationOnStartup();
+      // Auto-navigate to camera on app startup
+      setTimeout(() => {
+        router.replace('/camera');
+      }, 100);
     }
   }, [fontsLoaded, fontError]);
 

@@ -25,7 +25,7 @@ export default function SettingsScreen() {
   const handleClearAllData = () => {
     Alert.alert(
       'Clear All Data',
-      'This will permanently delete all your scanned items and reset your goals. This action cannot be undone.',
+      'This will permanently delete all your snapped items and reset your goals. This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -211,7 +211,7 @@ export default function SettingsScreen() {
         {/* Stats Overview */}
         <View style={styles.statsContainer}>
           <StatsCard
-            title="Total Tracked"
+            title="Total Snapped"
             value={`${stats.totalWeight}g`}
             subtitle="All time"
             icon={<TrendingUp size={20} color={theme.colors.textSecondary} />}
@@ -276,7 +276,7 @@ export default function SettingsScreen() {
             <Text style={[styles.appName, { color: theme.colors.text }]}>Waste Lens</Text>
             <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
             <Text style={[styles.appDescription, { color: theme.colors.textSecondary }]}>
-              Track your waste, reduce your impact, and help save the planet one entry at a time.
+              Snap your waste, reduce your impact, and help save the planet one entry at a time.
             </Text>
           </View>
         </View>

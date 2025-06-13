@@ -37,6 +37,8 @@ export interface WasteStats {
   monthlyWeight: number;
   recyclingRate: number;
   compostingRate: number;
+  foodWastePercentage: number;
+  otherWastePercentage: number;
   wasteByType: Record<WasteType, number>;
   wasteByCategory: Record<WasteCategory, number>;
   streak: number;

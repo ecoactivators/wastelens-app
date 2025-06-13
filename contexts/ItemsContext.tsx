@@ -139,6 +139,15 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const recyclingRate = totalWeight > 0 ? (recyclableWeight / totalWeight) * 100 : 0;
     const compostingRate = totalWeight > 0 ? (compostableWeight / totalWeight) * 100 : 0;
 
+    // Calculate food waste vs other waste percentages
+    const foodWasteWeight = items
+      .filter(item => item.type === WasteType.FOOD)
+      .reduce((sum, item) => sum + item.weight, 0);
+    const otherWasteWeight = totalWeight - foodWasteWeight;
+    
+    const foodWastePercentage = totalWeight > 0 ? (foodWasteWeight / totalWeight) * 100 : 0;
+    const otherWastePercentage = totalWeight > 0 ? (otherWasteWeight / totalWeight) * 100 : 0;
+
     const wasteByType = Object.values(WasteType).reduce((acc, type) => {
       acc[type] = items
         .filter(item => item.type === type)
@@ -186,6 +195,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       monthlyWeight,
       recyclingRate,
       compostingRate,
+      foodWastePercentage,
+      otherWastePercentage,
       wasteByType,
       wasteByCategory,
       streak,
@@ -197,6 +208,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       totalWeight,
       weeklyWeight,
       recyclingRate: Math.round(recyclingRate),
+      foodWastePercentage: Math.round(foodWastePercentage),
+      otherWastePercentage: Math.round(otherWastePercentage),
       streak,
     });
 

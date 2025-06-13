@@ -76,14 +76,8 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Primary Stats - Focus on waste tracking */}
+          {/* Primary Stats - Switched order: Streak first, then This Week */}
           <View style={styles.statsContainer}>
-            <StatsCard
-              title="This Week"
-              value={`${stats.weeklyWeight} Grams`}
-              subtitle="Total waste"
-              icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
-            />
             <StatsCard
               title="Streak"
               value={`${stats.streak} days`}
@@ -91,20 +85,27 @@ export default function HomeScreen() {
               color={theme.colors.warning}
               icon={<Zap size={20} color={theme.colors.warning} />}
             />
+            <StatsCard
+              title="This Week"
+              value={`${stats.weeklyWeight} Grams`}
+              subtitle="Total waste"
+              icon={<TrendingDown size={20} color={theme.colors.textSecondary} />}
+            />
           </View>
 
+          {/* Waste Type Stats - Food vs Other */}
           <View style={styles.statsContainer}>
             <StatsCard
-              title="Recycling Rate"
-              value={`${Math.round(stats.recyclingRate)}%`}
-              subtitle="Great progress!"
-              color={theme.colors.success}
-              icon={<Recycle size={20} color={theme.colors.success} />}
+              title="Food Waste"
+              value={`${Math.round(stats.foodWastePercentage)}%`}
+              subtitle="Of total waste"
+              color={theme.colors.warning}
+              icon={<Leaf size={20} color={theme.colors.warning} />}
             />
             <StatsCard
-              title="Items Tracked"
-              value={`${stats.totalWeight > 0 ? Math.ceil(stats.totalWeight / 50) : 0}`}
-              subtitle="All time"
+              title="Other Waste"
+              value={`${Math.round(stats.otherWastePercentage)}%`}
+              subtitle="Of total waste"
               color="#3b82f6"
               icon={<TrendingDown size={20} color="#3b82f6" />}
             />
@@ -112,7 +113,7 @@ export default function HomeScreen() {
 
           {/* Goals */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Goals</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your City's Goals</Text>
             {goals.map(goal => (
               <GoalCard key={goal.id} goal={goal} />
             ))}
@@ -123,17 +124,17 @@ export default function HomeScreen() {
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Get Started</Text>
             <View style={[styles.getStartedCard, { backgroundColor: theme.colors.surface }]}>
               <Text style={[styles.getStartedTitle, { color: theme.colors.text }]}>
-                Ready to track your waste?
+                Ready to snap your waste?
               </Text>
               <Text style={[styles.getStartedDescription, { color: theme.colors.textSecondary }]}>
-                Start by scanning your first waste item. Every scan helps you understand your waste patterns and work towards reducing your environmental footprint.
+                Start by snapping your first waste item. Every snap helps you understand your waste patterns and work towards reducing your environmental footprint.
               </Text>
               <TouchableOpacity
                 style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => router.push('/camera')}
               >
                 <Plus size={20} color="#ffffff" />
-                <Text style={styles.scanButtonText}>Scan Your First Item</Text>
+                <Text style={styles.scanButtonText}>Snap Your First Item</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -79,7 +79,7 @@ export default function RewardsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>Rewards</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Earn points by tracking waste</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Earn points by snapping waste</Text>
         </View>
 
         {/* Points Balance */}
@@ -95,7 +95,7 @@ export default function RewardsScreen() {
               </View>
             </View>
             <Text style={[styles.pointsSubtitle, { color: theme.colors.textSecondary }]}>
-              Start tracking waste to earn your first points!
+              Start snapping waste to earn your first points!
             </Text>
           </View>
         </View>
@@ -170,7 +170,7 @@ export default function RewardsScreen() {
               <Gift size={48} color={theme.colors.textTertiary} />
               <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>Start Earning Points!</Text>
               <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
-                Track your waste items to earn points and unlock amazing eco-friendly rewards.
+                Snap your waste items to earn points and unlock amazing eco-friendly rewards.
               </Text>
             </View>
           </View>
@@ -181,7 +181,7 @@ export default function RewardsScreen() {
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Environmental Impact</Text>
           <View style={[styles.impactCard, { backgroundColor: theme.colors.surface }]}>
             <Text style={[styles.impactDescription, { color: theme.colors.textSecondary }]}>
-              By tracking and properly disposing of your waste, you've contributed to environmental conservation.
+              By snapping and properly disposing of your waste, you've contributed to environmental conservation.
             </Text>
             <View style={styles.impactStats}>
               <View style={styles.impactStat}>

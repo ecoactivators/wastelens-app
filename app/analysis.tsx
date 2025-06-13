@@ -155,17 +155,20 @@ export default function AnalysisScreen() {
 
   const handleDone = () => {
     if (analysis) {
-      // Determine waste type based on material
+      // Determine if it's food waste or other waste
       let wasteType = WasteType.OTHER;
       const material = analysis.material.toLowerCase();
+      const itemName = analysis.itemName.toLowerCase();
       
-      if (material.includes('plastic')) wasteType = WasteType.PLASTIC;
-      else if (material.includes('paper') || material.includes('cardboard')) wasteType = WasteType.PAPER;
-      else if (material.includes('glass')) wasteType = WasteType.GLASS;
-      else if (material.includes('metal') || material.includes('aluminum')) wasteType = WasteType.METAL;
-      else if (material.includes('food') || material.includes('organic')) wasteType = WasteType.FOOD;
-      else if (material.includes('textile') || material.includes('fabric')) wasteType = WasteType.TEXTILE;
-      else if (material.includes('electronic')) wasteType = WasteType.ELECTRONIC;
+      // Check if it's food waste
+      if (material.includes('food') || material.includes('organic') || 
+          itemName.includes('food') || itemName.includes('apple') || 
+          itemName.includes('banana') || itemName.includes('bread') ||
+          itemName.includes('pizza') || itemName.includes('sandwich') ||
+          itemName.includes('fruit') || itemName.includes('vegetable') ||
+          analysis.compostable) {
+        wasteType = WasteType.FOOD;
+      }
 
       // Determine category
       let category = WasteCategory.LANDFILL;
@@ -198,10 +201,10 @@ export default function AnalysisScreen() {
       // Trigger success vibration instead of showing alert
       triggerSuccessVibration();
 
-      // Navigate back to home screen
-      router.push('/');
+      // Navigate back to camera screen instead of home
+      router.push('/camera');
     } else {
-      router.push('/');
+      router.push('/camera');
     }
   };
 
