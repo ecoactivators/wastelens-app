@@ -239,8 +239,8 @@ export default function ActivateScreen() {
                   <TouchableOpacity 
                     style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
                     onPress={() => {
-                      // Navigate to home tab to see all items
-                      router.push('/');
+                      // Navigate to dedicated items screen
+                      router.push('/items');
                     }}
                   >
                     <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
