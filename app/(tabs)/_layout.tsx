@@ -28,7 +28,7 @@ export default function TabLayout() {
             elevation: 0,
             shadowOpacity: 0,
             paddingLeft: 10,
-            paddingRight: 100,
+            paddingRight: 10,
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
@@ -42,6 +42,7 @@ export default function TabLayout() {
           },
           tabBarItemStyle: {
             paddingHorizontal: 8,
+            flex: 1,
           },
         }}>
         <Tabs.Screen
@@ -50,15 +51,6 @@ export default function TabLayout() {
             title: 'Home',
             tabBarIcon: ({ size, color }) => (
               <House size={26} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="rewards"
-          options={{
-            title: 'Rewards',
-            tabBarIcon: ({ size, color }) => (
-              <Gift size={26} color={color} />
             ),
           }}
         />
@@ -72,6 +64,21 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="camera"
+          options={{
+            href: null, // Hide this tab from the tab bar
+          }}
+        />
+        <Tabs.Screen
+          name="rewards"
+          options={{
+            title: 'Rewards',
+            tabBarIcon: ({ size, color }) => (
+              <Gift size={26} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{
             title: 'Settings',
@@ -80,15 +87,9 @@ export default function TabLayout() {
             ),
           }}
         />
-        <Tabs.Screen
-          name="camera"
-          options={{
-            href: null, // Hide this tab from the tab bar
-          }}
-        />
       </Tabs>
 
-      {/* Floating Camera Button - Positioned within tab bar area */}
+      {/* Floating Camera Button - Centered between left and right tabs */}
       <TouchableOpacity
         style={[styles.floatingCameraButton, { backgroundColor: '#2d3748' }]}
         onPress={() => router.push('/camera')}
@@ -106,7 +107,8 @@ const styles = StyleSheet.create({
   floatingCameraButton: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 75 : 55, // Positioned within the tab bar area
-    right: 20,
+    left: '50%',
+    marginLeft: -32, // Half of button width (64/2) to center it
     width: 64,
     height: 64,
     borderRadius: 32,
