@@ -112,14 +112,14 @@ export default function SettingsScreen() {
     {
       icon: <Star size={20} color={theme.colors.textSecondary} />,
       title: 'Rate App',
-      subtitle: 'Rate WasteLens on the App Store',
+      subtitle: 'Rate Waste Lens on the App Store',
       onPress: () => {},
       showChevron: true,
     },
     {
       icon: <Share2 size={20} color={theme.colors.textSecondary} />,
       title: 'Share App',
-      subtitle: 'Share WasteLens with friends',
+      subtitle: 'Share Waste Lens with friends',
       onPress: () => {},
       showChevron: true,
     },
@@ -252,7 +252,7 @@ export default function SettingsScreen() {
         {/* App Info */}
         <View style={styles.section}>
           <View style={styles.appInfo}>
-            <Text style={[styles.appName, { color: theme.colors.text }]}>WasteLens</Text>
+            <Text style={[styles.appName, { color: theme.colors.text }]}>Waste Lens</Text>
             <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
             <Text style={[styles.appDescription, { color: theme.colors.textSecondary }]}>
               Track your waste, reduce your impact, and help save the planet one entry at a time.

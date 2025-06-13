@@ -4,8 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
-import { Zap, Target, Award, TrendingUp, Calendar, CircleCheck as CheckCircle, Circle, Flame, Trophy, Star, Gift, Bell, Smartphone, Mail } from 'lucide-react-native';
+import { WasteCard } from '@/components/WasteCard';
+import { Zap, Target, Award, TrendingUp, Calendar, CircleCheck as CheckCircle, Circle, Flame, Trophy, Star, Gift, Bell, Smartphone, Mail, Plus } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { router } from 'expo-router';
 
 interface Challenge {
   id: string;
@@ -31,7 +33,7 @@ interface Achievement {
 }
 
 export default function ActivateScreen() {
-  const { stats, loading } = useItems();
+  const { stats, loading, recentItems } = useItems();
   const { theme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [dailyReminders, setDailyReminders] = useState(true);
@@ -43,10 +45,10 @@ export default function ActivateScreen() {
       title: 'Daily Scanner',
       description: 'Scan 3 items today',
       points: 50,
-      progress: 1,
+      progress: Math.min(recentItems.length, 3),
       target: 3,
       type: 'daily',
-      completed: false,
+      completed: recentItems.length >= 3,
       icon: <Zap size={20} color="#f59e0b" />,
       color: '#f59e0b'
     },
@@ -55,10 +57,10 @@ export default function ActivateScreen() {
       title: 'Recycling Hero',
       description: 'Recycle 5 items this week',
       points: 200,
-      progress: 3,
+      progress: Math.min(recentItems.filter(item => item.recyclable).length, 5),
       target: 5,
       type: 'weekly',
-      completed: false,
+      completed: recentItems.filter(item => item.recyclable).length >= 5,
       icon: <Target size={20} color="#10b981" />,
       color: '#10b981'
     },
@@ -67,10 +69,10 @@ export default function ActivateScreen() {
       title: 'Waste Warrior',
       description: 'Track 100g of waste this month',
       points: 500,
-      progress: 75,
+      progress: Math.min(stats?.monthlyWeight || 0, 100),
       target: 100,
       type: 'monthly',
-      completed: false,
+      completed: (stats?.monthlyWeight || 0) >= 100,
       icon: <Trophy size={20} color="#3b82f6" />,
       color: '#3b82f6'
     },
@@ -95,8 +97,8 @@ export default function ActivateScreen() {
       title: 'First Scan',
       description: 'Scanned your first waste item',
       icon: <Zap size={24} color="#f59e0b" />,
-      unlocked: true,
-      unlockedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      unlocked: recentItems.length > 0,
+      unlockedAt: recentItems.length > 0 ? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) : undefined,
       color: '#f59e0b'
     },
     {
@@ -104,8 +106,8 @@ export default function ActivateScreen() {
       title: 'Eco Beginner',
       description: 'Tracked 10 items',
       icon: <Flame size={24} color="#10b981" />,
-      unlocked: true,
-      unlockedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      unlocked: recentItems.length >= 10,
+      unlockedAt: recentItems.length >= 10 ? new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) : undefined,
       color: '#10b981'
     },
     {
@@ -113,7 +115,7 @@ export default function ActivateScreen() {
       title: 'Recycling Champion',
       description: 'Achieve 80% recycling rate',
       icon: <Award size={24} color="#3b82f6" />,
-      unlocked: false,
+      unlocked: (stats?.recyclingRate || 0) >= 80,
       color: '#3b82f6'
     },
     {
@@ -121,7 +123,7 @@ export default function ActivateScreen() {
       title: 'Streak Master',
       description: 'Maintain a 7-day streak',
       icon: <Trophy size={24} color="#8b5cf6" />,
-      unlocked: false,
+      unlocked: (stats?.streak || 0) >= 7,
       color: '#8b5cf6'
     }
   ];
@@ -183,7 +185,7 @@ export default function ActivateScreen() {
             <View>
               <Text style={[styles.greeting, { color: theme.colors.text }]}>Activate</Text>
               <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-                Complete challenges and unlock achievements
+                Complete challenges and track your progress
               </Text>
             </View>
             <View style={[styles.streakBadge, { backgroundColor: theme.colors.primaryLight }]}>
@@ -210,6 +212,57 @@ export default function ActivateScreen() {
               color="#f59e0b"
               icon={<Star size={20} color="#f59e0b" />}
             />
+          </View>
+
+          {/* Recently Scanned Items */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
+              {recentItems.length > 0 && (
+                <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
+                  <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
+                    {recentItems.length}
+                  </Text>
+                </View>
+              )}
+            </View>
+            
+            {recentItems.length > 0 ? (
+              <>
+                {recentItems.slice(0, 3).map(item => {
+                  console.log('🎯 [ActivateScreen] Rendering item:', item.id, item.description);
+                  return (
+                    <WasteCard key={item.id} entry={item} />
+                  );
+                })}
+                {recentItems.length > 3 && (
+                  <TouchableOpacity 
+                    style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
+                    onPress={() => {
+                      // Navigate to home tab to see all items
+                      router.push('/');
+                    }}
+                  >
+                    <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
+                      View all {recentItems.length} items
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+                <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
+                  No items scanned yet. Start by scanning an item!
+                </Text>
+                <TouchableOpacity
+                  style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => router.push('/camera')}
+                >
+                  <Plus size={20} color="#ffffff" />
+                  <Text style={styles.scanButtonText}>Scan Item</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           {/* Active Challenges */}
@@ -381,7 +434,7 @@ export default function ActivateScreen() {
                   "Every small action towards sustainability creates a ripple effect of positive change."
                 </Text>
                 <Text style={[styles.quoteAuthor, { color: theme.colors.textSecondary }]}>
-                  — WasteLens Team
+                  — Waste Lens Team
                 </Text>
               </LinearGradient>
             </View>
@@ -462,6 +515,65 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
+  },
+  entryCountBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  entryCount: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+  },
+  viewAllButton: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  viewAllText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  emptyStateText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  scanButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#ffffff',
   },
   achievementCount: {
     fontFamily: 'Inter-Medium',

@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
-import { WasteCard } from '@/components/WasteCard';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
 import { Plus, Zap, Recycle, Leaf, TrendingDown } from 'lucide-react-native';
@@ -13,7 +12,6 @@ import { Platform } from 'react-native';
 
 export default function HomeScreen() {
   const { 
-    recentItems, 
     goals, 
     stats, 
     loading, 
@@ -52,8 +50,6 @@ export default function HomeScreen() {
     );
   }
 
-  console.log('🎨 [HomeScreen] Rendering with', recentItems.length, 'recent items');
-
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
@@ -75,7 +71,7 @@ export default function HomeScreen() {
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={[styles.greeting, { color: theme.colors.text }]}>WasteLens</Text>
+              <Text style={[styles.greeting, { color: theme.colors.text }]}>Waste Lens</Text>
               <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Track your waste, save the planet</Text>
             </View>
           </View>
@@ -122,55 +118,49 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          {/* Recently Scanned Items */}
+          {/* Get Started Section */}
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recently Scanned</Text>
-              {recentItems.length > 0 && (
-                <View style={[styles.entryCountBadge, { backgroundColor: theme.colors.primaryLight }]}>
-                  <Text style={[styles.entryCount, { color: theme.colors.primary }]}>
-                    {recentItems.length}
-                  </Text>
-                </View>
-              )}
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Get Started</Text>
+            <View style={[styles.getStartedCard, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.getStartedTitle, { color: theme.colors.text }]}>
+                Ready to track your waste?
+              </Text>
+              <Text style={[styles.getStartedDescription, { color: theme.colors.textSecondary }]}>
+                Start by scanning your first waste item. Every scan helps you understand your environmental impact and work towards a more sustainable lifestyle.
+              </Text>
+              <TouchableOpacity
+                style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
+                onPress={() => router.push('/camera')}
+              >
+                <Plus size={20} color="#ffffff" />
+                <Text style={styles.scanButtonText}>Scan Your First Item</Text>
+              </TouchableOpacity>
             </View>
-            
-            {recentItems.length > 0 ? (
-              <>
-                {recentItems.slice(0, 5).map(item => {
-                  console.log('🎯 [HomeScreen] Rendering item:', item.id, item.description);
-                  return (
-                    <WasteCard key={item.id} entry={item} />
-                  );
-                })}
-                {recentItems.length > 5 && (
-                  <TouchableOpacity 
-                    style={[styles.viewAllButton, { backgroundColor: theme.colors.surface }]}
-                    onPress={() => {
-                      // Navigate to a full list view - for now just show an alert
-                      console.log('View all items');
-                    }}
-                  >
-                    <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
-                      View all {recentItems.length} items
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            ) : (
-              <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
-                <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
-                  No items scanned yet. Start by scanning an item!
+          </View>
+
+          {/* Tips Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Eco Tips</Text>
+            <View style={[styles.tipsCard, { backgroundColor: theme.colors.surface }]}>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.success }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Clean containers before recycling to improve processing efficiency
                 </Text>
-                <TouchableOpacity
-                  style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
-                  onPress={() => router.push('/camera')}
-                >
-                  <Plus size={20} color="#ffffff" />
-                  <Text style={styles.scanButtonText}>Scan Item</Text>
-                </TouchableOpacity>
               </View>
-            )}
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.warning }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Compost organic waste to reduce methane emissions from landfills
+                </Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                  Choose reusable alternatives to reduce single-use waste
+                </Text>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </LinearGradient>
@@ -227,30 +217,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
+    marginBottom: 16,
   },
-  entryCountBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  getStartedCard: {
     borderRadius: 16,
-  },
-  entryCount: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-  },
-  viewAllButton: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 8,
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -260,40 +234,59 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  viewAllText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
+  getStartedTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    marginBottom: 12,
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  emptyStateText: {
-    fontFamily: 'Inter-Medium',
+  getStartedDescription: {
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
+    lineHeight: 24,
     marginBottom: 20,
-    textAlign: 'center',
   },
   scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderRadius: 12,
   },
   scanButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
+  },
+  tipsCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  tipBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 6,
+    marginRight: 12,
+  },
+  tipText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
   },
 });
