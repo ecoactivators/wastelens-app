@@ -422,23 +422,6 @@ export default function ActivateScreen() {
               </View>
             </View>
           </View>
-
-          {/* Motivational Quote */}
-          <View style={styles.section}>
-            <View style={[styles.quoteCard, { backgroundColor: theme.colors.surface }]}>
-              <LinearGradient
-                colors={[theme.colors.primary + '20', theme.colors.primary + '10']}
-                style={styles.quoteGradient}
-              >
-                <Text style={[styles.quote, { color: theme.colors.text }]}>
-                  "Every small action towards sustainability creates a ripple effect of positive change."
-                </Text>
-                <Text style={[styles.quoteAuthor, { color: theme.colors.textSecondary }]}>
-                  — Waste Lens Team
-                </Text>
-              </LinearGradient>
-            </View>
-          </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -753,33 +736,5 @@ const styles = StyleSheet.create({
   settingSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-  },
-  quoteCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  quoteGradient: {
-    padding: 24,
-  },
-  quote: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-    marginBottom: 12,
-    fontStyle: 'italic',
-  },
-  quoteAuthor: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    textAlign: 'center',
   },
 });
