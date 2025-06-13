@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Modal, Image } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
-import { X, Zap, Image as ImageIcon, RotateCcw, CircleCheck as CheckCircle, Circle as XCircle } from 'lucide-react-native';
+import { X, Zap, Image as ImageIcon, RotateCcw, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -160,7 +160,17 @@ export default function CameraScreen() {
   };
 
   const handleCloseGuidelines = () => {
-    router.back();
+    // Navigate to home instead of going back
+    router.push('/(tabs)');
+  };
+
+  const handleBackPress = () => {
+    // Check if we can go back, otherwise go to home
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/(tabs)');
+    }
   };
 
   // Guidelines Modal
@@ -272,9 +282,9 @@ export default function CameraScreen() {
         <View style={styles.topControls}>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => router.back()}
+            onPress={handleBackPress}
           >
-            <X size={24} color="#ffffff" />
+            <ArrowLeft size={24} color="#ffffff" />
           </TouchableOpacity>
           
           <TouchableOpacity

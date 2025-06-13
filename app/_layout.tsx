@@ -75,9 +75,9 @@ export default function RootLayout() {
 
     if (fontsLoaded || fontError) {
       requestLocationOnStartup();
-      // Auto-navigate to camera on app startup
+      // Auto-navigate to camera on app startup using push instead of replace
       setTimeout(() => {
-        router.replace('/camera');
+        router.push('/camera');
       }, 100);
     }
   }, [fontsLoaded, fontError]);
