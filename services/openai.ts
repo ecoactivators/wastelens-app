@@ -1,3 +1,5 @@
+import { LocationService } from './location';
+
 interface WasteAnalysisResult {
   itemName: string;
   quantity: number;
@@ -36,6 +38,10 @@ export class OpenAIService {
     }
 
     try {
+      // Get user's location for personalized recommendations
+      const userLocation = await LocationService.getLocationForAnalysis();
+      console.log('📍 [OpenAIService] Using location for analysis:', userLocation);
+
       // Convert image to base64
       const base64Image = await this.convertImageToBase64(imageUri);
 
@@ -54,6 +60,14 @@ export class OpenAIService {
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
+The user is located in: ${userLocation}
+
+When providing suggestions, be specific to their location. Instead of saying "check local recycling programs", provide specific guidance based on their city/region. For example:
+- Mention specific recycling centers or programs in their area if you know them
+- Reference local waste management companies or municipal services
+- Provide location-specific disposal guidelines
+- Suggest local stores or programs that accept specific materials
+
 Return your response as a JSON object with this exact structure:
 {
   "itemName": "string - name of the primary waste item (use proper capitalization like 'Plastic Water Bottle' not 'plastic water bottle')",
@@ -64,20 +78,20 @@ Return your response as a JSON object with this exact structure:
   "recyclable": "boolean - whether the item is recyclable",
   "compostable": "boolean - whether the item is compostable",
   "carbonFootprint": "number - estimated carbon footprint in kg CO2",
-  "suggestions": "array of strings - 3-4 actionable suggestions for disposal/recycling",
+  "suggestions": "array of strings - 3-4 actionable suggestions for disposal/recycling specific to ${userLocation}",
   "confidence": "number - confidence level from 0-1"
 }
 
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
-Consider factors like material type, recyclability, environmental impact, and provide practical disposal advice.`
+Make your suggestions as location-specific as possible. If you don't have specific knowledge about ${userLocation}, provide general guidance but frame it in the context of their location.`
             },
             {
               role: 'user',
               content: [
                 {
                   type: 'text',
-                  text: 'Please analyze this waste item and provide detailed environmental information. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.'
+                  text: `Please analyze this waste item and provide detailed environmental information with location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
                 },
                 {
                   type: 'image_url',
@@ -140,6 +154,7 @@ Consider factors like material type, recyclability, environmental impact, and pr
         analysisResult.itemName = this.capitalizeItemName(analysisResult.itemName);
       }
       
+      console.log('✅ [OpenAIService] Analysis completed with location-specific suggestions for:', userLocation);
       return analysisResult;
     } catch (error) {
       console.error('Error analyzing waste image:', error);
@@ -177,6 +192,10 @@ Consider factors like material type, recyclability, environmental impact, and pr
     }
 
     try {
+      // Get user's location for personalized recommendations
+      const userLocation = await LocationService.getLocationForAnalysis();
+      console.log('📍 [OpenAIService] Using location for feedback correction:', userLocation);
+
       const base64Image = await this.convertImageToBase64(imageUri);
 
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -194,6 +213,10 @@ Consider factors like material type, recyclability, environmental impact, and pr
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
+The user is located in: ${userLocation}
+
+When providing suggestions, be specific to their location. Provide location-specific disposal guidelines and recommendations.
+
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
 Return your response as a JSON object with the same structure as before.`
@@ -207,7 +230,7 @@ Return your response as a JSON object with the same structure as before.`
                   
                   The user provided this feedback: "${userFeedback}"
                   
-                  Please provide a corrected analysis based on this feedback and re-examine the image. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
+                  Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
                 },
                 {
                   type: 'image_url',
@@ -269,6 +292,7 @@ Return your response as a JSON object with the same structure as before.`
         correctedAnalysis.itemName = this.capitalizeItemName(correctedAnalysis.itemName);
       }
       
+      console.log('✅ [OpenAIService] Feedback correction completed with location-specific suggestions for:', userLocation);
       return correctedAnalysis;
     } catch (error) {
       console.error('Error fixing analysis:', error);

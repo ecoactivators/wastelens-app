@@ -12,6 +12,7 @@ import { SplashScreen } from 'expo-router'
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { ItemsProvider } from '@/contexts/ItemsContext';
+import { LocationService } from '@/services/location';
 
 declare global {
   interface Window {
@@ -50,6 +51,29 @@ export default function RootLayout() {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
       window.frameworkReady?.();
+    }
+  }, [fontsLoaded, fontError]);
+
+  // Request location permission when app starts
+  useEffect(() => {
+    const requestLocationOnStartup = async () => {
+      try {
+        console.log('🚀 [RootLayout] Requesting location permission on app startup...');
+        const granted = await LocationService.requestLocationPermission();
+        if (granted) {
+          console.log('✅ [RootLayout] Location permission granted');
+          // Pre-fetch location to cache it
+          await LocationService.getCurrentLocation();
+        } else {
+          console.log('❌ [RootLayout] Location permission denied');
+        }
+      } catch (error) {
+        console.error('❌ [RootLayout] Error requesting location permission:', error);
+      }
+    };
+
+    if (fontsLoaded || fontError) {
+      requestLocationOnStartup();
     }
   }, [fontsLoaded, fontError]);
 
