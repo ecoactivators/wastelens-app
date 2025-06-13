@@ -4,22 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
-import { 
-  Zap, 
-  Target, 
-  Award, 
-  TrendingUp, 
-  Calendar, 
-  CheckCircle, 
-  Circle,
-  Flame,
-  Trophy,
-  Star,
-  Gift,
-  Bell,
-  Smartphone,
-  Mail
-} from 'lucide-react-native';
+import { Zap, Target, Award, TrendingUp, Calendar, CircleCheck as CheckCircle, Circle, Flame, Trophy, Star, Gift, Bell, Smartphone, Mail } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface Challenge {
