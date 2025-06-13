@@ -5,6 +5,7 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TabLayout() {
   const { theme } = useTheme();
@@ -15,33 +16,39 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#ffffff',
-            borderTopWidth: 1,
-            borderTopColor: '#f0f0f0',
-            paddingBottom: Platform.OS === 'ios' ? 35 : 25,
-            paddingTop: 20,
-            height: Platform.OS === 'ios' ? 110 : 90,
+            backgroundColor: theme.colors.tabBar,
+            borderTopWidth: 0,
+            paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+            paddingTop: 16,
+            height: Platform.OS === 'ios' ? 100 : 80,
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
             elevation: 0,
-            shadowOpacity: 0,
-            paddingLeft: 20,
-            paddingRight: 20,
+            shadowColor: theme.colors.shadow,
+            shadowOffset: {
+              width: 0,
+              height: -2,
+            },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            paddingLeft: 24,
+            paddingRight: 24,
           },
           tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: theme.colors.textSecondary,
+          tabBarInactiveTintColor: theme.colors.textTertiary,
           tabBarLabelStyle: {
             fontFamily: 'Inter-Medium',
-            fontSize: 11,
+            fontSize: 10,
             marginTop: 4,
+            letterSpacing: 0.5,
           },
           tabBarIconStyle: {
-            marginBottom: 2,
+            marginBottom: 0,
           },
           tabBarItemStyle: {
-            paddingHorizontal: 12,
+            paddingHorizontal: 8,
             flex: 1,
           },
         }}>
@@ -50,7 +57,7 @@ export default function TabLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({ size, color }) => (
-              <House size={22} color={color} />
+              <House size={20} color={color} strokeWidth={1.5} />
             ),
           }}
         />
@@ -59,7 +66,7 @@ export default function TabLayout() {
           options={{
             title: 'Activate',
             tabBarIcon: ({ size, color }) => (
-              <Zap size={22} color={color} />
+              <Zap size={20} color={color} strokeWidth={1.5} />
             ),
           }}
         />
@@ -74,7 +81,7 @@ export default function TabLayout() {
           options={{
             title: 'Rewards',
             tabBarIcon: ({ size, color }) => (
-              <Gift size={22} color={color} />
+              <Gift size={20} color={color} strokeWidth={1.5} />
             ),
           }}
         />
@@ -83,19 +90,27 @@ export default function TabLayout() {
           options={{
             title: 'Settings',
             tabBarIcon: ({ size, color }) => (
-              <Settings size={22} color={color} />
+              <Settings size={20} color={color} strokeWidth={1.5} />
             ),
           }}
         />
       </Tabs>
 
-      {/* Floating Camera Button - Centered between left and right tabs */}
-      <TouchableOpacity
-        style={[styles.floatingCameraButton, { backgroundColor: '#2d3748' }]}
-        onPress={() => router.push('/camera')}
-      >
-        <Plus size={26} color="#ffffff" />
-      </TouchableOpacity>
+      {/* Premium Floating Camera Button */}
+      <View style={styles.floatingButtonContainer}>
+        <LinearGradient
+          colors={['#1a1a1a', '#000000']}
+          style={styles.floatingButtonGradient}
+        >
+          <TouchableOpacity
+            style={styles.floatingCameraButton}
+            onPress={() => router.push('/camera')}
+            activeOpacity={0.8}
+          >
+            <Plus size={24} color="#ffffff" strokeWidth={2} />
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -104,24 +119,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  floatingCameraButton: {
+  floatingButtonContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 75 : 55, // Positioned within the tab bar area
+    bottom: Platform.OS === 'ios' ? 66 : 50,
     left: '50%',
-    marginLeft: -32, // Half of button width (64/2) to center it
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginLeft: -28,
+    borderRadius: 28,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 8,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 1000,
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  floatingButtonGradient: {
+    borderRadius: 28,
+    padding: 2,
+  },
+  floatingCameraButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 26,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333333',
   },
 });

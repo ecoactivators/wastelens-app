@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { StorageService } from '@/services/storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -47,16 +48,25 @@ export default function CameraScreen() {
 
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <View style={styles.permissionContainer}>
-          <Text style={styles.permissionTitle}>Camera Access Required</Text>
-          <Text style={styles.permissionText}>
-            We need access to your camera to take photos of waste items for analysis.
-          </Text>
-          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-            <Text style={styles.permissionButtonText}>Grant Permission</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <LinearGradient
+          colors={[theme.colors.background, '#000000']}
+          style={styles.permissionGradient}
+        >
+          <View style={styles.permissionContainer}>
+            <Text style={styles.permissionTitle}>Camera Access Required</Text>
+            <Text style={styles.permissionText}>
+              We need access to your camera to take photos of waste items for analysis.
+            </Text>
+            <TouchableOpacity 
+              style={[styles.permissionButton, { backgroundColor: theme.colors.primary }]} 
+              onPress={requestPermission}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.permissionButtonText, { color: theme.colors.surface }]}>Grant Permission</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </View>
     );
   }
@@ -138,12 +148,12 @@ export default function CameraScreen() {
   const getFlashIcon = () => {
     switch (flash) {
       case 'on':
-        return <Zap size={24} color="#ffffff" fill="#ffffff" />;
+        return <Zap size={20} color="#ffffff" fill="#ffffff" strokeWidth={1.5} />;
       case 'auto':
-        return <Zap size={24} color="#ffffff" />;
+        return <Zap size={20} color="#ffffff" strokeWidth={1.5} />;
       case 'off':
       default:
-        return <Zap size={24} color="rgba(255, 255, 255, 0.5)" />;
+        return <Zap size={20} color="rgba(255, 255, 255, 0.5)" strokeWidth={1.5} />;
     }
   };
 
@@ -177,95 +187,106 @@ export default function CameraScreen() {
   if (showGuidelines) {
     return (
       <SafeAreaView style={[styles.guidelinesContainer, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.guidelinesModal, { backgroundColor: theme.colors.surface }]}>
-          {/* Header */}
-          <View style={styles.guidelinesHeader}>
-            <TouchableOpacity onPress={handleCloseGuidelines}>
-              <X size={24} color={theme.colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+        <LinearGradient
+          colors={[theme.colors.background, theme.colors.surface]}
+          style={styles.guidelinesGradient}
+        >
+          <View style={[styles.guidelinesModal, { backgroundColor: theme.colors.surface }]}>
+            {/* Header */}
+            <View style={styles.guidelinesHeader}>
+              <TouchableOpacity onPress={handleCloseGuidelines} style={styles.closeButton}>
+                <X size={24} color={theme.colors.textSecondary} strokeWidth={1.5} />
+              </TouchableOpacity>
+            </View>
 
-          {/* Title */}
-          <Text style={[styles.guidelinesTitle, { color: theme.colors.text }]}>
-            Best scanning practices
-          </Text>
+            {/* Title */}
+            <Text style={[styles.guidelinesTitle, { color: theme.colors.text }]}>
+              Best scanning practices
+            </Text>
 
-          {/* Do and Don't Examples */}
-          <View style={styles.examplesContainer}>
-            <View style={styles.exampleColumn}>
-              <View style={styles.exampleHeader}>
-                <CheckCircle size={20} color="#10b981" />
-                <Text style={[styles.exampleHeaderText, { color: theme.colors.text }]}>Do</Text>
+            {/* Do and Don't Examples */}
+            <View style={styles.examplesContainer}>
+              <View style={styles.exampleColumn}>
+                <View style={styles.exampleHeader}>
+                  <CheckCircle size={18} color="#16a34a" strokeWidth={1.5} />
+                  <Text style={[styles.exampleHeaderText, { color: theme.colors.text }]}>Do</Text>
+                </View>
+                <View style={[styles.exampleImageContainer, { backgroundColor: theme.colors.border }]}>
+                  <Image 
+                    source={{ uri: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg' }}
+                    style={styles.exampleImage}
+                  />
+                  <View style={styles.scanFrame}>
+                    <View style={[styles.scanCorner, styles.scanCornerTopLeft]} />
+                    <View style={[styles.scanCorner, styles.scanCornerTopRight]} />
+                    <View style={[styles.scanCorner, styles.scanCornerBottomLeft]} />
+                    <View style={[styles.scanCorner, styles.scanCornerBottomRight]} />
+                  </View>
+                </View>
               </View>
-              <View style={[styles.exampleImageContainer, { backgroundColor: theme.colors.border }]}>
-                <Image 
-                  source={{ uri: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg' }}
-                  style={styles.exampleImage}
-                />
-                <View style={styles.scanFrame}>
-                  <View style={[styles.scanCorner, styles.scanCornerTopLeft]} />
-                  <View style={[styles.scanCorner, styles.scanCornerTopRight]} />
-                  <View style={[styles.scanCorner, styles.scanCornerBottomLeft]} />
-                  <View style={[styles.scanCorner, styles.scanCornerBottomRight]} />
+
+              <View style={styles.exampleColumn}>
+                <View style={styles.exampleHeader}>
+                  <XCircle size={18} color="#ef4444" strokeWidth={1.5} />
+                  <Text style={[styles.exampleHeaderText, { color: theme.colors.text }]}>Don't</Text>
+                </View>
+                <View style={[styles.exampleImageContainer, { backgroundColor: theme.colors.border }]}>
+                  <Image 
+                    source={{ uri: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg' }}
+                    style={[styles.exampleImage, styles.blurredImage]}
+                  />
                 </View>
               </View>
             </View>
 
-            <View style={styles.exampleColumn}>
-              <View style={styles.exampleHeader}>
-                <XCircle size={20} color="#ef4444" />
-                <Text style={[styles.exampleHeaderText, { color: theme.colors.text }]}>Don't</Text>
-              </View>
-              <View style={[styles.exampleImageContainer, { backgroundColor: theme.colors.border }]}>
-                <Image 
-                  source={{ uri: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg' }}
-                  style={[styles.exampleImage, styles.blurredImage]}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Tips */}
-          <View style={styles.tipsContainer}>
-            <Text style={[styles.tipsTitle, { color: theme.colors.text }]}>General tips:</Text>
-            <View style={styles.tipsList}>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Keep the item inside the scan lines
-                </Text>
-              </View>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Hold your phone still so the image is not blurry
-                </Text>
-              </View>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Don't take the picture at obscure angles
-                </Text>
-              </View>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Ensure good lighting for better recognition
-                </Text>
+            {/* Tips */}
+            <View style={styles.tipsContainer}>
+              <Text style={[styles.tipsTitle, { color: theme.colors.text }]}>General tips:</Text>
+              <View style={styles.tipsList}>
+                <View style={styles.tipItem}>
+                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    Keep the item inside the scan lines
+                  </Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    Hold your phone still so the image is not blurry
+                  </Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    Don't take the picture at obscure angles
+                  </Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
+                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                    Ensure good lighting for better recognition
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          {/* Scan Now Button */}
-          <TouchableOpacity 
-            style={[styles.scanNowButton, { backgroundColor: theme.colors.text }]} 
-            onPress={handleScanNow}
-          >
-            <Text style={[styles.scanNowButtonText, { color: theme.colors.surface }]}>
-              Scan now
-            </Text>
-          </TouchableOpacity>
-        </View>
+            {/* Scan Now Button */}
+            <TouchableOpacity 
+              style={[styles.scanNowButton, { backgroundColor: theme.colors.primary }]} 
+              onPress={handleScanNow}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primary]}
+                style={styles.scanNowGradient}
+              >
+                <Text style={[styles.scanNowButtonText, { color: theme.colors.surface }]}>
+                  Scan now
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </SafeAreaView>
     );
   }
@@ -279,21 +300,28 @@ export default function CameraScreen() {
         flash={flash}
       >
         {/* Top Controls */}
-        <View style={styles.topControls}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={handleBackPress}
-          >
-            <ArrowLeft size={24} color="#ffffff" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.flashButton}
-            onPress={toggleFlash}
-          >
-            {getFlashIcon()}
-          </TouchableOpacity>
-        </View>
+        <LinearGradient
+          colors={['rgba(0,0,0,0.6)', 'transparent']}
+          style={styles.topGradient}
+        >
+          <View style={styles.topControls}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={handleBackPress}
+              activeOpacity={0.8}
+            >
+              <ArrowLeft size={20} color="#ffffff" strokeWidth={1.5} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={toggleFlash}
+              activeOpacity={0.8}
+            >
+              {getFlashIcon()}
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
 
         {/* Scan Frame */}
         <View style={styles.scanFrameContainer}>
@@ -309,28 +337,36 @@ export default function CameraScreen() {
         </View>
 
         {/* Bottom Controls */}
-        <View style={styles.bottomControls}>
-          <TouchableOpacity
-            style={styles.galleryButton}
-            onPress={pickImage}
-          >
-            <ImageIcon size={24} color="#ffffff" />
-          </TouchableOpacity>
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.6)']}
+          style={styles.bottomGradient}
+        >
+          <View style={styles.bottomControls}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={pickImage}
+              activeOpacity={0.8}
+            >
+              <ImageIcon size={20} color="#ffffff" strokeWidth={1.5} />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.captureButton}
-            onPress={takePicture}
-          >
-            <View style={styles.captureButtonInner} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.captureButton}
+              onPress={takePicture}
+              activeOpacity={0.9}
+            >
+              <View style={styles.captureButtonInner} />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.flipButton}
-            onPress={toggleCameraFacing}
-          >
-            <RotateCcw size={24} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={toggleCameraFacing}
+              activeOpacity={0.8}
+            >
+              <RotateCcw size={20} color="#ffffff" strokeWidth={1.5} />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </CameraView>
     </View>
   );
@@ -351,20 +387,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     fontSize: 16,
     color: '#ffffff',
+    letterSpacing: 0.3,
+  },
+  permissionGradient: {
+    flex: 1,
   },
   permissionContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
-    backgroundColor: '#000000',
   },
   permissionTitle: {
     fontFamily: 'Inter-Bold',
-    fontSize: 24,
+    fontSize: 28,
     color: '#ffffff',
     textAlign: 'center',
     marginBottom: 16,
+    letterSpacing: -0.5,
   },
   permissionText: {
     fontFamily: 'Inter-Regular',
@@ -374,17 +414,25 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 32,
     opacity: 0.8,
+    letterSpacing: 0.2,
   },
   permissionButton: {
-    backgroundColor: '#10b981',
     paddingHorizontal: 32,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   permissionButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    color: '#ffffff',
+    letterSpacing: 0.3,
   },
   // Guidelines Modal Styles
   guidelinesContainer: {
@@ -393,29 +441,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  guidelinesGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
   guidelinesModal: {
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 28,
+    padding: 28,
     width: '100%',
     maxWidth: 400,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: 16,
     },
     shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowRadius: 24,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   guidelinesHeader: {
     alignItems: 'flex-end',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  closeButton: {
+    padding: 8,
   },
   guidelinesTitle: {
     fontFamily: 'Inter-Bold',
-    fontSize: 28,
+    fontSize: 32,
     marginBottom: 32,
     textAlign: 'left',
+    letterSpacing: -0.5,
   },
   examplesContainer: {
     flexDirection: 'row',
@@ -434,9 +494,10 @@ const styles = StyleSheet.create({
   exampleHeaderText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
+    letterSpacing: 0.2,
   },
   exampleImageContainer: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     aspectRatio: 0.75,
     position: 'relative',
@@ -459,7 +520,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 24,
     height: 24,
-    borderColor: '#10b981',
+    borderColor: '#16a34a',
     borderWidth: 3,
   },
   scanCornerTopLeft: {
@@ -493,6 +554,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     marginBottom: 16,
+    letterSpacing: 0.2,
   },
   tipsList: {
     gap: 12,
@@ -513,45 +575,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
+    letterSpacing: 0.1,
   },
   scanNowButton: {
-    borderRadius: 16,
-    paddingVertical: 18,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  scanNowGradient: {
+    paddingVertical: 20,
     alignItems: 'center',
   },
   scanNowButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
+    letterSpacing: 0.3,
   },
   // Camera Styles
   camera: {
     flex: 1,
   },
-  topControls: {
+  topGradient: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
+    top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    height: 120,
     zIndex: 1,
   },
-  closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  topControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
   },
-  flashButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  controlButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   scanFrameContainer: {
     position: 'absolute',
@@ -565,56 +638,54 @@ const styles = StyleSheet.create({
   },
   scanInstructions: {
     position: 'absolute',
-    bottom: -40,
+    bottom: -50,
     fontFamily: 'Inter-Medium',
     fontSize: 14,
     color: '#ffffff',
     textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    letterSpacing: 0.2,
   },
-  bottomControls: {
+  bottomGradient: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 40 : 20,
+    bottom: 0,
     left: 0,
     right: 0,
+    height: 140,
+    justifyContent: 'flex-end',
+  },
+  bottomControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 40,
-  },
-  galleryButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   captureButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 4,
+    borderWidth: 3,
     borderColor: '#ffffff',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   captureButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: '#ffffff',
-  },
-  flipButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
