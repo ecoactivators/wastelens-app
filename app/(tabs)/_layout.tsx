@@ -27,21 +27,21 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             shadowOpacity: 0,
-            paddingLeft: 10,
-            paddingRight: 10,
+            paddingLeft: 20,
+            paddingRight: 20,
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
           tabBarLabelStyle: {
             fontFamily: 'Inter-Medium',
-            fontSize: 12,
-            marginTop: 6,
+            fontSize: 11,
+            marginTop: 4,
           },
           tabBarIconStyle: {
             marginBottom: 2,
           },
           tabBarItemStyle: {
-            paddingHorizontal: 8,
+            paddingHorizontal: 12,
             flex: 1,
           },
         }}>
@@ -50,7 +50,7 @@ export default function TabLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({ size, color }) => (
-              <House size={26} color={color} />
+              <House size={22} color={color} />
             ),
           }}
         />
@@ -59,7 +59,7 @@ export default function TabLayout() {
           options={{
             title: 'Activate',
             tabBarIcon: ({ size, color }) => (
-              <Zap size={26} color={color} />
+              <Zap size={22} color={color} />
             ),
           }}
         />
@@ -74,7 +74,7 @@ export default function TabLayout() {
           options={{
             title: 'Rewards',
             tabBarIcon: ({ size, color }) => (
-              <Gift size={26} color={color} />
+              <Gift size={22} color={color} />
             ),
           }}
         />
@@ -83,7 +83,7 @@ export default function TabLayout() {
           options={{
             title: 'Settings',
             tabBarIcon: ({ size, color }) => (
-              <Settings size={26} color={color} />
+              <Settings size={22} color={color} />
             ),
           }}
         />
@@ -94,7 +94,7 @@ export default function TabLayout() {
         style={[styles.floatingCameraButton, { backgroundColor: '#2d3748' }]}
         onPress={() => router.push('/camera')}
       >
-        <Plus size={28} color="#ffffff" />
+        <Plus size={26} color="#ffffff" />
       </TouchableOpacity>
     </View>
   );
