@@ -44,15 +44,6 @@ const mockRewards: Reward[] = [
     category: 'eco',
     available: true,
   },
-  {
-    id: '4',
-    title: '10% Off Eco Store',
-    description: 'Discount at participating eco-friendly stores',
-    points: 1000,
-    imageUrl: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg',
-    category: 'discount',
-    available: true,
-  },
 ];
 
 export default function RewardsScreen() {
