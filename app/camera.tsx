@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Modal, Image } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
-import { X, Zap, Image as ImageIcon, RotateCcw, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
+import { X, Zap, Image as ImageIcon, Home, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -81,10 +81,6 @@ export default function CameraScreen() {
       </View>
     );
   }
-
-  const toggleCameraFacing = () => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  };
 
   const toggleFlash = () => {
     setFlash(current => {
@@ -181,6 +177,11 @@ export default function CameraScreen() {
     } else {
       router.push('/(tabs)');
     }
+  };
+
+  const handleHomePress = () => {
+    // Navigate to home tab
+    router.push('/(tabs)');
   };
 
   // Guidelines Modal
@@ -360,10 +361,10 @@ export default function CameraScreen() {
 
             <TouchableOpacity
               style={styles.controlButton}
-              onPress={toggleCameraFacing}
+              onPress={handleHomePress}
               activeOpacity={0.8}
             >
-              <RotateCcw size={20} color="#ffffff" strokeWidth={1.5} />
+              <Home size={20} color="#ffffff" strokeWidth={1.5} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
