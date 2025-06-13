@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform, View } from 'react-native';
-import { House, Gift, Settings, Plus } from 'lucide-react-native';
+import { House, Gift, Settings, Plus, Zap } from 'lucide-react-native';
 import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
@@ -27,8 +27,8 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             shadowOpacity: 0,
-            paddingLeft: 20, // Reduced left padding
-            paddingRight: 100, // Reduced right padding to bring settings closer to plus
+            paddingLeft: 10,
+            paddingRight: 100,
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
@@ -41,7 +41,7 @@ export default function TabLayout() {
             marginBottom: 2,
           },
           tabBarItemStyle: {
-            paddingHorizontal: 12, // Increased padding for better spacing
+            paddingHorizontal: 8,
           },
         }}>
         <Tabs.Screen
@@ -59,6 +59,15 @@ export default function TabLayout() {
             title: 'Rewards',
             tabBarIcon: ({ size, color }) => (
               <Gift size={26} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="activate"
+          options={{
+            title: 'Activate',
+            tabBarIcon: ({ size, color }) => (
+              <Zap size={26} color={color} />
             ),
           }}
         />
