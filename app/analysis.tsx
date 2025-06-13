@@ -36,6 +36,7 @@ export default function AnalysisScreen() {
   const [fixMessage, setFixMessage] = useState('');
   const [fixLoading, setFixLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   useEffect(() => {
     if (photoUri) {
@@ -140,6 +141,21 @@ export default function AnalysisScreen() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Delete', 
+          style: 'destructive',
+          onPress: () => router.back()
+        }
+      ]
+    );
+  };
+
+  const handleBackPress = () => {
+    Alert.alert(
+      'Discard Analysis',
+      'Are you sure you want to discard this analysis? All progress will be lost.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Discard', 
           style: 'destructive',
           onPress: () => router.back()
         }
@@ -290,7 +306,7 @@ export default function AnalysisScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.colors.overlay }]}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
           <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>AI Analysis</Text>
@@ -301,7 +317,11 @@ export default function AnalysisScreen() {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Image */}
-        <View style={styles.imageContainer}>
+        <TouchableOpacity 
+          style={styles.imageContainer}
+          onPress={() => setShowImageModal(true)}
+          activeOpacity={0.9}
+        >
           <Image source={{ uri: photoUri }} style={styles.image} />
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.3)']}
@@ -316,7 +336,7 @@ export default function AnalysisScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* Analysis Card */}
         <View style={[styles.analysisCard, { backgroundColor: theme.colors.surface }]}>
@@ -425,6 +445,28 @@ export default function AnalysisScreen() {
           <Text style={[styles.doneButtonText, { color: theme.colors.surface }]}>Done</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Fullscreen Image Modal */}
+      <Modal
+        visible={showImageModal}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        statusBarTranslucent
+      >
+        <View style={styles.fullscreenImageContainer}>
+          <TouchableOpacity
+            style={styles.closeFullscreenButton}
+            onPress={() => setShowImageModal(false)}
+          >
+            <X size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <Image 
+            source={{ uri: photoUri }} 
+            style={styles.fullscreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
 
       {/* Fix Results Modal */}
       <Modal
@@ -785,6 +827,28 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
+  },
+  fullscreenImageContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeFullscreenButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    right: 20,
+    zIndex: 1,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenImage: {
+    width: '100%',
+    height: '100%',
   },
   modalContainer: {
     flex: 1,

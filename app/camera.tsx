@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Modal, Image } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { router } from 'expo-router';
-import { X, Zap, Image as ImageIcon, Chrome as Home, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
+import { X, Zap, Image as ImageIcon, House, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -364,7 +364,7 @@ export default function CameraScreen() {
               onPress={handleHomePress}
               activeOpacity={0.8}
             >
-              <Home size={20} color="#ffffff" strokeWidth={1.5} />
+              <House size={20} color="#ffffff" strokeWidth={1.5} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
