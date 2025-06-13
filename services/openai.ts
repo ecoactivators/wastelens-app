@@ -10,7 +10,14 @@ interface WasteAnalysisResult {
   compostable: boolean;
   carbonFootprint: number;
   suggestions: string[];
+  mapSuggestions?: MapSuggestion[];
   confidence: number;
+}
+
+interface MapSuggestion {
+  text: string;
+  searchQuery: string;
+  type: 'recycling_center' | 'store' | 'facility';
 }
 
 export class OpenAIService {
@@ -30,6 +37,61 @@ export class OpenAIService {
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
+  }
+
+  // Helper function to extract map suggestions from AI response
+  private extractMapSuggestions(suggestions: string[], userLocation: string): MapSuggestion[] {
+    const mapSuggestions: MapSuggestion[] = [];
+    
+    suggestions.forEach(suggestion => {
+      const lowerSuggestion = suggestion.toLowerCase();
+      
+      // Look for recycling centers
+      if (lowerSuggestion.includes('recycling center') || lowerSuggestion.includes('recycling facility')) {
+        const match = suggestion.match(/take.*?to.*?([\w\s]+recycling\s+(?:center|facility))/i);
+        if (match) {
+          const facilityName = match[1].trim();
+          mapSuggestions.push({
+            text: suggestion,
+            searchQuery: `${facilityName} ${userLocation}`,
+            type: 'recycling_center'
+          });
+        } else {
+          // Generic recycling center search
+          mapSuggestions.push({
+            text: suggestion,
+            searchQuery: `recycling center ${userLocation}`,
+            type: 'recycling_center'
+          });
+        }
+      }
+      
+      // Look for specific stores
+      else if (lowerSuggestion.includes('target') || lowerSuggestion.includes('walmart') || 
+               lowerSuggestion.includes('home depot') || lowerSuggestion.includes('best buy')) {
+        const storeMatch = suggestion.match(/(target|walmart|home depot|best buy)/i);
+        if (storeMatch) {
+          const storeName = storeMatch[1];
+          mapSuggestions.push({
+            text: suggestion,
+            searchQuery: `${storeName} ${userLocation}`,
+            type: 'store'
+          });
+        }
+      }
+      
+      // Look for waste management facilities
+      else if (lowerSuggestion.includes('waste management') || lowerSuggestion.includes('transfer station') ||
+               lowerSuggestion.includes('disposal facility')) {
+        mapSuggestions.push({
+          text: suggestion,
+          searchQuery: `waste management facility ${userLocation}`,
+          type: 'facility'
+        });
+      }
+    });
+    
+    return mapSuggestions;
   }
 
   async analyzeWasteImage(imageUri: string): Promise<WasteAnalysisResult> {
@@ -67,6 +129,7 @@ When providing suggestions, be specific to their location. Instead of saying "ch
 - Reference local waste management companies or municipal services
 - Provide location-specific disposal guidelines
 - Suggest local stores or programs that accept specific materials
+- When mentioning specific places, use the format "Take this to [Facility Name] recycling center" or "Many [Store Name] stores accept this"
 
 Return your response as a JSON object with this exact structure:
 {
@@ -154,7 +217,13 @@ Make your suggestions as location-specific as possible. If you don't have specif
         analysisResult.itemName = this.capitalizeItemName(analysisResult.itemName);
       }
       
+      // Extract map suggestions from the AI response
+      if (analysisResult.suggestions && Array.isArray(analysisResult.suggestions)) {
+        analysisResult.mapSuggestions = this.extractMapSuggestions(analysisResult.suggestions, userLocation);
+      }
+      
       console.log('✅ [OpenAIService] Analysis completed with location-specific suggestions for:', userLocation);
+      console.log('🗺️ [OpenAIService] Extracted map suggestions:', analysisResult.mapSuggestions?.length || 0);
       return analysisResult;
     } catch (error) {
       console.error('Error analyzing waste image:', error);
@@ -292,7 +361,13 @@ Return your response as a JSON object with the same structure as before.`
         correctedAnalysis.itemName = this.capitalizeItemName(correctedAnalysis.itemName);
       }
       
+      // Extract map suggestions from the corrected AI response
+      if (correctedAnalysis.suggestions && Array.isArray(correctedAnalysis.suggestions)) {
+        correctedAnalysis.mapSuggestions = this.extractMapSuggestions(correctedAnalysis.suggestions, userLocation);
+      }
+      
       console.log('✅ [OpenAIService] Feedback correction completed with location-specific suggestions for:', userLocation);
+      console.log('🗺️ [OpenAIService] Extracted map suggestions:', correctedAnalysis.mapSuggestions?.length || 0);
       return correctedAnalysis;
     } catch (error) {
       console.error('Error fixing analysis:', error);

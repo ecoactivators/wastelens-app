@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert, Modal, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle, MapPin, ExternalLink } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { openAIService } from '@/services/openai';
+import { MapsService, MapSuggestion } from '@/services/maps';
 import { useItems } from '@/contexts/ItemsContext';
 import { WasteType, WasteCategory } from '@/types/waste';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -20,6 +21,7 @@ interface WasteAnalysis {
   compostable: boolean;
   carbonFootprint: number;
   suggestions: string[];
+  mapSuggestions?: MapSuggestion[];
   confidence?: number;
 }
 
@@ -108,6 +110,25 @@ export default function AnalysisScreen() {
       Alert.alert('Error', 'Failed to update analysis. Please try again.');
     } finally {
       setFixLoading(false);
+    }
+  };
+
+  const handleMapSuggestionPress = async (mapSuggestion: MapSuggestion) => {
+    try {
+      console.log('🗺️ [AnalysisScreen] Opening map suggestion:', mapSuggestion.searchQuery);
+      await MapsService.openMapSuggestion(mapSuggestion);
+      
+      // Provide haptic feedback on mobile
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    } catch (error) {
+      console.error('❌ [AnalysisScreen] Error opening maps:', error);
+      Alert.alert(
+        'Unable to Open Maps',
+        'Could not open the maps application. Please search for the location manually.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -208,6 +229,31 @@ export default function AnalysisScreen() {
     if (confidence >= 0.8) return 'High Confidence';
     if (confidence >= 0.6) return 'Medium Confidence';
     return 'Low Confidence';
+  };
+
+  const renderSuggestionWithMapButton = (suggestion: string, index: number) => {
+    const mapSuggestion = analysis?.mapSuggestions?.find(ms => ms.text === suggestion);
+    
+    return (
+      <View key={index} style={styles.suggestionItem}>
+        <View style={[styles.suggestionDot, { backgroundColor: theme.colors.primary }]} />
+        <View style={styles.suggestionContent}>
+          <Text style={[styles.suggestionText, { color: theme.colors.textSecondary }]}>
+            {suggestion}
+          </Text>
+          {mapSuggestion && (
+            <TouchableOpacity
+              style={[styles.mapButton, { backgroundColor: theme.colors.primary }]}
+              onPress={() => handleMapSuggestionPress(mapSuggestion)}
+            >
+              <MapPin size={14} color="#ffffff" />
+              <Text style={styles.mapButtonText}>Open in Maps</Text>
+              <ExternalLink size={12} color="#ffffff" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
   };
 
   if (loading) {
@@ -354,15 +400,12 @@ export default function AnalysisScreen() {
             </View>
           </View>
 
-          {/* AI Suggestions */}
+          {/* AI Suggestions with Map Buttons */}
           <View style={styles.suggestionsContainer}>
             <Text style={[styles.suggestionsTitle, { color: theme.colors.text }]}>AI Recommendations</Text>
-            {analysis.suggestions.map((suggestion, index) => (
-              <View key={index} style={styles.suggestionItem}>
-                <View style={[styles.suggestionDot, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.suggestionText, { color: theme.colors.textSecondary }]}>{suggestion}</Text>
-              </View>
-            ))}
+            {analysis.suggestions.map((suggestion, index) => 
+              renderSuggestionWithMapButton(suggestion, index)
+            )}
           </View>
         </View>
       </ScrollView>
@@ -676,7 +719,7 @@ const styles = StyleSheet.create({
   suggestionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   suggestionDot: {
     width: 6,
@@ -685,11 +728,28 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginRight: 12,
   },
+  suggestionContent: {
+    flex: 1,
+  },
   suggestionText: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
-    flex: 1,
     lineHeight: 20,
+    marginBottom: 8,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  mapButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#ffffff',
   },
   bottomActions: {
     position: 'absolute',
