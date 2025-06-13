@@ -45,6 +45,15 @@ export default function TabLayout() {
           },
         }}>
         <Tabs.Screen
+          name="camera"
+          options={{
+            title: 'Camera',
+            tabBarIcon: ({ size, color }) => (
+              <Plus size={26} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="index"
           options={{
             title: 'Home',
@@ -71,21 +80,7 @@ export default function TabLayout() {
             ),
           }}
         />
-        <Tabs.Screen
-          name="camera"
-          options={{
-            href: null, // Hide this tab from the tab bar
-          }}
-        />
       </Tabs>
-
-      {/* Floating Camera Button - Positioned within tab bar area */}
-      <TouchableOpacity
-        style={[styles.floatingCameraButton, { backgroundColor: '#2d3748' }]}
-        onPress={() => router.push('/camera')}
-      >
-        <Plus size={28} color="#ffffff" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -93,24 +88,5 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  floatingCameraButton: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 75 : 55, // Positioned within the tab bar area
-    right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 1000,
   },
 });
