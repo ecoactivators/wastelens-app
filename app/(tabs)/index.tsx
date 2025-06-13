@@ -138,31 +138,6 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Tips Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Waste Reduction Tips</Text>
-            <View style={[styles.tipsCard, { backgroundColor: theme.colors.surface }]}>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.success }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Clean containers before recycling to improve processing efficiency
-                </Text>
-              </View>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.warning }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Choose reusable alternatives to reduce single-use waste
-                </Text>
-              </View>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Track your waste patterns to identify reduction opportunities
-                </Text>
-              </View>
-            </View>
-          </View>
-
           {/* Environmental Impact - Moved to bottom */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Environmental Impact</Text>
@@ -279,36 +254,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
-  },
-  tipsCard: {
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  tipItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  tipBullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 6,
-    marginRight: 12,
-  },
-  tipText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    flex: 1,
-    lineHeight: 20,
   },
   impactCard: {
     borderRadius: 16,
