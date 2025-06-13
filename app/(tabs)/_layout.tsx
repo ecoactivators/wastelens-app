@@ -27,21 +27,21 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             shadowOpacity: 0,
-            paddingLeft: 30,
-            paddingRight: 30,
+            paddingLeft: 20,
+            paddingRight: 20,
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
           tabBarLabelStyle: {
             fontFamily: 'Inter-Medium',
-            fontSize: 10,
-            marginTop: 2,
+            fontSize: 11,
+            marginTop: 4,
           },
           tabBarIconStyle: {
             marginBottom: 2,
           },
           tabBarItemStyle: {
-            paddingHorizontal: 16,
+            paddingHorizontal: 12,
             flex: 1,
           },
         }}>
@@ -50,7 +50,7 @@ export default function TabLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({ size, color }) => (
-              <House size={20} color={color} />
+              <House size={22} color={color} />
             ),
           }}
         />
@@ -59,7 +59,7 @@ export default function TabLayout() {
           options={{
             title: 'Activate',
             tabBarIcon: ({ size, color }) => (
-              <Zap size={20} color={color} />
+              <Zap size={22} color={color} />
             ),
           }}
         />
@@ -74,7 +74,7 @@ export default function TabLayout() {
           options={{
             title: 'Rewards',
             tabBarIcon: ({ size, color }) => (
-              <Gift size={20} color={color} />
+              <Gift size={22} color={color} />
             ),
           }}
         />
@@ -83,7 +83,7 @@ export default function TabLayout() {
           options={{
             title: 'Settings',
             tabBarIcon: ({ size, color }) => (
-              <Settings size={20} color={color} />
+              <Settings size={22} color={color} />
             ),
           }}
         />
