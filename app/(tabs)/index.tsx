@@ -5,7 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
-import { Plus, Zap, Recycle, Leaf, TrendingDown, Sparkles } from 'lucide-react-native';
+import { WasteCard } from '@/components/WasteCard';
+import { Plus, Zap, Recycle, Leaf, TrendingDown, Sparkles, TrendingUp, Award, Target } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Platform } from 'react-native';
@@ -15,7 +16,8 @@ export default function HomeScreen() {
     goals, 
     stats, 
     loading, 
-    refreshData
+    refreshData,
+    recentItems
   } = useItems();
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = React.useState(false);
@@ -52,6 +54,8 @@ export default function HomeScreen() {
       </SafeAreaView>
     );
   }
+
+  const hasItems = recentItems.length > 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -122,38 +126,120 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          {/* Get Started Section */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Get Started</Text>
-            <View style={[styles.getStartedCard, { backgroundColor: theme.colors.surface }]}>
-              <LinearGradient
-                colors={[theme.colors.surface, theme.colors.surfaceElevated]}
-                style={styles.getStartedGradient}
-              >
-                <View style={styles.getStartedContent}>
-                  <Text style={[styles.getStartedTitle, { color: theme.colors.text }]}>
-                    Ready to snap your waste?
-                  </Text>
-                  <Text style={[styles.getStartedDescription, { color: theme.colors.textSecondary }]}>
-                    Start by snapping your first waste item. Every snap helps you understand your waste patterns and work towards reducing your environmental footprint.
-                  </Text>
-                  <TouchableOpacity
-                    style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
-                    onPress={() => router.push('/camera')}
-                    activeOpacity={0.8}
-                  >
-                    <LinearGradient
-                      colors={[theme.colors.primary, theme.colors.primary]}
-                      style={styles.scanButtonGradient}
+          {/* Dynamic Section - Changes based on whether user has items */}
+          {hasItems ? (
+            // Recent Activity Section (when user has items)
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Activity</Text>
+                <TouchableOpacity 
+                  style={[styles.viewAllButton, { backgroundColor: theme.colors.primaryLight }]}
+                  onPress={() => router.push('/items')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={[styles.activityCard, { backgroundColor: theme.colors.surface }]}>
+                <LinearGradient
+                  colors={[theme.colors.surface, theme.colors.surfaceElevated]}
+                  style={styles.activityGradient}
+                >
+                  <View style={styles.activityContent}>
+                    {/* Quick Stats Row */}
+                    <View style={styles.quickStatsRow}>
+                      <View style={styles.quickStat}>
+                        <View style={[styles.quickStatIcon, { backgroundColor: theme.colors.primaryLight }]}>
+                          <Target size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                        </View>
+                        <Text style={[styles.quickStatValue, { color: theme.colors.text }]}>{recentItems.length}</Text>
+                        <Text style={[styles.quickStatLabel, { color: theme.colors.textSecondary }]}>Items Snapped</Text>
+                      </View>
+                      
+                      <View style={styles.quickStat}>
+                        <View style={[styles.quickStatIcon, { backgroundColor: '#dcfce7' }]}>
+                          <Recycle size={16} color="#16a34a" strokeWidth={1.5} />
+                        </View>
+                        <Text style={[styles.quickStatValue, { color: theme.colors.text }]}>
+                          {recentItems.filter(item => item.recyclable).length}
+                        </Text>
+                        <Text style={[styles.quickStatLabel, { color: theme.colors.textSecondary }]}>Recyclable</Text>
+                      </View>
+                      
+                      <View style={styles.quickStat}>
+                        <View style={[styles.quickStatIcon, { backgroundColor: '#fef3c7' }]}>
+                          <Award size={16} color="#f59e0b" strokeWidth={1.5} />
+                        </View>
+                        <Text style={[styles.quickStatValue, { color: theme.colors.text }]}>
+                          {Math.round(stats.totalWeight / 10)}
+                        </Text>
+                        <Text style={[styles.quickStatLabel, { color: theme.colors.textSecondary }]}>Points Earned</Text>
+                      </View>
+                    </View>
+
+                    {/* Recent Items Preview */}
+                    <View style={styles.recentItemsPreview}>
+                      <Text style={[styles.recentItemsTitle, { color: theme.colors.text }]}>Latest Snaps</Text>
+                      {recentItems.slice(0, 2).map(item => (
+                        <WasteCard key={item.id} entry={item} />
+                      ))}
+                    </View>
+
+                    {/* Continue Snapping Button */}
+                    <TouchableOpacity
+                      style={[styles.continueButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => router.push('/camera')}
+                      activeOpacity={0.8}
                     >
-                      <Plus size={20} color={theme.colors.surface} strokeWidth={2} />
-                      <Text style={[styles.scanButtonText, { color: theme.colors.surface }]}>Snap Your First Item</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              </LinearGradient>
+                      <LinearGradient
+                        colors={[theme.colors.primary, theme.colors.primary]}
+                        style={styles.continueButtonGradient}
+                      >
+                        <Plus size={20} color={theme.colors.surface} strokeWidth={2} />
+                        <Text style={[styles.continueButtonText, { color: theme.colors.surface }]}>
+                          Continue Snapping
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </LinearGradient>
+              </View>
             </View>
-          </View>
+          ) : (
+            // Get Started Section (when user has no items)
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Get Started</Text>
+              <View style={[styles.getStartedCard, { backgroundColor: theme.colors.surface }]}>
+                <LinearGradient
+                  colors={[theme.colors.surface, theme.colors.surfaceElevated]}
+                  style={styles.getStartedGradient}
+                >
+                  <View style={styles.getStartedContent}>
+                    <Text style={[styles.getStartedTitle, { color: theme.colors.text }]}>
+                      Ready to snap your waste?
+                    </Text>
+                    <Text style={[styles.getStartedDescription, { color: theme.colors.textSecondary }]}>
+                      Start by snapping your first waste item. Every snap helps you understand your waste patterns and work towards reducing your environmental footprint.
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.scanButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => router.push('/camera')}
+                      activeOpacity={0.8}
+                    >
+                      <LinearGradient
+                        colors={[theme.colors.primary, theme.colors.primary]}
+                        style={styles.scanButtonGradient}
+                      >
+                        <Plus size={20} color={theme.colors.surface} strokeWidth={2} />
+                        <Text style={[styles.scanButtonText, { color: theme.colors.surface }]}>Snap Your First Item</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </LinearGradient>
+              </View>
+            </View>
+          )}
 
           {/* Environmental Impact - Moved to bottom */}
           <View style={styles.section}>
@@ -241,12 +327,112 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginBottom: 32,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 22,
-    marginBottom: 20,
     letterSpacing: -0.3,
   },
+  viewAllButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  viewAllText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
+  // Recent Activity Styles
+  activityCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  activityGradient: {
+    flex: 1,
+  },
+  activityContent: {
+    padding: 28,
+  },
+  quickStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  quickStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  quickStatIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickStatValue: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 24,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  quickStatLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  recentItemsPreview: {
+    marginBottom: 32,
+  },
+  recentItemsTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    marginBottom: 16,
+    letterSpacing: -0.2,
+  },
+  continueButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  continueButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+  },
+  continueButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
+  // Get Started Styles (unchanged)
   getStartedCard: {
     borderRadius: 24,
     overflow: 'hidden',
