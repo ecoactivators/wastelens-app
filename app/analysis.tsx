@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert, Modal, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle, MapPin, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Trash2, CreditCard as Edit3, Send, X, Sparkles, CircleAlert as AlertCircle, MapPin, ExternalLink, Info } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { openAIService } from '@/services/openai';
@@ -37,6 +37,7 @@ export default function AnalysisScreen() {
   const [fixLoading, setFixLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showScoreInfoModal, setShowScoreInfoModal] = useState(false);
 
   useEffect(() => {
     if (photoUri) {
@@ -409,6 +410,13 @@ export default function AnalysisScreen() {
             <View style={styles.scoreHeader}>
               <Sparkles size={20} color={getScoreColor(analysis.environmentScore)} />
               <Text style={[styles.scoreTitle, { color: theme.colors.text }]}>Environment Score</Text>
+              <TouchableOpacity 
+                style={styles.infoButton}
+                onPress={() => setShowScoreInfoModal(true)}
+                activeOpacity={0.7}
+              >
+                <Info size={16} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
               <Text style={[styles.scoreValue, { color: getScoreColor(analysis.environmentScore) }]}>
                 {analysis.environmentScore}/10
               </Text>
@@ -445,6 +453,141 @@ export default function AnalysisScreen() {
           <Text style={[styles.doneButtonText, { color: theme.colors.surface }]}>Done</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Environmental Score Info Modal */}
+      <Modal
+        visible={showScoreInfoModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        transparent={false}
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+            <TouchableOpacity onPress={() => setShowScoreInfoModal(false)}>
+              <X size={24} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Environmental Score</Text>
+            <View style={{ width: 24 }} />
+          </View>
+          
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <View style={[styles.scoreInfoCard, { backgroundColor: theme.colors.background }]}>
+              <View style={styles.scoreInfoHeader}>
+                <Sparkles size={24} color={getScoreColor(analysis.environmentScore)} />
+                <Text style={[styles.scoreInfoTitle, { color: theme.colors.text }]}>
+                  What is the Environmental Score?
+                </Text>
+              </View>
+              <Text style={[styles.scoreInfoDescription, { color: theme.colors.textSecondary }]}>
+                The Environmental Score is a rating from 1-10 that measures the environmental impact of your waste item. 
+                Higher scores indicate better environmental outcomes.
+              </Text>
+            </View>
+
+            <View style={[styles.scoreInfoCard, { backgroundColor: theme.colors.background }]}>
+              <Text style={[styles.scoreInfoSectionTitle, { color: theme.colors.text }]}>
+                How is it calculated?
+              </Text>
+              <View style={styles.scoreFactorsList}>
+                <View style={styles.scoreFactor}>
+                  <View style={[styles.scoreFactorDot, { backgroundColor: '#10b981' }]} />
+                  <View style={styles.scoreFactorContent}>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Recyclability</Text>
+                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
+                      Items that can be recycled score higher as they reduce landfill waste
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.scoreFactor}>
+                  <View style={[styles.scoreFactorDot, { backgroundColor: '#f59e0b' }]} />
+                  <View style={styles.scoreFactorContent}>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Compostability</Text>
+                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
+                      Organic materials that can decompose naturally receive bonus points
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.scoreFactor}>
+                  <View style={[styles.scoreFactorDot, { backgroundColor: '#3b82f6' }]} />
+                  <View style={styles.scoreFactorContent}>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Material Type</Text>
+                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
+                      Some materials have lower environmental impact than others
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.scoreFactor}>
+                  <View style={[styles.scoreFactorDot, { backgroundColor: '#8b5cf6' }]} />
+                  <View style={styles.scoreFactorContent}>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Carbon Footprint</Text>
+                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
+                      Items with lower carbon emissions during disposal score better
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.scoreFactor}>
+                  <View style={[styles.scoreFactorDot, { backgroundColor: '#ec4899' }]} />
+                  <View style={styles.scoreFactorContent}>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Disposal Method</Text>
+                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
+                      Proper disposal methods and local infrastructure availability
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={[styles.scoreInfoCard, { backgroundColor: theme.colors.background }]}>
+              <Text style={[styles.scoreInfoSectionTitle, { color: theme.colors.text }]}>
+                Score Ranges
+              </Text>
+              <View style={styles.scoreRangesList}>
+                <View style={styles.scoreRange}>
+                  <View style={[styles.scoreRangeIndicator, { backgroundColor: '#10b981' }]} />
+                  <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>8-10: Excellent</Text>
+                  <Text style={[styles.scoreRangeDescription, { color: theme.colors.textSecondary }]}>
+                    Highly recyclable or compostable with minimal environmental impact
+                  </Text>
+                </View>
+                
+                <View style={styles.scoreRange}>
+                  <View style={[styles.scoreRangeIndicator, { backgroundColor: '#f59e0b' }]} />
+                  <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>4-7: Good</Text>
+                  <Text style={[styles.scoreRangeDescription, { color: theme.colors.textSecondary }]}>
+                    Some recycling options available or moderate environmental impact
+                  </Text>
+                </View>
+                
+                <View style={styles.scoreRange}>
+                  <View style={[styles.scoreRangeIndicator, { backgroundColor: '#ef4444' }]} />
+                  <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>1-3: Poor</Text>
+                  <Text style={[styles.scoreRangeDescription, { color: theme.colors.textSecondary }]}>
+                    Limited disposal options, likely to end up in landfill
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={[styles.scoreInfoCard, { backgroundColor: theme.colors.background }]}>
+              <Text style={[styles.scoreInfoSectionTitle, { color: theme.colors.text }]}>
+                Your Item's Score: {analysis.environmentScore}/10
+              </Text>
+              <Text style={[styles.scoreInfoDescription, { color: theme.colors.textSecondary }]}>
+                {analysis.environmentScore >= 8 
+                  ? "Great choice! This item has excellent environmental properties."
+                  : analysis.environmentScore >= 4
+                  ? "This item has moderate environmental impact. Consider the disposal recommendations below."
+                  : "This item has higher environmental impact. Look for reusable alternatives in the future."
+                }
+              </Text>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
 
       {/* Fullscreen Image Modal */}
       <Modal
@@ -740,6 +883,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
   },
+  infoButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
   scoreValue: {
     fontFamily: 'Inter-Bold',
     fontSize: 18,
@@ -900,5 +1051,85 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
+  },
+  // Environmental Score Info Modal Styles
+  scoreInfoCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  scoreInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  scoreInfoTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    flex: 1,
+  },
+  scoreInfoDescription: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  scoreInfoSectionTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    marginBottom: 16,
+  },
+  scoreFactorsList: {
+    gap: 16,
+  },
+  scoreFactor: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  scoreFactorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 6,
+  },
+  scoreFactorContent: {
+    flex: 1,
+  },
+  scoreFactorTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  scoreFactorDescription: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  scoreRangesList: {
+    gap: 16,
+  },
+  scoreRange: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  scoreRangeIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  scoreRangeText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    marginBottom: 4,
+    minWidth: 100,
+  },
+  scoreRangeDescription: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
   },
 });
