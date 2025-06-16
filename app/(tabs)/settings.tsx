@@ -244,11 +244,11 @@ export default function SettingsScreen() {
             icon={<TrendingUp size={20} color={theme.colors.textSecondary} />}
           />
           <StatsCard
-            title="Recycling Rate"
-            value={`${Math.round(stats.recyclingRate)}%`}
-            subtitle="Current rate"
+            title="CO₂ Saved"
+            value={`${stats.co2Saved.toFixed(1)}kg`}
+            subtitle="This month"
             color={theme.colors.success}
-            icon={<Recycle size={20} color={theme.colors.success} />}
+            icon={<Leaf size={20} color={theme.colors.success} />}
           />
         </View>
 
