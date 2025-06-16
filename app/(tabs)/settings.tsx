@@ -187,8 +187,8 @@ export default function SettingsScreen() {
               <User size={32} color="#ffffff" />
             </View>
             <View style={styles.profileInfo}>
-              <Text style={[styles.name, { color: theme.colors.text }]}>Eco Warrior</Text>
-              <Text style={[styles.email, { color: theme.colors.textSecondary }]}>eco.warrior@example.com</Text>
+              <Text style={[styles.name, { color: theme.colors.text }]}>Danielle Alexander</Text>
+              <Text style={[styles.email, { color: theme.colors.textSecondary }]}>danielle@ecoactivators.com</Text>
             </View>
           </View>
         </View>
