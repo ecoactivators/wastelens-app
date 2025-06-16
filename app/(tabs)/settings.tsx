@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Sh
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
-import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Recycle, Leaf, ChevronRight, Moon, Globe, Trash2, ArrowUpRight } from 'lucide-react-native';
+import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Recycle, Leaf, ChevronRight, Moon, Globe, Trash2 } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
 
@@ -244,11 +244,11 @@ export default function SettingsScreen() {
             icon={<TrendingUp size={20} color={theme.colors.textSecondary} />}
           />
           <StatsCard
-            title="Waste Diverted"
-            value={`${Math.round(stats.wasteDiversionRate)}%`}
-            subtitle="From landfills"
+            title="Recycling Rate"
+            value={`${Math.round(stats.recyclingRate)}%`}
+            subtitle="Current rate"
             color={theme.colors.success}
-            icon={<ArrowUpRight size={20} color={theme.colors.success} />}
+            icon={<Recycle size={20} color={theme.colors.success} />}
           />
         </View>
 

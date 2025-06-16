@@ -269,9 +269,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         })
         .reduce((sum, item) => sum + (item.weight || 0), 0);
 
-      // Calculate waste diversion rate (recyclable + compostable)
-      const divertedWeight = recyclableWeight + compostableWeight;
-      const wasteDiversionRate = totalWeight > 0 ? Math.min(100, Math.max(0, (divertedWeight / totalWeight) * 100)) : 0;
+      const recyclingRate = totalWeight > 0 ? Math.min(100, Math.max(0, (recyclableWeight / totalWeight) * 100)) : 0;
       const compostingRate = totalWeight > 0 ? Math.min(100, Math.max(0, (compostableWeight / totalWeight) * 100)) : 0;
 
       // Calculate food waste vs other waste percentages
@@ -366,7 +364,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         totalWeight: Math.max(0, totalWeight),
         weeklyWeight: Math.max(0, weeklyWeight),
         monthlyWeight: Math.max(0, monthlyWeight),
-        wasteDiversionRate: Math.max(0, Math.min(100, wasteDiversionRate)), // New metric
+        recyclingRate: Math.max(0, Math.min(100, recyclingRate)),
         compostingRate: Math.max(0, Math.min(100, compostingRate)),
         foodWastePercentage: Math.max(0, Math.min(100, foodWastePercentage)),
         otherWastePercentage: Math.max(0, Math.min(100, otherWastePercentage)),
@@ -380,7 +378,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         totalItems: validItems.length,
         totalWeight: calculatedStats.totalWeight,
         weeklyWeight: calculatedStats.weeklyWeight,
-        wasteDiversionRate: Math.round(calculatedStats.wasteDiversionRate),
+        recyclingRate: Math.round(calculatedStats.recyclingRate),
         foodWastePercentage: Math.round(calculatedStats.foodWastePercentage),
         otherWastePercentage: Math.round(calculatedStats.otherWastePercentage),
         streak: calculatedStats.streak,
@@ -399,7 +397,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     totalWeight: 0,
     weeklyWeight: 0,
     monthlyWeight: 0,
-    wasteDiversionRate: 0, // Updated
+    recyclingRate: 0,
     compostingRate: 0,
     foodWastePercentage: 0,
     otherWastePercentage: 0,
@@ -472,12 +470,11 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         try {
           if (goal.type === 'reduce') {
             return { ...goal, current: Math.max(0, goal.current + newItem.weight) };
-          } else if (goal.type === 'recycle' && (newItem.recyclable || newItem.compostable)) {
-            // Update to track waste diversion instead of just recycling
+          } else if (goal.type === 'recycle' && newItem.recyclable) {
             const totalItems = items.length + 1;
-            const divertedItems = items.filter(i => i.recyclable || i.compostable).length + 1;
-            const newDiversionRate = totalItems > 0 ? (divertedItems / totalItems) * 100 : 0;
-            return { ...goal, current: Math.min(100, Math.max(0, newDiversionRate)) };
+            const recyclableItems = items.filter(i => i.recyclable).length + 1;
+            const newRecyclingRate = totalItems > 0 ? (recyclableItems / totalItems) * 100 : 0;
+            return { ...goal, current: Math.min(100, Math.max(0, newRecyclingRate)) };
           }
           return goal;
         } catch (error) {
@@ -543,12 +540,12 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
               });
               return { ...goal, current: newCurrent };
             } else if (goal.type === 'recycle') {
-              // Recalculate waste diversion rate without the removed item
+              // Recalculate recycling rate without the removed item
               const remainingItems = items.filter(item => item.id !== id);
               if (remainingItems.length > 0) {
-                const divertedItems = remainingItems.filter(i => i.recyclable || i.compostable).length;
-                const newDiversionRate = (divertedItems / remainingItems.length) * 100;
-                return { ...goal, current: Math.min(100, Math.max(0, newDiversionRate)) };
+                const recyclableItems = remainingItems.filter(i => i.recyclable).length;
+                const newRecyclingRate = (recyclableItems / remainingItems.length) * 100;
+                return { ...goal, current: Math.min(100, Math.max(0, newRecyclingRate)) };
               } else {
                 return { ...goal, current: 0 };
               }

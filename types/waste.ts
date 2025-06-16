@@ -35,7 +35,7 @@ export interface WasteStats {
   totalWeight: number;
   weeklyWeight: number;
   monthlyWeight: number;
-  wasteDiversionRate: number; // Changed from recyclingRate
+  recyclingRate: number;
   compostingRate: number;
   foodWastePercentage: number;
   otherWastePercentage: number;
