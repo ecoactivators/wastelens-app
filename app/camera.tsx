@@ -98,29 +98,45 @@ export default function CameraScreen() {
   };
 
   const takePicture = async () => {
-    if (cameraRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-          base64: false,
+    if (!cameraRef.current) {
+      Alert.alert('Error', 'Camera not ready. Please try again.');
+      return;
+    }
+
+    try {
+      console.log('📸 Taking picture...');
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+        skipProcessing: false,
+      });
+      
+      if (photo && photo.uri) {
+        console.log('✅ Photo taken successfully:', photo.uri);
+        // Navigate to analysis screen with the photo
+        router.push({
+          pathname: '/analysis',
+          params: { photoUri: photo.uri }
         });
-        
-        if (photo) {
-          // Navigate to analysis screen with the photo
-          router.push({
-            pathname: '/analysis',
-            params: { photoUri: photo.uri }
-          });
-        }
-      } catch (error) {
-        console.error('Error taking picture:', error);
-        Alert.alert('Error', 'Failed to take picture. Please try again.');
+      } else {
+        console.error('❌ No photo URI returned');
+        Alert.alert('Error', 'Failed to capture photo. Please try again.');
       }
+    } catch (error) {
+      console.error('❌ Error taking picture:', error);
+      Alert.alert('Error', 'Failed to take picture. Please try again.');
     }
   };
 
   const pickImage = async () => {
     try {
+      // Request media library permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'We need access to your photo library to select images.');
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -128,7 +144,8 @@ export default function CameraScreen() {
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('✅ Image selected:', result.assets[0].uri);
         // Navigate to analysis screen with the selected image
         router.push({
           pathname: '/analysis',
@@ -136,7 +153,7 @@ export default function CameraScreen() {
         });
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      console.error('❌ Error picking image:', error);
       Alert.alert('Error', 'Failed to select image. Please try again.');
     }
   };
@@ -299,6 +316,7 @@ export default function CameraScreen() {
         style={styles.camera}
         facing={facing}
         flash={flash}
+        mode="picture"
       >
         {/* Top Controls */}
         <LinearGradient
