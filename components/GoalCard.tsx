@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { WasteGoal } from '@/types/waste';
-import { Target, TrendingDown, Recycle, Leaf } from 'lucide-react-native';
+import { Target, TrendingDown, Leaf } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -11,13 +11,11 @@ interface GoalCardProps {
 
 const goalIcons = {
   reduce: <TrendingDown size={18} color="#ef4444" strokeWidth={1.5} />,
-  recycle: <Recycle size={18} color="#16a34a" strokeWidth={1.5} />,
   compost: <Leaf size={18} color="#ea580c" strokeWidth={1.5} />,
 };
 
 const goalColors = {
   reduce: '#ef4444',
-  recycle: '#16a34a',
   compost: '#ea580c',
 };
 

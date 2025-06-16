@@ -6,7 +6,7 @@ import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
 import { GoalCard } from '@/components/GoalCard';
 import { WasteCard } from '@/components/WasteCard';
-import { Plus, Zap, Recycle, Leaf, TrendingDown, Sparkles, TrendingUp, Award, Target } from 'lucide-react-native';
+import { Plus, Zap, Leaf, TrendingDown, Sparkles, TrendingUp, Award, Target } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Platform } from 'react-native';
@@ -158,16 +158,6 @@ export default function HomeScreen() {
                       </View>
                       
                       <View style={styles.quickStat}>
-                        <View style={[styles.quickStatIcon, { backgroundColor: '#dcfce7' }]}>
-                          <Recycle size={16} color="#16a34a" strokeWidth={1.5} />
-                        </View>
-                        <Text style={[styles.quickStatValue, { color: theme.colors.text }]}>
-                          {recentItems.filter(item => item.recyclable).length}
-                        </Text>
-                        <Text style={[styles.quickStatLabel, { color: theme.colors.textSecondary }]}>Recyclable</Text>
-                      </View>
-                      
-                      <View style={styles.quickStat}>
                         <View style={[styles.quickStatIcon, { backgroundColor: '#fef3c7' }]}>
                           <Award size={16} color="#f59e0b" strokeWidth={1.5} />
                         </View>
@@ -259,7 +249,7 @@ export default function HomeScreen() {
                       {stats.co2Saved.toFixed(1)}kg CO₂ saved
                     </Text>
                     <Text style={[styles.impactDescription, { color: theme.colors.textTertiary }]}>
-                      Through proper waste sorting and recycling
+                      Through proper waste sorting and composting
                     </Text>
                   </View>
                 </View>

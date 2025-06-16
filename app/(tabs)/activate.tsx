@@ -54,18 +54,6 @@ export default function ActivateScreen() {
     },
     {
       id: '2',
-      title: 'Recycling Hero',
-      description: 'Recycle 5 items this week',
-      points: 200,
-      progress: Math.min(recentItems.filter(item => item.recyclable).length, 5),
-      target: 5,
-      type: 'weekly',
-      completed: recentItems.filter(item => item.recyclable).length >= 5,
-      icon: <Target size={20} color="#10b981" />,
-      color: '#10b981'
-    },
-    {
-      id: '3',
       title: 'Waste Warrior',
       description: 'Snap 100g of waste this month',
       points: 500,
@@ -77,7 +65,7 @@ export default function ActivateScreen() {
       color: '#3b82f6'
     },
     {
-      id: '4',
+      id: '3',
       title: 'Perfect Day',
       description: 'Complete all daily tasks',
       points: 100,
@@ -112,14 +100,6 @@ export default function ActivateScreen() {
     },
     {
       id: '3',
-      title: 'Recycling Champion',
-      description: 'Achieve 80% recycling rate',
-      icon: <Award size={24} color="#3b82f6" />,
-      unlocked: (stats?.recyclingRate || 0) >= 80,
-      color: '#3b82f6'
-    },
-    {
-      id: '4',
       title: 'Streak Master',
       description: 'Maintain a 7-day streak',
       icon: <Trophy size={24} color="#8b5cf6" />,

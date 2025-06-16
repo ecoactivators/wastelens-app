@@ -44,15 +44,6 @@ const createDefaultGoals = (): WasteGoal[] => {
         startDate: weekStart,
         endDate: weekEnd,
       },
-      {
-        id: '2',
-        type: 'recycle',
-        target: 80,
-        current: 0,
-        period: 'weekly',
-        startDate: weekStart,
-        endDate: weekEnd,
-      },
     ];
   } catch (error) {
     console.error('❌ [ItemsContext] Error creating default goals:', error);
@@ -247,17 +238,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         })
         .reduce((sum, item) => sum + (item.weight || 0), 0);
 
-      const recyclableWeight = validItems
-        .filter(item => {
-          try {
-            return item.recyclable === true;
-          } catch (error) {
-            console.error('❌ [ItemsContext] Error filtering recyclable items:', error);
-            return false;
-          }
-        })
-        .reduce((sum, item) => sum + (item.weight || 0), 0);
-
       const compostableWeight = validItems
         .filter(item => {
           try {
@@ -269,7 +249,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         })
         .reduce((sum, item) => sum + (item.weight || 0), 0);
 
-      const recyclingRate = totalWeight > 0 ? Math.min(100, Math.max(0, (recyclableWeight / totalWeight) * 100)) : 0;
       const compostingRate = totalWeight > 0 ? Math.min(100, Math.max(0, (compostableWeight / totalWeight) * 100)) : 0;
 
       // Calculate food waste vs other waste percentages
@@ -358,13 +337,12 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         streak = 0;
       }
 
-      const co2Saved = Math.max(0, (recyclableWeight + compostableWeight) * 0.0005);
+      const co2Saved = Math.max(0, compostableWeight * 0.0005);
 
       const calculatedStats = {
         totalWeight: Math.max(0, totalWeight),
         weeklyWeight: Math.max(0, weeklyWeight),
         monthlyWeight: Math.max(0, monthlyWeight),
-        recyclingRate: Math.max(0, Math.min(100, recyclingRate)),
         compostingRate: Math.max(0, Math.min(100, compostingRate)),
         foodWastePercentage: Math.max(0, Math.min(100, foodWastePercentage)),
         otherWastePercentage: Math.max(0, Math.min(100, otherWastePercentage)),
@@ -378,7 +356,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         totalItems: validItems.length,
         totalWeight: calculatedStats.totalWeight,
         weeklyWeight: calculatedStats.weeklyWeight,
-        recyclingRate: Math.round(calculatedStats.recyclingRate),
+        compostingRate: Math.round(calculatedStats.compostingRate),
         foodWastePercentage: Math.round(calculatedStats.foodWastePercentage),
         otherWastePercentage: Math.round(calculatedStats.otherWastePercentage),
         streak: calculatedStats.streak,
@@ -397,7 +375,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     totalWeight: 0,
     weeklyWeight: 0,
     monthlyWeight: 0,
-    recyclingRate: 0,
     compostingRate: 0,
     foodWastePercentage: 0,
     otherWastePercentage: 0,
@@ -470,11 +447,11 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         try {
           if (goal.type === 'reduce') {
             return { ...goal, current: Math.max(0, goal.current + newItem.weight) };
-          } else if (goal.type === 'recycle' && newItem.recyclable) {
+          } else if (goal.type === 'compost' && newItem.compostable) {
             const totalItems = items.length + 1;
-            const recyclableItems = items.filter(i => i.recyclable).length + 1;
-            const newRecyclingRate = totalItems > 0 ? (recyclableItems / totalItems) * 100 : 0;
-            return { ...goal, current: Math.min(100, Math.max(0, newRecyclingRate)) };
+            const compostableItems = items.filter(i => i.compostable).length + 1;
+            const newCompostingRate = totalItems > 0 ? (compostableItems / totalItems) * 100 : 0;
+            return { ...goal, current: Math.min(100, Math.max(0, newCompostingRate)) };
           }
           return goal;
         } catch (error) {
@@ -539,13 +516,13 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
                 newCurrent
               });
               return { ...goal, current: newCurrent };
-            } else if (goal.type === 'recycle') {
-              // Recalculate recycling rate without the removed item
+            } else if (goal.type === 'compost') {
+              // Recalculate composting rate without the removed item
               const remainingItems = items.filter(item => item.id !== id);
               if (remainingItems.length > 0) {
-                const recyclableItems = remainingItems.filter(i => i.recyclable).length;
-                const newRecyclingRate = (recyclableItems / remainingItems.length) * 100;
-                return { ...goal, current: Math.min(100, Math.max(0, newRecyclingRate)) };
+                const compostableItems = remainingItems.filter(i => i.compostable).length;
+                const newCompostingRate = (compostableItems / remainingItems.length) * 100;
+                return { ...goal, current: Math.min(100, Math.max(0, newCompostingRate)) };
               } else {
                 return { ...goal, current: 0 };
               }

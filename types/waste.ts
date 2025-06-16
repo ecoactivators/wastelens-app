@@ -35,7 +35,6 @@ export interface WasteStats {
   totalWeight: number;
   weeklyWeight: number;
   monthlyWeight: number;
-  recyclingRate: number;
   compostingRate: number;
   foodWastePercentage: number;
   otherWastePercentage: number;
@@ -47,7 +46,7 @@ export interface WasteStats {
 
 export interface WasteGoal {
   id: string;
-  type: 'reduce' | 'recycle' | 'compost';
+  type: 'reduce' | 'compost';
   target: number;
   current: number;
   period: 'daily' | 'weekly' | 'monthly';
