@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
@@ -39,6 +39,32 @@ export default function SettingsScreen() {
         }
       ]
     );
+  };
+
+  const handleShareApp = async () => {
+    try {
+      const result = await Share.share({
+        message: 'Check out Waste Lens! Track your waste, reduce your environmental impact, and earn rewards. Download it at wastelens.works',
+        url: 'https://wastelens.works', // This will be included on iOS
+        title: 'Waste Lens - Snap Your Waste, Reduce Your Impact'
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with activity type of result.activityType
+          console.log('Shared via:', result.activityType);
+        } else {
+          // Shared
+          console.log('App shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      console.error('Error sharing app:', error);
+      Alert.alert('Error', 'Unable to share the app. Please try again.');
+    }
   };
 
   const accountItems = [
@@ -121,7 +147,7 @@ export default function SettingsScreen() {
       icon: <Share2 size={20} color={theme.colors.textSecondary} />,
       title: 'Share App',
       subtitle: 'Share Waste Lens with friends',
-      onPress: () => {},
+      onPress: handleShareApp,
       showChevron: true,
     },
   ];
