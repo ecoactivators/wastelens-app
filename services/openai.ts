@@ -68,7 +68,7 @@ export class OpenAIService {
           
           const lowerSuggestion = suggestion.toLowerCase();
           
-          // Look for recycling centers
+          // Look for recycling centers (only for special items that can't go in regular bins)
           if (lowerSuggestion.includes('recycling center') || lowerSuggestion.includes('recycling facility')) {
             const match = suggestion.match(/take.*?to.*?([\w\s]+recycling\s+(?:center|facility))/i);
             if (match) {
@@ -171,12 +171,18 @@ CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code bloc
 
 The user is located in: ${userLocation}
 
-When providing suggestions, be specific to their location. Instead of saying "check local recycling programs", provide specific guidance based on their city/region. For example:
-- Mention specific recycling centers or programs in their area if you know them
-- Reference local waste management companies or municipal services
-- Provide location-specific disposal guidelines
-- Suggest local stores or programs that accept specific materials
-- When mentioning specific places, use the format "Take this to [Facility Name] recycling center" or "Many [Store Name] stores accept this"
+IMPORTANT DISPOSAL GUIDANCE:
+- For common recyclable items (plastic bottles, cans, paper, cardboard, glass bottles), tell users to put them in their regular recycling bin
+- Only suggest special drop-off locations for items that CANNOT go in regular recycling bins (electronics, batteries, hazardous materials, etc.)
+- Be practical - if it can go in the recycling bin, that's the easiest option for the user
+- Never suggest educational recommendations like "check local guidelines" or "learn about recycling"
+- Give direct, actionable instructions
+
+When providing suggestions, be specific and practical. Examples:
+- For plastic bottles: "Rinse and place in your recycling bin"
+- For aluminum cans: "Place in your recycling bin"
+- For electronics: "Take this to Best Buy for electronics recycling"
+- For batteries: "Drop off at Home Depot battery recycling station"
 
 Return your response as a JSON object with this exact structure:
 {
@@ -188,20 +194,20 @@ Return your response as a JSON object with this exact structure:
   "recyclable": "boolean - whether the item is recyclable",
   "compostable": "boolean - whether the item is compostable",
   "carbonFootprint": "number - estimated carbon footprint in kg CO2",
-  "suggestions": "array of strings - 3-4 actionable suggestions for disposal/recycling specific to ${userLocation}",
+  "suggestions": "array of strings - 3-4 actionable suggestions for disposal specific to ${userLocation}",
   "confidence": "number - confidence level from 0-1"
 }
 
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
-Make your suggestions as location-specific as possible. If you don't have specific knowledge about ${userLocation}, provide general guidance but frame it in the context of their location.`
+Make your suggestions practical and direct. Prioritize regular recycling bins for standard recyclables, and only mention special facilities for items that truly need them.`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Please analyze this waste item and provide detailed environmental information with location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
+                text: `Please analyze this waste item and provide detailed environmental information with practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities.`
               },
               {
                 type: 'image_url',
@@ -379,7 +385,12 @@ CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code bloc
 
 The user is located in: ${userLocation}
 
-When providing suggestions, be specific to their location. Provide location-specific disposal guidelines and recommendations.
+IMPORTANT DISPOSAL GUIDANCE:
+- For common recyclable items (plastic bottles, cans, paper, cardboard, glass bottles), tell users to put them in their regular recycling bin
+- Only suggest special drop-off locations for items that CANNOT go in regular recycling bins (electronics, batteries, hazardous materials, etc.)
+- Be practical - if it can go in the recycling bin, that's the easiest option for the user
+- Never suggest educational recommendations like "check local guidelines" or "learn about recycling"
+- Give direct, actionable instructions
 
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
@@ -394,7 +405,7 @@ Return your response as a JSON object with the same structure as before.`
                     
                     The user provided this feedback: "${userFeedback}"
                     
-                    Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
+                    Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities.`
                   },
                   {
                     type: 'image_url',
@@ -605,7 +616,7 @@ Return your response as a JSON object with the same structure as before.`
       }
 
       if (!Array.isArray(result.suggestions)) {
-        result.suggestions = ['Check local recycling guidelines', 'Consider reusable alternatives'];
+        result.suggestions = ['Place in your recycling bin if recyclable', 'Consider reusable alternatives'];
       }
 
       // Ensure numeric fields are valid numbers with fallbacks
