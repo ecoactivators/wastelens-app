@@ -44,7 +44,7 @@ export default function SettingsScreen() {
   const handleShareApp = async () => {
     try {
       const result = await Share.share({
-        message: 'Check out Waste Lens! Track your waste, reduce your environmental impact, and earn rewards. Download it at wastelens.works',
+        message: 'Check out Waste Lens! Snap your waste, reduce your environmental impact, and earn rewards. Download it at wastelens.works',
         url: 'https://wastelens.works', // This will be included on iOS
         title: 'Waste Lens - Snap Your Waste, Reduce Your Impact'
       });
