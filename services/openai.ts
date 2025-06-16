@@ -23,102 +23,149 @@ interface MapSuggestion {
 export class OpenAIService {
   private apiKey: string;
   private baseUrl = 'https://api.openai.com/v1';
+  private requestTimeout = 30000; // 30 seconds
 
   constructor() {
     this.apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
     if (!this.apiKey) {
-      console.warn('OpenAI API key not found in environment variables');
+      console.warn('⚠️ [OpenAIService] OpenAI API key not found in environment variables');
     }
+  }
+
+  // Helper function to create timeout promise
+  private createTimeoutPromise(ms: number): Promise<never> {
+    return new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), ms);
+    });
   }
 
   // Helper function to capitalize item names properly
   private capitalizeItemName(name: string): string {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+    try {
+      return name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    } catch (error) {
+      console.error('❌ [OpenAIService] Error capitalizing item name:', error);
+      return name || 'Unknown Item';
+    }
   }
 
   // Helper function to extract map suggestions from AI response
   private extractMapSuggestions(suggestions: string[], userLocation: string): MapSuggestion[] {
-    const mapSuggestions: MapSuggestion[] = [];
-    
-    suggestions.forEach(suggestion => {
-      const lowerSuggestion = suggestion.toLowerCase();
+    try {
+      const mapSuggestions: MapSuggestion[] = [];
       
-      // Look for recycling centers
-      if (lowerSuggestion.includes('recycling center') || lowerSuggestion.includes('recycling facility')) {
-        const match = suggestion.match(/take.*?to.*?([\w\s]+recycling\s+(?:center|facility))/i);
-        if (match) {
-          const facilityName = match[1].trim();
-          mapSuggestions.push({
-            text: suggestion,
-            searchQuery: `${facilityName} ${userLocation}`,
-            type: 'recycling_center'
-          });
-        } else {
-          // Generic recycling center search
-          mapSuggestions.push({
-            text: suggestion,
-            searchQuery: `recycling center ${userLocation}`,
-            type: 'recycling_center'
-          });
+      if (!Array.isArray(suggestions)) {
+        console.warn('⚠️ [OpenAIService] Suggestions is not an array');
+        return mapSuggestions;
+      }
+      
+      suggestions.forEach(suggestion => {
+        try {
+          if (typeof suggestion !== 'string') return;
+          
+          const lowerSuggestion = suggestion.toLowerCase();
+          
+          // Look for recycling centers
+          if (lowerSuggestion.includes('recycling center') || lowerSuggestion.includes('recycling facility')) {
+            const match = suggestion.match(/take.*?to.*?([\w\s]+recycling\s+(?:center|facility))/i);
+            if (match) {
+              const facilityName = match[1].trim();
+              mapSuggestions.push({
+                text: suggestion,
+                searchQuery: `${facilityName} ${userLocation}`,
+                type: 'recycling_center'
+              });
+            } else {
+              // Generic recycling center search
+              mapSuggestions.push({
+                text: suggestion,
+                searchQuery: `recycling center ${userLocation}`,
+                type: 'recycling_center'
+              });
+            }
+          }
+          
+          // Look for specific stores
+          else if (lowerSuggestion.includes('target') || lowerSuggestion.includes('walmart') || 
+                   lowerSuggestion.includes('home depot') || lowerSuggestion.includes('best buy')) {
+            const storeMatch = suggestion.match(/(target|walmart|home depot|best buy)/i);
+            if (storeMatch) {
+              const storeName = storeMatch[1];
+              mapSuggestions.push({
+                text: suggestion,
+                searchQuery: `${storeName} ${userLocation}`,
+                type: 'store'
+              });
+            }
+          }
+          
+          // Look for waste management facilities
+          else if (lowerSuggestion.includes('waste management') || lowerSuggestion.includes('transfer station') ||
+                   lowerSuggestion.includes('disposal facility')) {
+            mapSuggestions.push({
+              text: suggestion,
+              searchQuery: `waste management facility ${userLocation}`,
+              type: 'facility'
+            });
+          }
+        } catch (error) {
+          console.error('❌ [OpenAIService] Error processing suggestion:', error);
         }
-      }
+      });
       
-      // Look for specific stores
-      else if (lowerSuggestion.includes('target') || lowerSuggestion.includes('walmart') || 
-               lowerSuggestion.includes('home depot') || lowerSuggestion.includes('best buy')) {
-        const storeMatch = suggestion.match(/(target|walmart|home depot|best buy)/i);
-        if (storeMatch) {
-          const storeName = storeMatch[1];
-          mapSuggestions.push({
-            text: suggestion,
-            searchQuery: `${storeName} ${userLocation}`,
-            type: 'store'
-          });
-        }
-      }
-      
-      // Look for waste management facilities
-      else if (lowerSuggestion.includes('waste management') || lowerSuggestion.includes('transfer station') ||
-               lowerSuggestion.includes('disposal facility')) {
-        mapSuggestions.push({
-          text: suggestion,
-          searchQuery: `waste management facility ${userLocation}`,
-          type: 'facility'
-        });
-      }
-    });
-    
-    return mapSuggestions;
+      return mapSuggestions;
+    } catch (error) {
+      console.error('❌ [OpenAIService] Error extracting map suggestions:', error);
+      return [];
+    }
   }
 
   async analyzeWasteImage(imageUri: string): Promise<WasteAnalysisResult> {
+    // Validate inputs
+    if (!imageUri) {
+      throw new Error('Image URI is required');
+    }
+
     if (!this.apiKey) {
+      console.error('❌ [OpenAIService] API key not configured');
       throw new Error('OpenAI API key not configured. Please set EXPO_PUBLIC_OPENAI_API_KEY in your environment variables.');
     }
 
     try {
-      // Get user's location for personalized recommendations
-      const userLocation = await LocationService.getLocationForAnalysis();
-      console.log('📍 [OpenAIService] Using location for analysis:', userLocation);
+      console.log('🔄 [OpenAIService] Starting waste image analysis...');
 
-      // Convert image to base64
-      const base64Image = await this.convertImageToBase64(imageUri);
+      // Get user's location for personalized recommendations with timeout
+      let userLocation = 'your local area';
+      try {
+        const locationPromise = LocationService.getLocationForAnalysis();
+        const timeoutPromise = this.createTimeoutPromise(5000); // 5 second timeout for location
+        userLocation = await Promise.race([locationPromise, timeoutPromise]);
+        console.log('📍 [OpenAIService] Using location for analysis:', userLocation);
+      } catch (locationError) {
+        console.warn('⚠️ [OpenAIService] Failed to get location, using fallback:', locationError);
+        userLocation = 'your local area';
+      }
 
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert waste analysis AI. Analyze the image and provide detailed information about the waste item(s) shown. 
+      // Convert image to base64 with timeout
+      let base64Image: string;
+      try {
+        const imagePromise = this.convertImageToBase64(imageUri);
+        const timeoutPromise = this.createTimeoutPromise(10000); // 10 second timeout for image conversion
+        base64Image = await Promise.race([imagePromise, timeoutPromise]);
+      } catch (imageError) {
+        console.error('❌ [OpenAIService] Failed to convert image:', imageError);
+        throw new Error('Failed to process the image. Please try with a different image.');
+      }
+
+      const requestBody = {
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert waste analysis AI. Analyze the image and provide detailed information about the waste item(s) shown. 
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
@@ -148,53 +195,87 @@ Return your response as a JSON object with this exact structure:
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
 Make your suggestions as location-specific as possible. If you don't have specific knowledge about ${userLocation}, provide general guidance but frame it in the context of their location.`
-            },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: `Please analyze this waste item and provide detailed environmental information with location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image}`
-                  }
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `Please analyze this waste item and provide detailed environmental information with location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
                 }
-              ]
-            }
-          ],
-          max_tokens: 1000,
-          temperature: 0.3
-        })
-      });
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0.3
+      };
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('OpenAI API Error Response:', errorBody);
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}. Response: ${errorBody}`);
+      // Make API request with timeout
+      let response: Response;
+      try {
+        const fetchPromise = fetch(`${this.baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        const timeoutPromise = this.createTimeoutPromise(this.requestTimeout);
+        response = await Promise.race([fetchPromise, timeoutPromise]);
+      } catch (fetchError) {
+        console.error('❌ [OpenAIService] Network error:', fetchError);
+        if (fetchError instanceof Error && fetchError.message === 'Request timeout') {
+          throw new Error('Request timed out. Please check your internet connection and try again.');
+        }
+        throw new Error('Network error. Please check your internet connection and try again.');
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => 'Unknown error');
+        console.error('❌ [OpenAIService] API Error Response:', response.status, errorBody);
+        
+        if (response.status === 401) {
+          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+        } else if (response.status === 429) {
+          throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+        } else if (response.status === 403) {
+          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+        } else {
+          throw new Error(`OpenAI API error: ${response.status}. Please try again later.`);
+        }
+      }
+
+      const data = await response.json().catch((parseError) => {
+        console.error('❌ [OpenAIService] Failed to parse response JSON:', parseError);
+        throw new Error('Invalid response from OpenAI API. Please try again.');
+      });
+
+      const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
-        console.error('OpenAI API Response:', JSON.stringify(data, null, 2));
-        throw new Error('No response content from OpenAI');
+        console.error('❌ [OpenAIService] No content in API response:', JSON.stringify(data, null, 2));
+        throw new Error('No response content from OpenAI. Please try again.');
       }
 
       // Clean the content by removing any potential markdown formatting
       const cleanedContent = this.cleanMarkdownCodeBlocks(content);
 
       // Parse the JSON response with enhanced error handling
-      let analysisResult;
+      let analysisResult: WasteAnalysisResult;
       try {
         analysisResult = JSON.parse(cleanedContent);
       } catch (parseError) {
-        console.error('JSON Parse Error - Raw content:', content);
-        console.error('Cleaned content:', cleanedContent);
-        console.error('Parse error details:', parseError);
+        console.error('❌ [OpenAIService] JSON Parse Error - Raw content:', content);
+        console.error('❌ [OpenAIService] Cleaned content:', cleanedContent);
+        console.error('❌ [OpenAIService] Parse error details:', parseError);
         
         // Try to extract JSON from the content if it's embedded in text
         const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
@@ -202,10 +283,11 @@ Make your suggestions as location-specific as possible. If you don't have specif
           try {
             analysisResult = JSON.parse(jsonMatch[0]);
           } catch (secondParseError) {
-            throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+            console.error('❌ [OpenAIService] Second parse attempt failed:', secondParseError);
+            throw new Error('AI model returned invalid response format. Please try again.');
           }
         } else {
-          throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+          throw new Error('AI model returned invalid response format. Please try again.');
         }
       }
       
@@ -222,32 +304,18 @@ Make your suggestions as location-specific as possible. If you don't have specif
         analysisResult.mapSuggestions = this.extractMapSuggestions(analysisResult.suggestions, userLocation);
       }
       
-      console.log('✅ [OpenAIService] Analysis completed with location-specific suggestions for:', userLocation);
-      console.log('🗺️ [OpenAIService] Extracted map suggestions:', analysisResult.mapSuggestions?.length || 0);
+      console.log('✅ [OpenAIService] Analysis completed successfully');
       return analysisResult;
     } catch (error) {
-      console.error('Error analyzing waste image:', error);
+      console.error('❌ [OpenAIService] Analysis failed:', error);
       
-      // Provide more specific error messages based on error type
+      // Re-throw known errors
       if (error instanceof Error) {
-        if (error.message.includes('API error: 401')) {
-          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
-        } else if (error.message.includes('API error: 429')) {
-          throw new Error('OpenAI API rate limit exceeded. Please try again later.');
-        } else if (error.message.includes('API error: 403')) {
-          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
-        } else if (error.message.includes('malformed JSON')) {
-          throw error; // Re-throw the specific JSON parsing error
-        } else if (error.message.includes('Failed to convert image')) {
-          throw new Error('Failed to process the image. Please try with a different image.');
-        } else if (error.message.includes('API key not configured')) {
-          throw error; // Re-throw API key configuration error
-        } else {
-          throw new Error('Failed to analyze waste image. Please check your internet connection and try again.');
-        }
-      } else {
-        throw new Error('An unexpected error occurred while analyzing the image.');
+        throw error;
       }
+      
+      // Handle unknown errors
+      throw new Error('An unexpected error occurred while analyzing the image. Please try again.');
     }
   }
 
@@ -256,29 +324,56 @@ Make your suggestions as location-specific as possible. If you don't have specif
     userFeedback: string,
     imageUri: string
   ): Promise<WasteAnalysisResult> {
+    // Validate inputs
+    if (!originalAnalysis || !userFeedback || !imageUri) {
+      throw new Error('Missing required parameters for feedback correction');
+    }
+
     if (!this.apiKey) {
       throw new Error('OpenAI API key not configured. Please set EXPO_PUBLIC_OPENAI_API_KEY in your environment variables.');
     }
 
     try {
-      // Get user's location for personalized recommendations
-      const userLocation = await LocationService.getLocationForAnalysis();
-      console.log('📍 [OpenAIService] Using location for feedback correction:', userLocation);
+      console.log('🔄 [OpenAIService] Starting feedback correction...');
 
-      const base64Image = await this.convertImageToBase64(imageUri);
+      // Get user's location for personalized recommendations with timeout
+      let userLocation = 'your local area';
+      try {
+        const locationPromise = LocationService.getLocationForAnalysis();
+        const timeoutPromise = this.createTimeoutPromise(5000);
+        userLocation = await Promise.race([locationPromise, timeoutPromise]);
+        console.log('📍 [OpenAIService] Using location for feedback correction:', userLocation);
+      } catch (locationError) {
+        console.warn('⚠️ [OpenAIService] Failed to get location for feedback, using fallback:', locationError);
+        userLocation = 'your local area';
+      }
 
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert waste analysis AI. The user has provided feedback about a previous analysis. Use their feedback to provide a corrected analysis. 
+      // Convert image to base64 with timeout
+      let base64Image: string;
+      try {
+        const imagePromise = this.convertImageToBase64(imageUri);
+        const timeoutPromise = this.createTimeoutPromise(10000);
+        base64Image = await Promise.race([imagePromise, timeoutPromise]);
+      } catch (imageError) {
+        console.error('❌ [OpenAIService] Failed to convert image for feedback:', imageError);
+        throw new Error('Failed to process the image. Please try with a different image.');
+      }
+
+      // Make API request with timeout
+      let response: Response;
+      try {
+        const fetchPromise = fetch(`${this.baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert waste analysis AI. The user has provided feedback about a previous analysis. Use their feedback to provide a corrected analysis. 
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
@@ -289,57 +384,80 @@ When providing suggestions, be specific to their location. Provide location-spec
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
 Return your response as a JSON object with the same structure as before.`
-            },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: `Here was my original analysis: ${JSON.stringify(originalAnalysis)}
-                  
-                  The user provided this feedback: "${userFeedback}"
-                  
-                  Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image}`
+              },
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: `Here was my original analysis: ${JSON.stringify(originalAnalysis)}
+                    
+                    The user provided this feedback: "${userFeedback}"
+                    
+                    Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide location-specific recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun.`
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/jpeg;base64,${base64Image}`
+                    }
                   }
-                }
-              ]
-            }
-          ],
-          max_tokens: 1000,
-          temperature: 0.3
-        })
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('OpenAI API Error Response:', errorBody);
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}. Response: ${errorBody}`);
+                ]
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.3
+          })
+        });
+        
+        const timeoutPromise = this.createTimeoutPromise(this.requestTimeout);
+        response = await Promise.race([fetchPromise, timeoutPromise]);
+      } catch (fetchError) {
+        console.error('❌ [OpenAIService] Network error during feedback:', fetchError);
+        if (fetchError instanceof Error && fetchError.message === 'Request timeout') {
+          throw new Error('Request timed out. Please check your internet connection and try again.');
+        }
+        throw new Error('Network error. Please check your internet connection and try again.');
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => 'Unknown error');
+        console.error('❌ [OpenAIService] Feedback API Error:', response.status, errorBody);
+        
+        if (response.status === 401) {
+          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+        } else if (response.status === 429) {
+          throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+        } else if (response.status === 403) {
+          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+        } else {
+          throw new Error(`OpenAI API error: ${response.status}. Please try again later.`);
+        }
+      }
+
+      const data = await response.json().catch((parseError) => {
+        console.error('❌ [OpenAIService] Failed to parse feedback response JSON:', parseError);
+        throw new Error('Invalid response from OpenAI API. Please try again.');
+      });
+
+      const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
-        console.error('OpenAI API Response:', JSON.stringify(data, null, 2));
-        throw new Error('No response content from OpenAI');
+        console.error('❌ [OpenAIService] No content in feedback response:', JSON.stringify(data, null, 2));
+        throw new Error('No response content from OpenAI. Please try again.');
       }
 
       // Clean the content by removing any potential markdown formatting
       const cleanedContent = this.cleanMarkdownCodeBlocks(content);
 
       // Parse the JSON response with enhanced error handling
-      let correctedAnalysis;
+      let correctedAnalysis: WasteAnalysisResult;
       try {
         correctedAnalysis = JSON.parse(cleanedContent);
       } catch (parseError) {
-        console.error('JSON Parse Error - Raw content:', content);
-        console.error('Cleaned content:', cleanedContent);
-        console.error('Parse error details:', parseError);
+        console.error('❌ [OpenAIService] Feedback JSON Parse Error - Raw content:', content);
+        console.error('❌ [OpenAIService] Cleaned content:', cleanedContent);
+        console.error('❌ [OpenAIService] Parse error details:', parseError);
         
         // Try to extract JSON from the content if it's embedded in text
         const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
@@ -347,10 +465,11 @@ Return your response as a JSON object with the same structure as before.`
           try {
             correctedAnalysis = JSON.parse(jsonMatch[0]);
           } catch (secondParseError) {
-            throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+            console.error('❌ [OpenAIService] Second feedback parse attempt failed:', secondParseError);
+            throw new Error('AI model returned invalid response format. Please try again.');
           }
         } else {
-          throw new Error(`AI model returned malformed JSON. Raw response: ${content.substring(0, 200)}...`);
+          throw new Error('AI model returned invalid response format. Please try again.');
         }
       }
       
@@ -366,57 +485,54 @@ Return your response as a JSON object with the same structure as before.`
         correctedAnalysis.mapSuggestions = this.extractMapSuggestions(correctedAnalysis.suggestions, userLocation);
       }
       
-      console.log('✅ [OpenAIService] Feedback correction completed with location-specific suggestions for:', userLocation);
-      console.log('🗺️ [OpenAIService] Extracted map suggestions:', correctedAnalysis.mapSuggestions?.length || 0);
+      console.log('✅ [OpenAIService] Feedback correction completed successfully');
       return correctedAnalysis;
     } catch (error) {
-      console.error('Error fixing analysis:', error);
+      console.error('❌ [OpenAIService] Feedback correction failed:', error);
       
-      // Provide more specific error messages based on error type
+      // Re-throw known errors
       if (error instanceof Error) {
-        if (error.message.includes('API error: 401')) {
-          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
-        } else if (error.message.includes('API error: 429')) {
-          throw new Error('OpenAI API rate limit exceeded. Please try again later.');
-        } else if (error.message.includes('API error: 403')) {
-          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
-        } else if (error.message.includes('malformed JSON')) {
-          throw error; // Re-throw the specific JSON parsing error
-        } else if (error.message.includes('Failed to convert image')) {
-          throw new Error('Failed to process the image. Please try with a different image.');
-        } else if (error.message.includes('API key not configured')) {
-          throw error; // Re-throw API key configuration error
-        } else {
-          throw new Error('Failed to update analysis. Please check your internet connection and try again.');
-        }
-      } else {
-        throw new Error('An unexpected error occurred while updating the analysis.');
+        throw error;
       }
+      
+      // Handle unknown errors
+      throw new Error('An unexpected error occurred while updating the analysis. Please try again.');
     }
   }
 
   private cleanMarkdownCodeBlocks(content: string): string {
-    // Remove markdown code block delimiters and any surrounding text
-    let cleaned = content.trim();
-    
-    // Remove various forms of markdown code blocks
-    cleaned = cleaned.replace(/^```json\s*/i, ''); // Remove opening ```json
-    cleaned = cleaned.replace(/^```\s*/m, ''); // Remove opening ``` (alternative format)
-    cleaned = cleaned.replace(/\s*```\s*$/m, ''); // Remove closing ```
-    
-    // Remove any leading/trailing text that might not be JSON
-    const jsonStart = cleaned.indexOf('{');
-    const jsonEnd = cleaned.lastIndexOf('}');
-    
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+    try {
+      // Remove markdown code block delimiters and any surrounding text
+      let cleaned = content.trim();
+      
+      // Remove various forms of markdown code blocks
+      cleaned = cleaned.replace(/^```json\s*/i, ''); // Remove opening ```json
+      cleaned = cleaned.replace(/^```\s*/m, ''); // Remove opening ``` (alternative format)
+      cleaned = cleaned.replace(/\s*```\s*$/m, ''); // Remove closing ```
+      
+      // Remove any leading/trailing text that might not be JSON
+      const jsonStart = cleaned.indexOf('{');
+      const jsonEnd = cleaned.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      return cleaned.trim();
+    } catch (error) {
+      console.error('❌ [OpenAIService] Error cleaning markdown:', error);
+      return content; // Return original content if cleaning fails
     }
-    
-    return cleaned.trim();
   }
 
   private async convertImageToBase64(imageUri: string): Promise<string> {
     try {
+      if (!imageUri) {
+        throw new Error('Image URI is required');
+      }
+
+      console.log('🔄 [OpenAIService] Converting image to base64...');
+      
       const response = await fetch(imageUri);
       
       if (!response.ok) {
@@ -428,9 +544,24 @@ Return your response as a JSON object with the same structure as before.`
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const result = reader.result as string;
-          const base64 = result.split(',')[1];
-          resolve(base64);
+          try {
+            const result = reader.result as string;
+            if (!result || typeof result !== 'string') {
+              reject(new Error('Failed to read image file - invalid result'));
+              return;
+            }
+            
+            const base64 = result.split(',')[1];
+            if (!base64) {
+              reject(new Error('Failed to extract base64 data from image'));
+              return;
+            }
+            
+            console.log('✅ [OpenAIService] Image converted to base64 successfully');
+            resolve(base64);
+          } catch (error) {
+            reject(new Error('Failed to process image data'));
+          }
         };
         reader.onerror = () => {
           reject(new Error('Failed to read image file'));
@@ -438,65 +569,80 @@ Return your response as a JSON object with the same structure as before.`
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Image conversion error:', error);
-      throw new Error('Failed to convert image to base64');
+      console.error('❌ [OpenAIService] Image conversion error:', error);
+      throw new Error('Failed to convert image to base64. Please try with a different image.');
     }
   }
 
   private validateAnalysisResult(result: any): void {
-    const requiredFields = [
-      'itemName', 'quantity', 'weight', 'material', 'environmentScore',
-      'recyclable', 'compostable', 'carbonFootprint', 'suggestions', 'confidence'
-    ];
-
-    for (const field of requiredFields) {
-      if (!(field in result)) {
-        throw new Error(`Missing required field: ${field}`);
+    try {
+      if (!result || typeof result !== 'object') {
+        throw new Error('Analysis result must be an object');
       }
-    }
 
-    // Validate data types and ranges
-    if (typeof result.environmentScore !== 'number' || result.environmentScore < 1 || result.environmentScore > 10) {
-      throw new Error('Invalid environment score');
-    }
+      const requiredFields = [
+        'itemName', 'quantity', 'weight', 'material', 'environmentScore',
+        'recyclable', 'compostable', 'carbonFootprint', 'suggestions', 'confidence'
+      ];
 
-    if (typeof result.confidence !== 'number' || result.confidence < 0 || result.confidence > 1) {
-      throw new Error('Invalid confidence level');
-    }
+      for (const field of requiredFields) {
+        if (!(field in result)) {
+          throw new Error(`Missing required field: ${field}`);
+        }
+      }
 
-    if (!Array.isArray(result.suggestions)) {
-      throw new Error('Suggestions must be an array');
-    }
+      // Validate data types and ranges with safe fallbacks
+      if (typeof result.environmentScore !== 'number' || isNaN(result.environmentScore)) {
+        result.environmentScore = 5; // Default fallback
+      } else if (result.environmentScore < 1 || result.environmentScore > 10) {
+        result.environmentScore = Math.max(1, Math.min(10, result.environmentScore));
+      }
 
-    // Ensure numeric fields are actually numbers
-    if (typeof result.quantity !== 'number' || result.quantity <= 0) {
-      throw new Error('Invalid quantity');
-    }
+      if (typeof result.confidence !== 'number' || isNaN(result.confidence)) {
+        result.confidence = 0.5; // Default fallback
+      } else if (result.confidence < 0 || result.confidence > 1) {
+        result.confidence = Math.max(0, Math.min(1, result.confidence));
+      }
 
-    if (typeof result.weight !== 'number' || result.weight <= 0) {
-      throw new Error('Invalid weight');
-    }
+      if (!Array.isArray(result.suggestions)) {
+        result.suggestions = ['Check local recycling guidelines', 'Consider reusable alternatives'];
+      }
 
-    if (typeof result.carbonFootprint !== 'number' || result.carbonFootprint < 0) {
-      throw new Error('Invalid carbon footprint');
-    }
+      // Ensure numeric fields are valid numbers with fallbacks
+      if (typeof result.quantity !== 'number' || isNaN(result.quantity) || result.quantity <= 0) {
+        result.quantity = 1;
+      }
 
-    // Ensure boolean fields are actually booleans
-    if (typeof result.recyclable !== 'boolean') {
-      throw new Error('Recyclable must be a boolean');
-    }
+      if (typeof result.weight !== 'number' || isNaN(result.weight) || result.weight <= 0) {
+        result.weight = 50; // Default 50g
+      }
 
-    if (typeof result.compostable !== 'boolean') {
-      throw new Error('Compostable must be a boolean');
-    }
+      if (typeof result.carbonFootprint !== 'number' || isNaN(result.carbonFootprint) || result.carbonFootprint < 0) {
+        result.carbonFootprint = 0.1;
+      }
 
-    // Ensure string fields are not empty
-    if (typeof result.itemName !== 'string' || result.itemName.trim() === '') {
-      throw new Error('Item name must be a non-empty string');
-    }
+      // Ensure boolean fields are actually booleans
+      if (typeof result.recyclable !== 'boolean') {
+        result.recyclable = false;
+      }
 
-    if (typeof result.material !== 'string' || result.material.trim() === '') {
-      throw new Error('Material must be a non-empty string');
+      if (typeof result.compostable !== 'boolean') {
+        result.compostable = false;
+      }
+
+      // Ensure string fields are not empty with fallbacks
+      if (typeof result.itemName !== 'string' || result.itemName.trim() === '') {
+        result.itemName = 'Unknown Item';
+      }
+
+      if (typeof result.material !== 'string' || result.material.trim() === '') {
+        result.material = 'Mixed Material';
+      }
+
+      console.log('✅ [OpenAIService] Analysis result validated successfully');
+    } catch (error) {
+      console.error('❌ [OpenAIService] Validation error:', error);
+      throw new Error(`Invalid analysis result: ${error instanceof Error ? error.message : 'Unknown validation error'}`);
     }
   }
 }

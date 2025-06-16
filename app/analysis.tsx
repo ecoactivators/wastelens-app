@@ -42,20 +42,32 @@ export default function AnalysisScreen() {
   useEffect(() => {
     if (photoUri) {
       analyzeWaste();
+    } else {
+      setError('No image provided');
+      setLoading(false);
     }
   }, [photoUri]);
 
   const analyzeWaste = async () => {
+    if (!photoUri) {
+      setError('No image provided');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
+      console.log('🔄 [AnalysisScreen] Starting waste analysis...');
       const result = await openAIService.analyzeWasteImage(photoUri);
       setAnalysis(result);
       setQuantity(result.quantity.toString());
+      console.log('✅ [AnalysisScreen] Analysis completed successfully');
     } catch (error) {
-      console.error('Analysis error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to analyze waste');
+      console.error('❌ [AnalysisScreen] Analysis error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze waste';
+      setError(errorMessage);
       
       // Fallback to mock data if API fails
       const mockAnalysis: WasteAnalysis = {
@@ -93,8 +105,14 @@ export default function AnalysisScreen() {
       return;
     }
 
+    if (!photoUri) {
+      Alert.alert('Error', 'No image available for correction.');
+      return;
+    }
+
     setFixLoading(true);
     try {
+      console.log('🔄 [AnalysisScreen] Starting feedback correction...');
       const correctedAnalysis = await openAIService.fixAnalysisWithFeedback(
         analysis,
         fixMessage,
@@ -107,9 +125,11 @@ export default function AnalysisScreen() {
       setFixMessage('');
       setError(null);
       Alert.alert('Success', 'Analysis has been updated based on your feedback.');
+      console.log('✅ [AnalysisScreen] Feedback correction completed');
     } catch (error) {
-      console.error('Fix error:', error);
-      Alert.alert('Error', 'Failed to update analysis. Please try again.');
+      console.error('❌ [AnalysisScreen] Fix error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update analysis';
+      Alert.alert('Error', errorMessage);
     } finally {
       setFixLoading(false);
     }
@@ -166,62 +186,71 @@ export default function AnalysisScreen() {
 
   const triggerSuccessVibration = () => {
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      try {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch (error) {
+        console.warn('⚠️ [AnalysisScreen] Haptics not available:', error);
+      }
     }
   };
 
   const handleDone = () => {
-    if (analysis) {
-      // Determine if it's food waste or other waste
-      let wasteType = WasteType.OTHER;
-      const material = analysis.material.toLowerCase();
-      const itemName = analysis.itemName.toLowerCase();
-      
-      // Check if it's food waste
-      if (material.includes('food') || material.includes('organic') || 
-          itemName.includes('food') || itemName.includes('apple') || 
-          itemName.includes('banana') || itemName.includes('bread') ||
-          itemName.includes('pizza') || itemName.includes('sandwich') ||
-          itemName.includes('fruit') || itemName.includes('vegetable') ||
-          analysis.compostable) {
-        wasteType = WasteType.FOOD;
+    try {
+      if (analysis) {
+        // Determine if it's food waste or other waste
+        let wasteType = WasteType.OTHER;
+        const material = analysis.material.toLowerCase();
+        const itemName = analysis.itemName.toLowerCase();
+        
+        // Check if it's food waste
+        if (material.includes('food') || material.includes('organic') || 
+            itemName.includes('food') || itemName.includes('apple') || 
+            itemName.includes('banana') || itemName.includes('bread') ||
+            itemName.includes('pizza') || itemName.includes('sandwich') ||
+            itemName.includes('fruit') || itemName.includes('vegetable') ||
+            analysis.compostable) {
+          wasteType = WasteType.FOOD;
+        }
+
+        // Determine category
+        let category = WasteCategory.LANDFILL;
+        if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
+        else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
+
+        console.log('💾 [AnalysisScreen] Adding item to ItemsContext:', {
+          type: wasteType,
+          category: category,
+          weight: analysis.weight,
+          description: analysis.itemName,
+          imageUrl: photoUri,
+          recyclable: analysis.recyclable,
+          compostable: analysis.compostable,
+        });
+
+        // Add item to the ItemsContext
+        const newItem = addItem({
+          type: wasteType,
+          category: category,
+          weight: analysis.weight,
+          description: analysis.itemName,
+          imageUrl: photoUri,
+          recyclable: analysis.recyclable,
+          compostable: analysis.compostable,
+        });
+
+        console.log('✅ [AnalysisScreen] Item added successfully:', newItem);
+
+        // Trigger success vibration instead of showing alert
+        triggerSuccessVibration();
+
+        // Navigate back to camera screen instead of home
+        router.push('/camera');
+      } else {
+        router.push('/camera');
       }
-
-      // Determine category
-      let category = WasteCategory.LANDFILL;
-      if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
-      else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
-
-      console.log('💾 [AnalysisScreen] Adding item to ItemsContext:', {
-        type: wasteType,
-        category: category,
-        weight: analysis.weight,
-        description: analysis.itemName,
-        imageUrl: photoUri,
-        recyclable: analysis.recyclable,
-        compostable: analysis.compostable,
-      });
-
-      // Add item to the ItemsContext
-      const newItem = addItem({
-        type: wasteType,
-        category: category,
-        weight: analysis.weight,
-        description: analysis.itemName,
-        imageUrl: photoUri,
-        recyclable: analysis.recyclable,
-        compostable: analysis.compostable,
-      });
-
-      console.log('✅ [AnalysisScreen] Item added successfully:', newItem);
-
-      // Trigger success vibration instead of showing alert
-      triggerSuccessVibration();
-
-      // Navigate back to camera screen instead of home
-      router.push('/camera');
-    } else {
-      router.push('/camera');
+    } catch (error) {
+      console.error('❌ [AnalysisScreen] Error saving item:', error);
+      Alert.alert('Error', 'Failed to save item. Please try again.');
     }
   };
 

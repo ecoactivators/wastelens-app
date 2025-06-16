@@ -6,36 +6,80 @@ const ITEMS_KEY = 'waste_items';
 const GOALS_KEY = 'waste_goals';
 const GUIDELINES_SEEN_KEY = 'guidelines_seen';
 
-// Web fallback using localStorage
+// Web fallback using localStorage with error handling
 const webStorage = {
   async setItem(key: string, value: string) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(key, value);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(key, value);
+        console.log('💾 [WebStorage] Saved item:', key);
+      } else {
+        console.warn('⚠️ [WebStorage] localStorage not available');
+      }
+    } catch (error) {
+      console.error('❌ [WebStorage] Failed to save item:', key, error);
+      throw new Error('Failed to save data to local storage');
     }
   },
   async getItem(key: string): Promise<string | null> {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(key);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const item = localStorage.getItem(key);
+        console.log('📂 [WebStorage] Retrieved item:', key, item ? 'found' : 'not found');
+        return item;
+      } else {
+        console.warn('⚠️ [WebStorage] localStorage not available');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ [WebStorage] Failed to get item:', key, error);
+      return null;
     }
-    return null;
   },
   async deleteItem(key: string) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(key);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem(key);
+        console.log('🗑️ [WebStorage] Deleted item:', key);
+      } else {
+        console.warn('⚠️ [WebStorage] localStorage not available');
+      }
+    } catch (error) {
+      console.error('❌ [WebStorage] Failed to delete item:', key, error);
+      throw new Error('Failed to delete data from local storage');
     }
   }
 };
 
-// Native storage adapter for SecureStore
+// Native storage adapter for SecureStore with error handling
 const nativeStorage = {
   async setItem(key: string, value: string) {
-    return await SecureStore.setItemAsync(key, value);
+    try {
+      await SecureStore.setItemAsync(key, value);
+      console.log('💾 [NativeStorage] Saved item:', key);
+    } catch (error) {
+      console.error('❌ [NativeStorage] Failed to save item:', key, error);
+      throw new Error('Failed to save data to secure storage');
+    }
   },
   async getItem(key: string): Promise<string | null> {
-    return await SecureStore.getItemAsync(key);
+    try {
+      const item = await SecureStore.getItemAsync(key);
+      console.log('📂 [NativeStorage] Retrieved item:', key, item ? 'found' : 'not found');
+      return item;
+    } catch (error) {
+      console.error('❌ [NativeStorage] Failed to get item:', key, error);
+      return null;
+    }
   },
   async deleteItem(key: string) {
-    return await SecureStore.deleteItemAsync(key);
+    try {
+      await SecureStore.deleteItemAsync(key);
+      console.log('🗑️ [NativeStorage] Deleted item:', key);
+    } catch (error) {
+      console.error('❌ [NativeStorage] Failed to delete item:', key, error);
+      throw new Error('Failed to delete data from secure storage');
+    }
   }
 };
 
@@ -45,14 +89,28 @@ const storage = Platform.OS === 'web' ? webStorage : nativeStorage;
 export class StorageService {
   static async saveItems(items: WasteEntry[]): Promise<void> {
     try {
-      const serializedItems = JSON.stringify(items.map(item => ({
-        ...item,
-        timestamp: item.timestamp.toISOString()
-      })));
+      if (!Array.isArray(items)) {
+        console.warn('⚠️ [StorageService] Items is not an array, converting...');
+        items = [];
+      }
+
+      const serializedItems = JSON.stringify(items.map(item => {
+        try {
+          return {
+            ...item,
+            timestamp: item.timestamp instanceof Date ? item.timestamp.toISOString() : new Date().toISOString()
+          };
+        } catch (error) {
+          console.error('❌ [StorageService] Error serializing item:', item, error);
+          return null;
+        }
+      }).filter(item => item !== null));
+
       await storage.setItem(ITEMS_KEY, serializedItems);
       console.log('💾 [StorageService] Saved', items.length, 'items to storage');
     } catch (error) {
       console.error('❌ [StorageService] Failed to save items:', error);
+      // Don't throw error to prevent app crashes
     }
   }
 
@@ -64,11 +122,32 @@ export class StorageService {
         return [];
       }
 
-      const parsedItems = JSON.parse(serializedItems);
-      const items = parsedItems.map((item: any) => ({
-        ...item,
-        timestamp: new Date(item.timestamp)
-      }));
+      let parsedItems;
+      try {
+        parsedItems = JSON.parse(serializedItems);
+      } catch (parseError) {
+        console.error('❌ [StorageService] Failed to parse items JSON:', parseError);
+        console.log('🔄 [StorageService] Clearing corrupted items data');
+        await storage.deleteItem(ITEMS_KEY);
+        return [];
+      }
+
+      if (!Array.isArray(parsedItems)) {
+        console.warn('⚠️ [StorageService] Parsed items is not an array');
+        return [];
+      }
+
+      const items = parsedItems.map((item: any) => {
+        try {
+          return {
+            ...item,
+            timestamp: item.timestamp ? new Date(item.timestamp) : new Date()
+          };
+        } catch (error) {
+          console.error('❌ [StorageService] Error deserializing item:', item, error);
+          return null;
+        }
+      }).filter((item: any) => item !== null);
 
       console.log('📂 [StorageService] Loaded', items.length, 'items from storage');
       return items;
@@ -80,15 +159,29 @@ export class StorageService {
 
   static async saveGoals(goals: WasteGoal[]): Promise<void> {
     try {
-      const serializedGoals = JSON.stringify(goals.map(goal => ({
-        ...goal,
-        startDate: goal.startDate.toISOString(),
-        endDate: goal.endDate.toISOString()
-      })));
+      if (!Array.isArray(goals)) {
+        console.warn('⚠️ [StorageService] Goals is not an array, converting...');
+        goals = [];
+      }
+
+      const serializedGoals = JSON.stringify(goals.map(goal => {
+        try {
+          return {
+            ...goal,
+            startDate: goal.startDate instanceof Date ? goal.startDate.toISOString() : new Date().toISOString(),
+            endDate: goal.endDate instanceof Date ? goal.endDate.toISOString() : new Date().toISOString()
+          };
+        } catch (error) {
+          console.error('❌ [StorageService] Error serializing goal:', goal, error);
+          return null;
+        }
+      }).filter(goal => goal !== null));
+
       await storage.setItem(GOALS_KEY, serializedGoals);
       console.log('🎯 [StorageService] Saved', goals.length, 'goals to storage');
     } catch (error) {
       console.error('❌ [StorageService] Failed to save goals:', error);
+      // Don't throw error to prevent app crashes
     }
   }
 
@@ -100,12 +193,33 @@ export class StorageService {
         return [];
       }
 
-      const parsedGoals = JSON.parse(serializedGoals);
-      const goals = parsedGoals.map((goal: any) => ({
-        ...goal,
-        startDate: new Date(goal.startDate),
-        endDate: new Date(goal.endDate)
-      }));
+      let parsedGoals;
+      try {
+        parsedGoals = JSON.parse(serializedGoals);
+      } catch (parseError) {
+        console.error('❌ [StorageService] Failed to parse goals JSON:', parseError);
+        console.log('🔄 [StorageService] Clearing corrupted goals data');
+        await storage.deleteItem(GOALS_KEY);
+        return [];
+      }
+
+      if (!Array.isArray(parsedGoals)) {
+        console.warn('⚠️ [StorageService] Parsed goals is not an array');
+        return [];
+      }
+
+      const goals = parsedGoals.map((goal: any) => {
+        try {
+          return {
+            ...goal,
+            startDate: goal.startDate ? new Date(goal.startDate) : new Date(),
+            endDate: goal.endDate ? new Date(goal.endDate) : new Date()
+          };
+        } catch (error) {
+          console.error('❌ [StorageService] Error deserializing goal:', goal, error);
+          return null;
+        }
+      }).filter((goal: any) => goal !== null);
 
       console.log('🎯 [StorageService] Loaded', goals.length, 'goals from storage');
       return goals;
@@ -121,6 +235,7 @@ export class StorageService {
       console.log('📋 [StorageService] Marked guidelines as seen');
     } catch (error) {
       console.error('❌ [StorageService] Failed to save guidelines seen status:', error);
+      // Don't throw error to prevent app crashes
     }
   }
 
@@ -138,12 +253,34 @@ export class StorageService {
 
   static async clearAllData(): Promise<void> {
     try {
-      await storage.deleteItem(ITEMS_KEY);
-      await storage.deleteItem(GOALS_KEY);
-      await storage.deleteItem(GUIDELINES_SEEN_KEY);
+      await Promise.all([
+        storage.deleteItem(ITEMS_KEY),
+        storage.deleteItem(GOALS_KEY),
+        storage.deleteItem(GUIDELINES_SEEN_KEY)
+      ]);
       console.log('🗑️ [StorageService] Cleared all data from storage');
     } catch (error) {
       console.error('❌ [StorageService] Failed to clear data:', error);
+      // Don't throw error to prevent app crashes
+    }
+  }
+
+  // Health check method to verify storage is working
+  static async healthCheck(): Promise<boolean> {
+    try {
+      const testKey = 'health_check_test';
+      const testValue = 'test_value';
+      
+      await storage.setItem(testKey, testValue);
+      const retrievedValue = await storage.getItem(testKey);
+      await storage.deleteItem(testKey);
+      
+      const isHealthy = retrievedValue === testValue;
+      console.log('🏥 [StorageService] Health check:', isHealthy ? 'PASS' : 'FAIL');
+      return isHealthy;
+    } catch (error) {
+      console.error('❌ [StorageService] Health check failed:', error);
+      return false;
     }
   }
 }
