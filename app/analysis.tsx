@@ -80,7 +80,7 @@ export default function AnalysisScreen() {
         compostable: false,
         carbonFootprint: 0.1,
         suggestions: [
-          'Check local recycling guidelines',
+          'Place in your recycling bin if recyclable',
           'Consider reusable alternatives',
           'Dispose of responsibly'
         ],
@@ -295,9 +295,9 @@ export default function AnalysisScreen() {
               style={[styles.mapButton, { backgroundColor: theme.colors.primary }]}
               onPress={() => handleMapSuggestionPress(mapSuggestion)}
             >
-              <MapPin size={14} color="#ffffff" />
-              <Text style={styles.mapButtonText}>Open in Maps</Text>
-              <ExternalLink size={12} color="#ffffff" />
+              <MapPin size={14} color={theme.colors.surface} />
+              <Text style={[styles.mapButtonText, { color: theme.colors.surface }]}>Open in Maps</Text>
+              <ExternalLink size={12} color={theme.colors.surface} />
             </TouchableOpacity>
           )}
         </View>
@@ -974,7 +974,6 @@ const styles = StyleSheet.create({
   mapButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 12,
-    color: '#ffffff',
   },
   bottomActions: {
     position: 'absolute',
