@@ -1,17 +1,21 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Share } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Share, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
-import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Leaf, ChevronRight, Moon, Globe, Trash2 } from 'lucide-react-native';
+import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Leaf, ChevronRight, Moon, Globe, Trash2, Camera, Image as ImageIcon, X } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SettingsScreen() {
   const { stats, loading, clearAllData } = useItems();
   const { theme, toggleTheme, isDark } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [dataSharing, setDataSharing] = React.useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [showImageOptions, setShowImageOptions] = useState(false);
 
   if (loading || !stats) {
     return (
@@ -65,6 +69,67 @@ export default function SettingsScreen() {
       console.error('Error sharing app:', error);
       Alert.alert('Error', 'Unable to share the app. Please try again.');
     }
+  };
+
+  const handleProfileImagePress = () => {
+    setShowImageOptions(true);
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      // Request camera permissions
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'We need camera access to take a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setProfileImage(result.assets[0].uri);
+        setShowImageOptions(false);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const handleChooseFromLibrary = async () => {
+    try {
+      // Request media library permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'We need access to your photo library to select an image.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setProfileImage(result.assets[0].uri);
+        setShowImageOptions(false);
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setProfileImage(null);
+    setShowImageOptions(false);
   };
 
   const accountItems = [
@@ -210,9 +275,20 @@ export default function SettingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.profileContainer}>
-            <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
-              <User size={32} color="#ffffff" />
-            </View>
+            <TouchableOpacity 
+              style={[styles.avatarContainer, { backgroundColor: theme.colors.primary }]}
+              onPress={handleProfileImagePress}
+              activeOpacity={0.8}
+            >
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+              ) : (
+                <User size={32} color="#ffffff" />
+              )}
+              <View style={[styles.cameraOverlay, { backgroundColor: theme.colors.primary }]}>
+                <Camera size={16} color="#ffffff" />
+              </View>
+            </TouchableOpacity>
             <View style={styles.profileInfo}>
               <Text style={[styles.name, { color: theme.colors.text }]}>Danielle Alexander</Text>
               <Text style={[styles.email, { color: theme.colors.textSecondary }]}>danielle@ecoactivators.com</Text>
@@ -223,15 +299,22 @@ export default function SettingsScreen() {
         {/* Achievement Badge */}
         <View style={styles.section}>
           <View style={[styles.achievementCard, { backgroundColor: theme.colors.surface }]}>
-            <View style={[styles.achievementIcon, { backgroundColor: '#fef3c7' }]}>
-              <Award size={24} color="#f59e0b" />
-            </View>
-            <View style={styles.achievementContent}>
-              <Text style={[styles.achievementTitle, { color: theme.colors.text }]}>Waste Reduction Champion</Text>
-              <Text style={[styles.achievementSubtitle, { color: theme.colors.textSecondary }]}>
-                {stats.streak} day streak • Level 3
-              </Text>
-            </View>
+            <LinearGradient
+              colors={[theme.colors.surface, theme.colors.surfaceElevated]}
+              style={styles.achievementGradient}
+            >
+              <View style={styles.achievementContent}>
+                <View style={[styles.achievementIcon, { backgroundColor: '#fef3c7' }]}>
+                  <Award size={24} color="#f59e0b" />
+                </View>
+                <View style={styles.achievementTextContent}>
+                  <Text style={[styles.achievementTitle, { color: theme.colors.text }]}>Waste Reduction Champion</Text>
+                  <Text style={[styles.achievementSubtitle, { color: theme.colors.textSecondary }]}>
+                    {stats.streak} day streak • Level 3
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
           </View>
         </View>
 
@@ -287,6 +370,76 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Image Options Modal */}
+      <Modal
+        visible={showImageOptions}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        transparent={false}
+      >
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+            <TouchableOpacity onPress={() => setShowImageOptions(false)}>
+              <X size={24} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Change Profile Picture</Text>
+            <View style={{ width: 24 }} />
+          </View>
+          
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={[styles.optionButton, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+              onPress={handleTakePhoto}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: theme.colors.primaryLight }]}>
+                <Camera size={24} color={theme.colors.primary} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionTitle, { color: theme.colors.text }]}>Take Photo</Text>
+                <Text style={[styles.optionSubtitle, { color: theme.colors.textSecondary }]}>
+                  Use your camera to take a new photo
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.optionButton, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+              onPress={handleChooseFromLibrary}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: theme.colors.primaryLight }]}>
+                <ImageIcon size={24} color={theme.colors.primary} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionTitle, { color: theme.colors.text }]}>Choose from Library</Text>
+                <Text style={[styles.optionSubtitle, { color: theme.colors.textSecondary }]}>
+                  Select an existing photo from your gallery
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {profileImage && (
+              <TouchableOpacity
+                style={[styles.optionButton, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}
+                onPress={handleRemovePhoto}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.optionIcon, { backgroundColor: '#fee2e2' }]}>
+                  <Trash2 size={24} color="#ef4444" />
+                </View>
+                <View style={styles.optionContent}>
+                  <Text style={[styles.optionTitle, { color: '#ef4444' }]}>Remove Photo</Text>
+                  <Text style={[styles.optionSubtitle, { color: theme.colors.textSecondary }]}>
+                    Remove your current profile picture
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -317,12 +470,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  avatar: {
+  avatarContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
   },
   profileInfo: {
     flex: 1,
@@ -342,10 +514,7 @@ const styles = StyleSheet.create({
   },
   achievementCard: {
     borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -355,6 +524,15 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  achievementGradient: {
+    flex: 1,
+  },
+  achievementContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    gap: 16,
+  },
   achievementIcon: {
     width: 48,
     height: 48,
@@ -362,7 +540,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  achievementContent: {
+  achievementTextContent: {
     flex: 1,
   },
   achievementTitle: {
@@ -456,5 +634,63 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  optionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  optionSubtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
