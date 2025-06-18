@@ -175,8 +175,30 @@ IMPORTANT DISPOSAL GUIDANCE:
 - For common recyclable items (plastic bottles, cans, paper, cardboard, glass bottles), tell users to put them in their regular recycling bin
 - Only suggest special drop-off locations for items that CANNOT go in regular recycling bins (electronics, batteries, hazardous materials, etc.)
 - Be practical - if it can go in the recycling bin, that's the easiest option for the user
-- Never suggest educational recommendations like "check local guidelines" or "learn about recycling"
-- Give direct, actionable instructions
+- Give direct, actionable instructions with specific steps
+- NEVER use words like "check", "verify", "confirm", "ensure", "make sure", or "guidelines"
+- NEVER suggest educational activities like "learn about recycling" or "research local programs"
+- NEVER say "contact your local" anything
+
+FORBIDDEN PHRASES - NEVER use these:
+- "Check with local guidelines"
+- "Check local recycling guidelines" 
+- "Verify with your local"
+- "Confirm with local authorities"
+- "Make sure to check"
+- "Ensure proper disposal"
+- "Contact your local waste management"
+- "Learn about recycling"
+- "Research local programs"
+- "Follow local guidelines"
+
+APPROVED LANGUAGE - Use direct commands like:
+- "Rinse and place in your recycling bin"
+- "Put in your recycling bin"
+- "Take this to Best Buy for electronics recycling"
+- "Drop off at Home Depot battery recycling station"
+- "Place in your compost bin"
+- "Put in your general waste bin"
 
 When providing suggestions, be specific and practical. Examples:
 - For plastic bottles: "Rinse and place in your recycling bin"
@@ -200,14 +222,14 @@ Return your response as a JSON object with this exact structure:
 
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
-Make your suggestions practical and direct. Prioritize regular recycling bins for standard recyclables, and only mention special facilities for items that truly need them.`
+Make your suggestions practical and direct. Prioritize regular recycling bins for standard recyclables, and only mention special facilities for items that truly need them. Give specific disposal instructions without using any forbidden phrases.`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Please analyze this waste item and provide detailed environmental information with practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities.`
+                text: `Please analyze this waste item and provide detailed environmental information with practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities. Give me direct instructions without using words like "check", "verify", or "guidelines".`
               },
               {
                 type: 'image_url',
@@ -239,9 +261,9 @@ Make your suggestions practical and direct. Prioritize regular recycling bins fo
       } catch (fetchError) {
         console.error('❌ [OpenAIService] Network error:', fetchError);
         if (fetchError instanceof Error && fetchError.message === 'Request timeout') {
-          throw new Error('Request timed out. Please check your internet connection and try again.');
+          throw new Error('Request timed out. Please try again.');
         }
-        throw new Error('Network error. Please check your internet connection and try again.');
+        throw new Error('Network error. Please try again.');
       }
 
       if (!response.ok) {
@@ -249,11 +271,11 @@ Make your suggestions practical and direct. Prioritize regular recycling bins fo
         console.error('❌ [OpenAIService] API Error Response:', response.status, errorBody);
         
         if (response.status === 401) {
-          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+          throw new Error('Invalid OpenAI API key. Please verify your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
         } else if (response.status === 429) {
           throw new Error('OpenAI API rate limit exceeded. Please try again later.');
         } else if (response.status === 403) {
-          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+          throw new Error('OpenAI API access forbidden. Please verify your API key permissions.');
         } else {
           throw new Error(`OpenAI API error: ${response.status}. Please try again later.`);
         }
@@ -389,8 +411,30 @@ IMPORTANT DISPOSAL GUIDANCE:
 - For common recyclable items (plastic bottles, cans, paper, cardboard, glass bottles), tell users to put them in their regular recycling bin
 - Only suggest special drop-off locations for items that CANNOT go in regular recycling bins (electronics, batteries, hazardous materials, etc.)
 - Be practical - if it can go in the recycling bin, that's the easiest option for the user
-- Never suggest educational recommendations like "check local guidelines" or "learn about recycling"
-- Give direct, actionable instructions
+- Give direct, actionable instructions with specific steps
+- NEVER use words like "check", "verify", "confirm", "ensure", "make sure", or "guidelines"
+- NEVER suggest educational activities like "learn about recycling" or "research local programs"
+- NEVER say "contact your local" anything
+
+FORBIDDEN PHRASES - NEVER use these:
+- "Check with local guidelines"
+- "Check local recycling guidelines" 
+- "Verify with your local"
+- "Confirm with local authorities"
+- "Make sure to check"
+- "Ensure proper disposal"
+- "Contact your local waste management"
+- "Learn about recycling"
+- "Research local programs"
+- "Follow local guidelines"
+
+APPROVED LANGUAGE - Use direct commands like:
+- "Rinse and place in your recycling bin"
+- "Put in your recycling bin"
+- "Take this to Best Buy for electronics recycling"
+- "Drop off at Home Depot battery recycling station"
+- "Place in your compost bin"
+- "Put in your general waste bin"
 
 IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
 
@@ -405,7 +449,7 @@ Return your response as a JSON object with the same structure as before.`
                     
                     The user provided this feedback: "${userFeedback}"
                     
-                    Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities.`
+                    Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities. Give me direct instructions without using words like "check", "verify", or "guidelines".`
                   },
                   {
                     type: 'image_url',
@@ -426,9 +470,9 @@ Return your response as a JSON object with the same structure as before.`
       } catch (fetchError) {
         console.error('❌ [OpenAIService] Network error during feedback:', fetchError);
         if (fetchError instanceof Error && fetchError.message === 'Request timeout') {
-          throw new Error('Request timed out. Please check your internet connection and try again.');
+          throw new Error('Request timed out. Please try again.');
         }
-        throw new Error('Network error. Please check your internet connection and try again.');
+        throw new Error('Network error. Please try again.');
       }
 
       if (!response.ok) {
@@ -436,11 +480,11 @@ Return your response as a JSON object with the same structure as before.`
         console.error('❌ [OpenAIService] Feedback API Error:', response.status, errorBody);
         
         if (response.status === 401) {
-          throw new Error('Invalid OpenAI API key. Please check your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
+          throw new Error('Invalid OpenAI API key. Please verify your EXPO_PUBLIC_OPENAI_API_KEY environment variable.');
         } else if (response.status === 429) {
           throw new Error('OpenAI API rate limit exceeded. Please try again later.');
         } else if (response.status === 403) {
-          throw new Error('OpenAI API access forbidden. Please check your API key permissions.');
+          throw new Error('OpenAI API access forbidden. Please verify your API key permissions.');
         } else {
           throw new Error(`OpenAI API error: ${response.status}. Please try again later.`);
         }
