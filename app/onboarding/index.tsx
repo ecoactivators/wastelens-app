@@ -35,16 +35,21 @@ export default function OnboardingIntro() {
           </View>
         </View>
 
-        {/* Get Started Button - Centered */}
+        {/* Get Started Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.getStartedButton, { backgroundColor: theme.colors.text }]}
             onPress={() => router.push('/onboarding/location')}
             activeOpacity={0.9}
           >
-            <Text style={[styles.buttonText, { color: theme.colors.surface }]}>
-              Get Started
-            </Text>
+            <LinearGradient
+              colors={[theme.colors.text, theme.colors.text]}
+              style={styles.buttonGradient}
+            >
+              <Text style={[styles.buttonText, { color: theme.colors.surface }]}>
+                Get Started
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -58,28 +63,29 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   heroContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: height * 0.06,
-    paddingBottom: height * 0.06,
+    paddingTop: height * 0.08,
+    paddingBottom: height * 0.08,
   },
   heroCard: {
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 340,
+    aspectRatio: 0.85,
     borderRadius: 32,
     overflow: 'hidden',
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 16,
+      height: 20,
     },
     shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowRadius: 32,
+    elevation: 16,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.05)',
   },
@@ -87,44 +93,52 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroContent: {
-    paddingVertical: 80,
-    paddingHorizontal: 40,
+    flex: 1,
+    paddingVertical: 60,
+    paddingHorizontal: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroTitle: {
     fontFamily: 'Inter-Bold',
-    fontSize: 36,
+    fontSize: 42,
     textAlign: 'center',
-    marginBottom: 16,
-    letterSpacing: -1,
+    marginBottom: 20,
+    letterSpacing: -1.2,
+    lineHeight: 48,
   },
   heroSubtitle: {
     fontFamily: 'Inter-Medium',
     fontSize: 18,
     textAlign: 'center',
     lineHeight: 26,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
+    opacity: 0.9,
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: height * 0.08,
+    paddingHorizontal: 8,
+    paddingBottom: height * 0.06,
   },
   getStartedButton: {
-    borderRadius: 24,
-    paddingVertical: 18,
-    shadowColor: '#000',
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: 8,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  buttonGradient: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 17,
+    letterSpacing: 0.3,
   },
 });
