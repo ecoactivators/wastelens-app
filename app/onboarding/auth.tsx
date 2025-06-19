@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/lib/supabase';
+
+const { width, height } = Dimensions.get('window');
 
 export default function AuthScreen() {
   const { theme } = useTheme();
@@ -19,8 +21,23 @@ export default function AuthScreen() {
 
     setIsLoading(true);
     try {
-      // For now, we'll simulate Apple sign in
-      Alert.alert('Coming Soon', 'Apple Sign In will be available in the next update. Please use Google Sign In for now.');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: Platform.OS === 'web' ? `${window.location.origin}/onboarding/complete` : undefined,
+        },
+      });
+
+      if (error) {
+        console.error('Apple sign in error:', error);
+        Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+        return;
+      }
+
+      // On mobile, we need to handle the redirect differently
+      if (Platform.OS !== 'web') {
+        router.push('/onboarding/complete');
+      }
     } catch (error) {
       console.error('Apple sign in error:', error);
       Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
@@ -55,11 +72,6 @@ export default function AuthScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSkip = () => {
-    // For demo purposes, allow skipping auth
-    router.push('/onboarding/complete');
   };
 
   return (
@@ -123,17 +135,6 @@ export default function AuthScreen() {
               Sign in with Google
             </Text>
           </TouchableOpacity>
-
-          {/* Skip Option */}
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={handleSkip}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.skipButtonText, { color: theme.colors.textSecondary }]}>
-              Continue without account
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Terms */}
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
     gap: 16,
   },
   backButton: {
@@ -189,9 +190,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: 32,
+    fontSize: Math.min(width * 0.08, 32),
     marginBottom: 16,
-    lineHeight: 40,
+    lineHeight: Math.min(width * 0.1, 40),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   authContainer: {
     paddingHorizontal: 24,
     gap: 16,
-    marginBottom: 40,
+    marginBottom: height * 0.05,
   },
   appleButton: {
     flexDirection: 'row',
@@ -266,18 +267,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
   },
-  skipButton: {
-    paddingVertical: 16,
-    marginTop: 8,
-  },
-  skipButtonText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 16,
-    textAlign: 'center',
-  },
   termsContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
   },
   termsText: {
     fontFamily: 'Inter-Regular',

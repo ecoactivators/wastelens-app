@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, MapPin, Shield, Zap } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LocationService } from '@/services/location';
+
+const { width, height } = Dimensions.get('window');
 
 export default function LocationScreen() {
   const { theme } = useTheme();
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: height * 0.04,
     gap: 16,
   },
   backButton: {
@@ -207,22 +209,22 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: 32,
+    fontSize: Math.min(width * 0.08, 32),
     marginBottom: 16,
-    lineHeight: 40,
+    lineHeight: Math.min(width * 0.1, 40),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 40,
+    marginBottom: height * 0.04,
   },
   imageContainer: {
     position: 'relative',
-    height: 200,
+    height: Math.min(height * 0.25, 200),
     borderRadius: 20,
     overflow: 'hidden',
-    marginBottom: 40,
+    marginBottom: height * 0.04,
   },
   locationImage: {
     width: '100%',
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
     gap: 16,
   },
   allowButton: {

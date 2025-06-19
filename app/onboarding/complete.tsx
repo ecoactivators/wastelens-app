@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { CircleCheck as CheckCircle, Sparkles } from 'lucide-react-native';
+import { CheckCircle, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import Animated, { 
   useSharedValue, 
@@ -12,6 +12,8 @@ import Animated, {
   withSequence,
   withDelay
 } from 'react-native-reanimated';
+
+const { width, height } = Dimensions.get('window');
 
 export default function CompleteScreen() {
   const { theme } = useTheme();
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
   },
   progressContainer: {
     height: 4,
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
   animationContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 200,
+    height: Math.min(height * 0.3, 200),
     position: 'relative',
   },
   checkContainer: {
@@ -217,17 +219,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: 36,
+    fontSize: Math.min(width * 0.09, 36),
     textAlign: 'center',
     marginBottom: 16,
-    lineHeight: 44,
+    lineHeight: Math.min(width * 0.11, 44),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 40,
+    marginBottom: height * 0.05,
   },
   featuresContainer: {
     gap: 20,
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
   },
   getStartedButton: {
     borderRadius: 25,

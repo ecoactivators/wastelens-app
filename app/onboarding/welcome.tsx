@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+
+const { width, height } = Dimensions.get('window');
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 80 }, (_, i) => currentYear - i);
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
     gap: 16,
   },
   backButton: {
@@ -186,28 +188,36 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
+    justifyContent: 'center',
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: 32,
+    fontSize: Math.min(width * 0.08, 32),
     marginBottom: 16,
-    lineHeight: 40,
+    lineHeight: Math.min(width * 0.1, 40),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 60,
+    marginBottom: height * 0.08,
   },
   datePickerContainer: {
     flexDirection: 'row',
     gap: 12,
-    height: 300,
+    height: Math.min(height * 0.4, 300),
   },
   picker: {
     flex: 1,
     borderRadius: 16,
-    maxHeight: 300,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   pickerContent: {
     paddingVertical: 20,
@@ -226,7 +236,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: height * 0.05,
   },
   continueButton: {
     borderRadius: 25,
