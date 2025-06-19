@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -8,32 +8,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/lib/supabase';
 
 const { width, height } = Dimensions.get('window');
-
-// Apple Logo SVG Component
-const AppleLogo = ({ size = 20, color = "#ffffff" }) => (
-  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-    <Text style={{ fontSize: size * 0.9, color }}>🍎</Text>
-  </View>
-);
-
-// Google Logo SVG Component
-const GoogleLogo = ({ size = 20 }) => (
-  <View style={{ 
-    width: size, 
-    height: size, 
-    borderRadius: size / 2,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center', 
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  }}>
-    <Text style={{ fontSize: size * 0.6, fontWeight: 'bold' }}>G</Text>
-  </View>
-);
 
 export default function AuthScreen() {
   const { theme } = useTheme();
@@ -135,7 +109,11 @@ export default function AuthScreen() {
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <AppleLogo size={22} color={theme.colors.surface} />
+            <Image 
+              source={require('@/assets/images/apple.png')}
+              style={styles.appleIcon}
+              resizeMode="contain"
+            />
             <Text style={[styles.appleButtonText, { color: theme.colors.surface }]}>
               Sign in with Apple
             </Text>
@@ -147,7 +125,11 @@ export default function AuthScreen() {
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <GoogleLogo size={22} />
+            <Image 
+              source={require('@/assets/images/Google__G__logo.svg.png')}
+              style={styles.googleIcon}
+              resizeMode="contain"
+            />
             <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>
               Sign in with Google
             </Text>
@@ -237,6 +219,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  appleIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#ffffff',
+  },
   appleButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
@@ -257,6 +244,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
   },
   googleButtonText: {
     fontFamily: 'Inter-SemiBold',
