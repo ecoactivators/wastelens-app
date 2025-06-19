@@ -16,6 +16,8 @@ export default function AuthScreen() {
   const handleAppleSignIn = async () => {
     setIsLoading(true);
     try {
+      console.log('🍎 [AuthScreen] Starting Apple sign in...');
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
@@ -24,18 +26,20 @@ export default function AuthScreen() {
       });
 
       if (error) {
-        console.error('Apple sign in error:', error);
-        Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+        console.error('❌ [AuthScreen] Apple sign in error:', error);
+        Alert.alert('Sign In Error', 'Failed to sign in with Apple. Please try again.');
         return;
       }
 
+      console.log('✅ [AuthScreen] Apple sign in initiated successfully');
+      
       // On mobile, we need to handle the redirect differently
       if (Platform.OS !== 'web') {
         router.push('/onboarding/complete');
       }
     } catch (error) {
-      console.error('Apple sign in error:', error);
-      Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+      console.error('❌ [AuthScreen] Apple sign in exception:', error);
+      Alert.alert('Sign In Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -44,6 +48,8 @@ export default function AuthScreen() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      console.log('🔍 [AuthScreen] Starting Google sign in...');
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -52,18 +58,20 @@ export default function AuthScreen() {
       });
 
       if (error) {
-        console.error('Google sign in error:', error);
-        Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
+        console.error('❌ [AuthScreen] Google sign in error:', error);
+        Alert.alert('Sign In Error', 'Failed to sign in with Google. Please try again.');
         return;
       }
 
+      console.log('✅ [AuthScreen] Google sign in initiated successfully');
+      
       // On mobile, we need to handle the redirect differently
       if (Platform.OS !== 'web') {
         router.push('/onboarding/complete');
       }
     } catch (error) {
-      console.error('Google sign in error:', error);
-      Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
+      console.error('❌ [AuthScreen] Google sign in exception:', error);
+      Alert.alert('Sign In Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +95,7 @@ export default function AuthScreen() {
           
           {/* Progress Bar */}
           <View style={[styles.progressContainer, { backgroundColor: theme.colors.border }]}>
-            <View style={[styles.progressBar, { backgroundColor: theme.colors.text, width: '75%' }]} />
+            <View style={[styles.progressBar, { backgroundColor: theme.colors.text, width: '100%' }]} />
           </View>
         </View>
 
@@ -115,7 +123,7 @@ export default function AuthScreen() {
               resizeMode="contain"
             />
             <Text style={[styles.appleButtonText, { color: theme.colors.surface }]}>
-              Sign in with Apple
+              {isLoading ? 'Signing in...' : 'Sign in with Apple'}
             </Text>
           </TouchableOpacity>
 
@@ -131,7 +139,7 @@ export default function AuthScreen() {
               resizeMode="contain"
             />
             <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>
-              Sign in with Google
+              {isLoading ? 'Signing in...' : 'Sign in with Google'}
             </Text>
           </TouchableOpacity>
         </View>

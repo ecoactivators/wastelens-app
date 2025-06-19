@@ -111,7 +111,7 @@ export default function OnboardingIntro() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.getStartedButton, { backgroundColor: theme.colors.text }]}
-            onPress={() => router.push('/onboarding/welcome')}
+            onPress={() => router.push('/onboarding/location')}
             activeOpacity={0.9}
           >
             <Text style={[styles.buttonText, { color: theme.colors.surface }]}>
