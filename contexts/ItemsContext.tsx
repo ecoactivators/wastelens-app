@@ -27,7 +27,7 @@ interface ItemsContextType {
 
 const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
-// Default goals that will be created if none exist - REMOVED COMPOST GOAL
+// Default goals that will be created if none exist - ONLY REDUCE GOAL
 const createDefaultGoals = (): WasteGoal[] => {
   try {
     const now = new Date();
@@ -426,6 +426,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         description: newItem.description,
         weight: newItem.weight,
         type: newItem.type,
+        category: newItem.category,
         recyclable: newItem.recyclable,
         timestamp: newItem.timestamp.toISOString()
       });
@@ -465,7 +466,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       const fallbackItem: WasteEntry = {
         id: `fallback-${Date.now()}`,
         type: WasteType.OTHER,
-        category: WasteCategory.LANDFILL,
+        category: WasteCategory.OTHER,
         weight: 0,
         timestamp: new Date(),
         recyclable: false,

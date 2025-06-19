@@ -80,9 +80,9 @@ export default function AnalysisScreen() {
         compostable: false,
         carbonFootprint: 0.1,
         suggestions: [
-          'Place in your recycling bin if recyclable',
+          'Take to appropriate disposal facility',
           'Consider reusable alternatives',
-          'Dispose of responsibly'
+          'Look for specialized recycling programs'
         ],
         confidence: 0.3
       };
@@ -197,25 +197,61 @@ export default function AnalysisScreen() {
   const handleDone = () => {
     try {
       if (analysis) {
-        // Determine if it's food waste or other waste
+        // Determine category based on analysis
+        let category = WasteCategory.OTHER; // Default to "Other" instead of landfill
+        
+        if (analysis.recyclable) {
+          category = WasteCategory.RECYCLING;
+        } else if (analysis.compostable) {
+          category = WasteCategory.COMPOSTING;
+        } else {
+          // Smart routing: only use landfill if truly no other option
+          // Most items should be routed to "Other" for special handling
+          const lowerSuggestions = analysis.suggestions.join(' ').toLowerCase();
+          
+          if (lowerSuggestions.includes('landfill') && 
+              !lowerSuggestions.includes('best buy') &&
+              !lowerSuggestions.includes('donation') &&
+              !lowerSuggestions.includes('hazardous') &&
+              !lowerSuggestions.includes('grocery store')) {
+            category = WasteCategory.LANDFILL;
+          } else {
+            category = WasteCategory.OTHER; // Route to "Other" for special handling
+          }
+        }
+
+        // Determine waste type based on item name and material
         let wasteType = WasteType.OTHER;
         const material = analysis.material.toLowerCase();
         const itemName = analysis.itemName.toLowerCase();
         
-        // Check if it's food waste
-        if (material.includes('food') || material.includes('organic') || 
-            itemName.includes('food') || itemName.includes('apple') || 
-            itemName.includes('banana') || itemName.includes('bread') ||
-            itemName.includes('pizza') || itemName.includes('sandwich') ||
-            itemName.includes('fruit') || itemName.includes('vegetable') ||
+        // Smart type detection
+        if (material.includes('food') || itemName.includes('food') || 
+            itemName.includes('apple') || itemName.includes('banana') || 
+            itemName.includes('bread') || itemName.includes('pizza') ||
             analysis.compostable) {
           wasteType = WasteType.FOOD;
+        } else if (material.includes('plastic') || itemName.includes('plastic')) {
+          if (itemName.includes('film') || itemName.includes('bag')) {
+            wasteType = WasteType.PLASTIC_FILM;
+          } else {
+            wasteType = WasteType.PLASTIC;
+          }
+        } else if (material.includes('electronic') || itemName.includes('electronic') ||
+                   itemName.includes('phone') || itemName.includes('computer')) {
+          wasteType = WasteType.ELECTRONIC;
+        } else if (material.includes('battery') || itemName.includes('battery')) {
+          wasteType = WasteType.BATTERIES;
+        } else if (material.includes('textile') || itemName.includes('clothing') ||
+                   itemName.includes('fabric')) {
+          wasteType = WasteType.TEXTILE;
+        } else if (material.includes('glass')) {
+          wasteType = WasteType.GLASS;
+        } else if (material.includes('metal') || material.includes('aluminum')) {
+          wasteType = WasteType.METAL;
+        } else if (material.includes('paper') || material.includes('cardboard')) {
+          wasteType = WasteType.PAPER;
         }
-
-        // Determine category
-        let category = WasteCategory.LANDFILL;
-        if (analysis.recyclable) category = WasteCategory.RECYCLABLE;
-        else if (analysis.compostable) category = WasteCategory.COMPOSTABLE;
 
         console.log('💾 [AnalysisScreen] Adding item to ItemsContext:', {
           type: wasteType,
@@ -311,7 +347,7 @@ export default function AnalysisScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>Analyzing waste with AI...</Text>
-          <Text style={[styles.loadingSubtext, { color: theme.colors.textTertiary }]}>This may take a few seconds</Text>
+          <Text style={[styles.loadingSubtext, { color: theme.colors.textTertiary }]}>Finding the best disposal method</Text>
         </View>
       </SafeAreaView>
     );
@@ -339,7 +375,7 @@ export default function AnalysisScreen() {
         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
           <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>AI Analysis</Text>
+        <Text style={styles.headerTitle}>Smart Disposal</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleDelete}>
           <Trash2 size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -419,7 +455,7 @@ export default function AnalysisScreen() {
           <View style={styles.propertiesContainer}>
             {analysis.recyclable && (
               <View style={[styles.propertyBadge, styles.recyclableBadge]}>
-                <Text style={styles.recyclableText}>Recyclable</Text>
+                <Text style={styles.recyclableText}>Recycling Bin</Text>
               </View>
             )}
             {analysis.compostable && (
@@ -428,8 +464,8 @@ export default function AnalysisScreen() {
               </View>
             )}
             {!analysis.recyclable && !analysis.compostable && (
-              <View style={[styles.propertyBadge, styles.landfillBadge]}>
-                <Text style={styles.landfillText}>Landfill</Text>
+              <View style={[styles.propertyBadge, styles.specialBadge]}>
+                <Text style={styles.specialText}>Special Handling</Text>
               </View>
             )}
           </View>
@@ -462,7 +498,7 @@ export default function AnalysisScreen() {
 
           {/* AI Suggestions with Map Buttons */}
           <View style={styles.suggestionsContainer}>
-            <Text style={[styles.suggestionsTitle, { color: theme.colors.text }]}>AI Recommendations</Text>
+            <Text style={[styles.suggestionsTitle, { color: theme.colors.text }]}>Smart Disposal Guide</Text>
             {analysis.suggestions.map((suggestion, index) => 
               renderSuggestionWithMapButton(suggestion, index)
             )}
@@ -508,8 +544,8 @@ export default function AnalysisScreen() {
                 </Text>
               </View>
               <Text style={[styles.scoreInfoDescription, { color: theme.colors.textSecondary }]}>
-                The Environmental Score is a rating from 1-10 that measures the environmental impact of your waste item. 
-                Higher scores indicate better environmental outcomes.
+                The Environmental Score rates how well an item can be diverted from landfills. 
+                Higher scores mean better disposal options and lower environmental impact.
               </Text>
             </View>
 
@@ -521,9 +557,9 @@ export default function AnalysisScreen() {
                 <View style={styles.scoreFactor}>
                   <View style={[styles.scoreFactorDot, { backgroundColor: '#10b981' }]} />
                   <View style={styles.scoreFactorContent}>
-                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Recyclability</Text>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Disposal Options</Text>
                     <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
-                      Items that can be recycled score higher as they reduce landfill waste
+                      Items with multiple disposal routes (recycling, donation, special programs) score higher
                     </Text>
                   </View>
                 </View>
@@ -531,9 +567,9 @@ export default function AnalysisScreen() {
                 <View style={styles.scoreFactor}>
                   <View style={[styles.scoreFactorDot, { backgroundColor: '#f59e0b' }]} />
                   <View style={styles.scoreFactorContent}>
-                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Compostability</Text>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Environmental Impact</Text>
                     <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
-                      Organic materials that can decompose naturally receive bonus points
+                      Items that can be composted or easily recycled have lower environmental impact
                     </Text>
                   </View>
                 </View>
@@ -541,29 +577,9 @@ export default function AnalysisScreen() {
                 <View style={styles.scoreFactor}>
                   <View style={[styles.scoreFactorDot, { backgroundColor: '#3b82f6' }]} />
                   <View style={styles.scoreFactorContent}>
-                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Material Type</Text>
+                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Accessibility</Text>
                     <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
-                      Some materials have lower environmental impact than others
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={styles.scoreFactor}>
-                  <View style={[styles.scoreFactorDot, { backgroundColor: '#8b5cf6' }]} />
-                  <View style={styles.scoreFactorContent}>
-                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Carbon Footprint</Text>
-                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
-                      Items with lower carbon emissions during disposal score better
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={styles.scoreFactor}>
-                  <View style={[styles.scoreFactorDot, { backgroundColor: '#ec4899' }]} />
-                  <View style={styles.scoreFactorContent}>
-                    <Text style={[styles.scoreFactorTitle, { color: theme.colors.text }]}>Disposal Method</Text>
-                    <Text style={[styles.scoreFactorDescription, { color: theme.colors.textSecondary }]}>
-                      Proper disposal methods and local infrastructure availability
+                      How easy it is to find proper disposal locations in your area
                     </Text>
                   </View>
                 </View>
@@ -579,7 +595,7 @@ export default function AnalysisScreen() {
                   <View style={[styles.scoreRangeIndicator, { backgroundColor: '#10b981' }]} />
                   <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>8-10: Excellent</Text>
                   <Text style={[styles.scoreRangeDescription, { color: theme.colors.textSecondary }]}>
-                    Highly recyclable or compostable with minimal environmental impact
+                    Multiple disposal options, easily diverted from landfill
                   </Text>
                 </View>
                 
@@ -587,15 +603,15 @@ export default function AnalysisScreen() {
                   <View style={[styles.scoreRangeIndicator, { backgroundColor: '#f59e0b' }]} />
                   <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>4-7: Good</Text>
                   <Text style={[styles.scoreRangeDescription, { color: theme.colors.textSecondary }]}>
-                    Some recycling options available or moderate environmental impact
+                    Some disposal options available with effort
                   </Text>
                 </View>
                 
                 <View style={styles.scoreRange}>
                   <View style={[styles.scoreRangeIndicator, { backgroundColor: '#ef4444' }]} />
-                  <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>1-3: Poor</Text>
+                  <Text style={[styles.scoreRangeText, { color: theme.colors.text }]}>1-3: Limited</Text>
                   <Text style={[styles.scoreRangeDescription, { color: theme.colors.textSecondary }]}>
-                    Limited disposal options, likely to end up in landfill
+                    Few disposal options, may require landfill
                   </Text>
                 </View>
               </View>
@@ -607,10 +623,10 @@ export default function AnalysisScreen() {
               </Text>
               <Text style={[styles.scoreInfoDescription, { color: theme.colors.textSecondary }]}>
                 {analysis.environmentScore >= 8 
-                  ? "Great choice! This item has excellent environmental properties."
+                  ? "Excellent! This item has great disposal options that keep it out of landfills."
                   : analysis.environmentScore >= 4
-                  ? "This item has moderate environmental impact. Consider the disposal recommendations below."
-                  : "This item has higher environmental impact. Look for reusable alternatives in the future."
+                  ? "Good options available. Follow the disposal recommendations to minimize environmental impact."
+                  : "Limited options, but we've found the best available disposal method for this item."
                 }
               </Text>
             </View>
@@ -890,13 +906,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#f59e0b',
   },
-  landfillBadge: {
-    backgroundColor: '#fee2e2',
+  specialBadge: {
+    backgroundColor: '#e0e7ff',
   },
-  landfillText: {
+  specialText: {
     fontFamily: 'Inter-Medium',
     fontSize: 12,
-    color: '#dc2626',
+    color: '#3b82f6',
   },
   scoreContainer: {
     marginBottom: 32,

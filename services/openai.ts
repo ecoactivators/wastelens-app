@@ -68,47 +68,53 @@ export class OpenAIService {
           
           const lowerSuggestion = suggestion.toLowerCase();
           
-          // Look for recycling centers (only for special items that can't go in regular bins)
-          if (lowerSuggestion.includes('recycling center') || lowerSuggestion.includes('recycling facility')) {
-            const match = suggestion.match(/take.*?to.*?([\w\s]+recycling\s+(?:center|facility))/i);
-            if (match) {
-              const facilityName = match[1].trim();
-              mapSuggestions.push({
-                text: suggestion,
-                searchQuery: `${facilityName} ${userLocation}`,
-                type: 'recycling_center'
-              });
-            } else {
-              // Generic recycling center search
-              mapSuggestions.push({
-                text: suggestion,
-                searchQuery: `recycling center ${userLocation}`,
-                type: 'recycling_center'
-              });
-            }
-          }
-          
-          // Look for specific stores
-          else if (lowerSuggestion.includes('target') || lowerSuggestion.includes('walmart') || 
-                   lowerSuggestion.includes('home depot') || lowerSuggestion.includes('best buy')) {
-            const storeMatch = suggestion.match(/(target|walmart|home depot|best buy)/i);
+          // Look for electronics stores
+          if (lowerSuggestion.includes('best buy') || lowerSuggestion.includes('staples')) {
+            const storeMatch = suggestion.match(/(best buy|staples)/i);
             if (storeMatch) {
               const storeName = storeMatch[1];
               mapSuggestions.push({
                 text: suggestion,
-                searchQuery: `${storeName} ${userLocation}`,
+                searchQuery: `${storeName} electronics recycling ${userLocation}`,
                 type: 'store'
               });
             }
           }
           
-          // Look for waste management facilities
-          else if (lowerSuggestion.includes('waste management') || lowerSuggestion.includes('transfer station') ||
-                   lowerSuggestion.includes('disposal facility')) {
+          // Look for grocery stores for plastic film
+          else if (lowerSuggestion.includes('grocery store') || lowerSuggestion.includes('plastic film')) {
             mapSuggestions.push({
               text: suggestion,
-              searchQuery: `waste management facility ${userLocation}`,
+              searchQuery: `grocery store plastic bag recycling ${userLocation}`,
+              type: 'store'
+            });
+          }
+          
+          // Look for hazardous waste facilities
+          else if (lowerSuggestion.includes('hazardous waste') || lowerSuggestion.includes('household hazardous')) {
+            mapSuggestions.push({
+              text: suggestion,
+              searchQuery: `household hazardous waste facility ${userLocation}`,
               type: 'facility'
+            });
+          }
+          
+          // Look for donation centers
+          else if (lowerSuggestion.includes('donation') || lowerSuggestion.includes('goodwill') || 
+                   lowerSuggestion.includes('salvation army')) {
+            mapSuggestions.push({
+              text: suggestion,
+              searchQuery: `clothing donation center ${userLocation}`,
+              type: 'facility'
+            });
+          }
+          
+          // Look for recycling centers (only for special items)
+          else if (lowerSuggestion.includes('recycling center') || lowerSuggestion.includes('recycling facility')) {
+            mapSuggestions.push({
+              text: suggestion,
+              searchQuery: `recycling center ${userLocation}`,
+              type: 'recycling_center'
             });
           }
         } catch (error) {
@@ -165,71 +171,87 @@ export class OpenAIService {
         messages: [
           {
             role: 'system',
-            content: `You are an expert waste analysis AI. Analyze the image and provide detailed information about the waste item(s) shown. 
+            content: `You are an expert waste analysis AI for Waste Lens™. Your mission is to route items AWAY from landfills whenever possible. Analyze the image and provide smart disposal guidance.
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
 The user is located in: ${userLocation}
 
-IMPORTANT DISPOSAL GUIDANCE:
-- For common recyclable items (plastic bottles, cans, paper, cardboard, glass bottles), tell users to put them in their regular recycling bin
-- Only suggest special drop-off locations for items that CANNOT go in regular recycling bins (electronics, batteries, hazardous materials, etc.)
-- Be practical - if it can go in the recycling bin, that's the easiest option for the user
-- Give direct, actionable instructions with specific steps
-- NEVER use words like "check", "verify", "confirm", "ensure", "make sure", or "guidelines"
-- NEVER suggest educational activities like "learn about recycling" or "research local programs"
-- NEVER say "contact your local" anything
+SMART DISPOSAL PHILOSOPHY:
+Landfill should be the LAST resort, not the default. Route items to their best disposal method:
+
+ELECTRONICS → "Other" category
+- Phones, computers, TVs, small appliances → "Take to Best Buy or Staples for electronics recycling"
+- Never suggest landfill for electronics
+
+PLASTIC FILM → "Other" category  
+- Plastic bags, bubble wrap, food packaging film → "Drop off at grocery store plastic film recycling bins"
+- Never suggest regular recycling bin for plastic film
+
+HAZARDOUS ITEMS → "Other" category
+- Batteries → "Drop off at Best Buy, Home Depot, or household hazardous waste facility"
+- Light bulbs (CFL, LED) → "Take to Home Depot or household hazardous waste facility"
+- Paint, chemicals → "Take to household hazardous waste facility"
+
+TEXTILES → "Other" category
+- Clothes, shoes, fabric → "Donate to Goodwill, Salvation Army, or textile recycling"
+- Even damaged textiles can often be recycled
+
+ORGANIC WASTE → "Composting" category
+- Food scraps, yard waste → "Add to compost bin" or "Freeze and drop at community compost site"
+
+STANDARD RECYCLABLES → "Recycling" category
+- Clean plastic bottles, aluminum cans, glass bottles, paper, cardboard → "Rinse and place in recycling bin"
+
+LANDFILL → Only for items that truly have no other option
+- Heavily contaminated items that can't be cleaned
+- Mixed materials that can't be separated
+- Items specifically excluded from all other programs
 
 FORBIDDEN PHRASES - NEVER use these:
 - "Check with local guidelines"
-- "Check local recycling guidelines" 
 - "Verify with your local"
-- "Confirm with local authorities"
-- "Make sure to check"
-- "Ensure proper disposal"
 - "Contact your local waste management"
-- "Learn about recycling"
-- "Research local programs"
 - "Follow local guidelines"
+- "Make sure to check"
 
-APPROVED LANGUAGE - Use direct commands like:
+APPROVED LANGUAGE - Use direct commands:
 - "Rinse and place in your recycling bin"
-- "Put in your recycling bin"
-- "Take this to Best Buy for electronics recycling"
-- "Drop off at Home Depot battery recycling station"
-- "Place in your compost bin"
-- "Put in your general waste bin"
-
-When providing suggestions, be specific and practical. Examples:
-- For plastic bottles: "Rinse and place in your recycling bin"
-- For aluminum cans: "Place in your recycling bin"
-- For electronics: "Take this to Best Buy for electronics recycling"
-- For batteries: "Drop off at Home Depot battery recycling station"
+- "Take to Best Buy for electronics recycling"
+- "Drop off at grocery store plastic film bins"
+- "Donate to Goodwill or Salvation Army"
+- "Add to your compost bin"
+- "Take to household hazardous waste facility"
 
 Return your response as a JSON object with this exact structure:
 {
-  "itemName": "string - name of the primary waste item (use proper capitalization like 'Plastic Water Bottle' not 'plastic water bottle')",
+  "itemName": "string - name of the primary waste item (proper capitalization)",
   "quantity": "number - estimated number of items",
   "weight": "number - estimated weight in grams",
   "material": "string - primary material type",
-  "environmentScore": "number - environmental impact score from 1-10 (10 being best)",
-  "recyclable": "boolean - whether the item is recyclable",
-  "compostable": "boolean - whether the item is compostable",
+  "environmentScore": "number - environmental impact score from 1-10 (10 being best for environment)",
+  "recyclable": "boolean - whether item goes in regular recycling bin",
+  "compostable": "boolean - whether item can be composted",
   "carbonFootprint": "number - estimated carbon footprint in kg CO2",
-  "suggestions": "array of strings - 3-4 actionable suggestions for disposal specific to ${userLocation}",
+  "suggestions": "array of strings - 3-4 actionable disposal suggestions that route away from landfill",
   "confidence": "number - confidence level from 0-1"
 }
 
-IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
+SCORING GUIDE:
+- 9-10: Compostable organic matter, easily recyclable items
+- 7-8: Items with good disposal options (electronics to Best Buy, textiles to donation)
+- 5-6: Items requiring special handling but with available options
+- 3-4: Items with limited disposal options
+- 1-2: Items that truly must go to landfill
 
-Make your suggestions practical and direct. Prioritize regular recycling bins for standard recyclables, and only mention special facilities for items that truly need them. Give specific disposal instructions without using any forbidden phrases.`
+Make your suggestions specific and actionable. Always try to route items to their best disposal method rather than defaulting to landfill. This makes Waste Lens™ feel smarter and more helpful than just telling people to throw things away.`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Please analyze this waste item and provide detailed environmental information with practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities. Give me direct instructions without using words like "check", "verify", or "guidelines".`
+                text: `Please analyze this waste item and provide smart disposal recommendations for ${userLocation}. Route this item AWAY from landfill if possible. Return only valid JSON with no formatting. Give me direct, actionable instructions that help me dispose of this responsibly.`
               },
               {
                 type: 'image_url',
@@ -401,44 +423,37 @@ Make your suggestions practical and direct. Prioritize regular recycling bins fo
             messages: [
               {
                 role: 'system',
-                content: `You are an expert waste analysis AI. The user has provided feedback about a previous analysis. Use their feedback to provide a corrected analysis. 
+                content: `You are an expert waste analysis AI for Waste Lens™. The user has provided feedback about a previous analysis. Use their feedback to provide a corrected analysis that routes items AWAY from landfills whenever possible.
 
 CRITICAL: Return ONLY a valid JSON object with no markdown formatting, code blocks, or additional text. Do not wrap your response in \`\`\`json or any other formatting.
 
 The user is located in: ${userLocation}
 
-IMPORTANT DISPOSAL GUIDANCE:
-- For common recyclable items (plastic bottles, cans, paper, cardboard, glass bottles), tell users to put them in their regular recycling bin
-- Only suggest special drop-off locations for items that CANNOT go in regular recycling bins (electronics, batteries, hazardous materials, etc.)
-- Be practical - if it can go in the recycling bin, that's the easiest option for the user
-- Give direct, actionable instructions with specific steps
-- NEVER use words like "check", "verify", "confirm", "ensure", "make sure", or "guidelines"
-- NEVER suggest educational activities like "learn about recycling" or "research local programs"
-- NEVER say "contact your local" anything
+SMART DISPOSAL PHILOSOPHY:
+Landfill should be the LAST resort, not the default. Route items to their best disposal method:
+
+ELECTRONICS → "Other" category → Best Buy, Staples electronics recycling
+PLASTIC FILM → "Other" category → Grocery store plastic film bins  
+HAZARDOUS ITEMS → "Other" category → Household hazardous waste facilities
+TEXTILES → "Other" category → Donation centers, textile recycling
+ORGANIC WASTE → "Composting" category → Compost bins or community sites
+STANDARD RECYCLABLES → "Recycling" category → Regular recycling bin
+LANDFILL → Only for items with truly no other option
 
 FORBIDDEN PHRASES - NEVER use these:
 - "Check with local guidelines"
-- "Check local recycling guidelines" 
 - "Verify with your local"
-- "Confirm with local authorities"
-- "Make sure to check"
-- "Ensure proper disposal"
 - "Contact your local waste management"
-- "Learn about recycling"
-- "Research local programs"
 - "Follow local guidelines"
 
-APPROVED LANGUAGE - Use direct commands like:
+APPROVED LANGUAGE - Use direct commands:
+- "Take to Best Buy for electronics recycling"
+- "Drop off at grocery store plastic film bins"
+- "Donate to Goodwill or Salvation Army"
+- "Add to your compost bin"
 - "Rinse and place in your recycling bin"
-- "Put in your recycling bin"
-- "Take this to Best Buy for electronics recycling"
-- "Drop off at Home Depot battery recycling station"
-- "Place in your compost bin"
-- "Put in your general waste bin"
 
-IMPORTANT: For the itemName field, use proper noun capitalization (e.g., "Plastic Water Bottle", "Apple Core", "Coffee Cup", "Pizza Box") to make it look professional and readable.
-
-Return your response as a JSON object with the same structure as before.`
+Return your response as a JSON object with the same structure as before. Focus on routing the item to its best disposal method based on the user's feedback.`
               },
               {
                 role: 'user',
@@ -449,7 +464,7 @@ Return your response as a JSON object with the same structure as before.`
                     
                     The user provided this feedback: "${userFeedback}"
                     
-                    Please provide a corrected analysis based on this feedback and re-examine the image. Make sure to provide practical disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Make sure to capitalize the item name properly like a proper noun. If this item can go in a regular recycling bin, tell me to put it there instead of suggesting special facilities. Give me direct instructions without using words like "check", "verify", or "guidelines".`
+                    Please provide a corrected analysis based on this feedback and re-examine the image. Route this item AWAY from landfill if possible. Make sure to provide smart disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Give direct, actionable instructions that help dispose of this responsibly.`
                   },
                   {
                     type: 'image_url',
@@ -660,7 +675,7 @@ Return your response as a JSON object with the same structure as before.`
       }
 
       if (!Array.isArray(result.suggestions)) {
-        result.suggestions = ['Place in your recycling bin if recyclable', 'Consider reusable alternatives'];
+        result.suggestions = ['Take to appropriate disposal facility', 'Consider reusable alternatives'];
       }
 
       // Ensure numeric fields are valid numbers with fallbacks

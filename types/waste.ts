@@ -21,14 +21,18 @@ export enum WasteType {
   TEXTILE = 'textile',
   ORGANIC = 'organic',
   HAZARDOUS = 'hazardous',
+  PLASTIC_FILM = 'plastic_film',
+  BATTERIES = 'batteries',
+  LIGHT_BULBS = 'light_bulbs',
+  PAINT = 'paint',
   OTHER = 'other'
 }
 
 export enum WasteCategory {
-  RECYCLABLE = 'recyclable',
-  COMPOSTABLE = 'compostable',
+  RECYCLING = 'recycling',
+  COMPOSTING = 'composting',
   LANDFILL = 'landfill',
-  HAZARDOUS = 'hazardous'
+  OTHER = 'other'
 }
 
 export interface WasteStats {
@@ -46,7 +50,7 @@ export interface WasteStats {
 
 export interface WasteGoal {
   id: string;
-  type: 'reduce' | 'compost';
+  type: 'reduce';
   target: number;
   current: number;
   period: 'daily' | 'weekly' | 'monthly';
