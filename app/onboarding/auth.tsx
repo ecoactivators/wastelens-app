@@ -9,6 +9,32 @@ import { supabase } from '@/lib/supabase';
 
 const { width, height } = Dimensions.get('window');
 
+// Apple Logo SVG Component
+const AppleLogo = ({ size = 20, color = "#ffffff" }) => (
+  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+    <Text style={{ fontSize: size * 0.9, color }}>🍎</Text>
+  </View>
+);
+
+// Google Logo SVG Component
+const GoogleLogo = ({ size = 20 }) => (
+  <View style={{ 
+    width: size, 
+    height: size, 
+    borderRadius: size / 2,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center', 
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  }}>
+    <Text style={{ fontSize: size * 0.6, fontWeight: 'bold' }}>G</Text>
+  </View>
+);
+
 export default function AuthScreen() {
   const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
@@ -109,9 +135,7 @@ export default function AuthScreen() {
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <View style={styles.appleIcon}>
-              <Text style={[styles.appleIconText, { color: theme.colors.surface }]}>🍎</Text>
-            </View>
+            <AppleLogo size={22} color={theme.colors.surface} />
             <Text style={[styles.appleButtonText, { color: theme.colors.surface }]}>
               Sign in with Apple
             </Text>
@@ -123,9 +147,7 @@ export default function AuthScreen() {
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <View style={styles.googleIcon}>
-              <Text style={styles.googleIconText}>G</Text>
-            </View>
+            <GoogleLogo size={22} />
             <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>
               Sign in with Google
             </Text>
@@ -186,17 +208,17 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Inter-Bold',
     fontSize: Math.min(width * 0.075, 30),
-    marginBottom: 12,
+    marginBottom: 16,
     lineHeight: Math.min(width * 0.09, 36),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
   },
   authContainer: {
     paddingHorizontal: 20,
-    gap: 14,
+    gap: 16,
     marginBottom: height * 0.04,
   },
   appleButton: {
@@ -205,7 +227,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 24,
     paddingVertical: 16,
-    gap: 10,
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -214,15 +236,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-  },
-  appleIcon: {
-    width: 22,
-    height: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  appleIconText: {
-    fontSize: 16,
   },
   appleButtonText: {
     fontFamily: 'Inter-SemiBold',
@@ -234,7 +247,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 24,
     paddingVertical: 16,
-    gap: 10,
+    gap: 12,
     borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: {
@@ -244,19 +257,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-  },
-  googleIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#4285f4',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  googleIconText: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 13,
-    color: '#ffffff',
   },
   googleButtonText: {
     fontFamily: 'Inter-SemiBold',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -26,9 +26,8 @@ export default function LocationScreen() {
       } else {
         Alert.alert(
           'Location Permission Required',
-          'Location access helps us provide personalized waste disposal recommendations for your area. You can enable this later in Settings.',
+          'Location access helps us provide personalized waste disposal recommendations for your area. Please try again.',
           [
-            { text: 'Skip for now', onPress: () => router.push('/onboarding/auth') },
             { text: 'Try again', onPress: handleAllowLocation }
           ]
         );
@@ -37,18 +36,14 @@ export default function LocationScreen() {
       console.error('Location permission error:', error);
       Alert.alert(
         'Error',
-        'There was an issue requesting location permission. You can enable this later in Settings.',
+        'There was an issue requesting location permission. Please try again.',
         [
-          { text: 'Continue', onPress: () => router.push('/onboarding/auth') }
+          { text: 'Try again', onPress: handleAllowLocation }
         ]
       );
     } finally {
       setIsRequesting(false);
     }
-  };
-
-  const handleSkip = () => {
-    router.push('/onboarding/auth');
   };
 
   return (
@@ -82,26 +77,11 @@ export default function LocationScreen() {
             We use your location to provide personalized waste disposal recommendations and find nearby recycling centers.
           </Text>
 
-          {/* Location Image */}
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: 'https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg' }}
-              style={styles.locationImage}
-            />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.3)']}
-              style={styles.imageOverlay}
-            />
-            <View style={styles.mapIconContainer}>
-              <MapPin size={28} color="#ffffff" strokeWidth={2} />
-            </View>
-          </View>
-
           {/* Benefits */}
           <View style={styles.benefitsContainer}>
             <View style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: theme.colors.primaryLight }]}>
-                <MapPin size={18} color={theme.colors.primary} strokeWidth={2} />
+                <MapPin size={20} color={theme.colors.primary} strokeWidth={2} />
               </View>
               <View style={styles.benefitText}>
                 <Text style={[styles.benefitTitle, { color: theme.colors.text }]}>
@@ -115,7 +95,7 @@ export default function LocationScreen() {
 
             <View style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: '#dcfce7' }]}>
-                <Zap size={18} color="#16a34a" strokeWidth={2} />
+                <Zap size={20} color="#16a34a" strokeWidth={2} />
               </View>
               <View style={styles.benefitText}>
                 <Text style={[styles.benefitTitle, { color: theme.colors.text }]}>
@@ -129,7 +109,7 @@ export default function LocationScreen() {
 
             <View style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: '#fef3c7' }]}>
-                <Shield size={18} color="#f59e0b" strokeWidth={2} />
+                <Shield size={20} color="#f59e0b" strokeWidth={2} />
               </View>
               <View style={styles.benefitText}>
                 <Text style={[styles.benefitTitle, { color: theme.colors.text }]}>
@@ -143,7 +123,7 @@ export default function LocationScreen() {
           </View>
         </View>
 
-        {/* Buttons */}
+        {/* Allow Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.allowButton, { backgroundColor: theme.colors.text }]}
@@ -153,16 +133,6 @@ export default function LocationScreen() {
           >
             <Text style={[styles.allowButtonText, { color: theme.colors.surface }]}>
               {isRequesting ? 'Requesting...' : 'Allow Location Access'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={handleSkip}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.skipButtonText, { color: theme.colors.textSecondary }]}>
-              Skip for now
             </Text>
           </TouchableOpacity>
         </View>
@@ -206,61 +176,33 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: height * 0.01,
+    paddingTop: height * 0.04,
+    justifyContent: 'center',
   },
   title: {
     fontFamily: 'Inter-Bold',
     fontSize: Math.min(width * 0.075, 30),
-    marginBottom: 12,
+    marginBottom: 16,
     lineHeight: Math.min(width * 0.09, 36),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: height * 0.03,
-  },
-  imageContainer: {
-    position: 'relative',
-    height: Math.min(height * 0.22, 180),
-    borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: height * 0.03,
-  },
-  locationImage: {
-    width: '100%',
-    height: '100%',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-  },
-  mapIconContainer: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: height * 0.06,
   },
   benefitsContainer: {
-    gap: 16,
+    gap: 24,
   },
   benefitItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
   },
   benefitIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -269,19 +211,18 @@ const styles = StyleSheet.create({
   },
   benefitTitle: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 15,
-    marginBottom: 3,
+    fontSize: 16,
+    marginBottom: 4,
   },
   benefitDescription: {
     fontFamily: 'Inter-Regular',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
   },
   buttonContainer: {
     paddingHorizontal: 20,
     paddingBottom: height * 0.04,
     paddingTop: height * 0.02,
-    gap: 12,
   },
   allowButton: {
     borderRadius: 24,
@@ -298,14 +239,6 @@ const styles = StyleSheet.create({
   allowButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    textAlign: 'center',
-  },
-  skipButton: {
-    paddingVertical: 12,
-  },
-  skipButtonText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 15,
     textAlign: 'center',
   },
 });
