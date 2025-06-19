@@ -93,7 +93,7 @@ export default function LocationScreen() {
               style={styles.imageOverlay}
             />
             <View style={styles.mapIconContainer}>
-              <MapPin size={32} color="#ffffff" strokeWidth={2} />
+              <MapPin size={28} color="#ffffff" strokeWidth={2} />
             </View>
           </View>
 
@@ -101,7 +101,7 @@ export default function LocationScreen() {
           <View style={styles.benefitsContainer}>
             <View style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: theme.colors.primaryLight }]}>
-                <MapPin size={20} color={theme.colors.primary} strokeWidth={2} />
+                <MapPin size={18} color={theme.colors.primary} strokeWidth={2} />
               </View>
               <View style={styles.benefitText}>
                 <Text style={[styles.benefitTitle, { color: theme.colors.text }]}>
@@ -115,7 +115,7 @@ export default function LocationScreen() {
 
             <View style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: '#dcfce7' }]}>
-                <Zap size={20} color="#16a34a" strokeWidth={2} />
+                <Zap size={18} color="#16a34a" strokeWidth={2} />
               </View>
               <View style={styles.benefitText}>
                 <Text style={[styles.benefitTitle, { color: theme.colors.text }]}>
@@ -129,7 +129,7 @@ export default function LocationScreen() {
 
             <View style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: '#fef3c7' }]}>
-                <Shield size={20} color="#f59e0b" strokeWidth={2} />
+                <Shield size={18} color="#f59e0b" strokeWidth={2} />
               </View>
               <View style={styles.benefitText}>
                 <Text style={[styles.benefitTitle, { color: theme.colors.text }]}>
@@ -181,9 +181,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: height * 0.04,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: height * 0.02,
     gap: 16,
   },
   backButton: {
@@ -205,26 +205,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingTop: height * 0.01,
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: Math.min(width * 0.08, 32),
-    marginBottom: 16,
-    lineHeight: Math.min(width * 0.1, 40),
+    fontSize: Math.min(width * 0.075, 30),
+    marginBottom: 12,
+    lineHeight: Math.min(width * 0.09, 36),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: height * 0.04,
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: height * 0.03,
   },
   imageContainer: {
     position: 'relative',
-    height: Math.min(height * 0.25, 200),
-    borderRadius: 20,
+    height: Math.min(height * 0.22, 180),
+    borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: height * 0.04,
+    marginBottom: height * 0.03,
   },
   locationImage: {
     width: '100%',
@@ -239,27 +240,27 @@ const styles = StyleSheet.create({
   },
   mapIconContainer: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: 16,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   benefitsContainer: {
-    gap: 20,
+    gap: 16,
   },
   benefitItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 14,
   },
   benefitIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -268,30 +269,31 @@ const styles = StyleSheet.create({
   },
   benefitTitle: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 15,
+    marginBottom: 3,
   },
   benefitDescription: {
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
   buttonContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: height * 0.05,
-    gap: 16,
+    paddingHorizontal: 20,
+    paddingBottom: height * 0.04,
+    paddingTop: height * 0.02,
+    gap: 12,
   },
   allowButton: {
-    borderRadius: 25,
-    paddingVertical: 18,
+    borderRadius: 24,
+    paddingVertical: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 6,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   allowButtonText: {
     fontFamily: 'Inter-SemiBold',
@@ -299,11 +301,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   skipButton: {
-    paddingVertical: 16,
+    paddingVertical: 12,
   },
   skipButtonText: {
     fontFamily: 'Inter-Medium',
-    fontSize: 16,
+    fontSize: 15,
     textAlign: 'center',
   },
 });

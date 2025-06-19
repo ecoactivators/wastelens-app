@@ -14,11 +14,6 @@ export default function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAppleSignIn = async () => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Not Available', 'Apple Sign In is not available on web. Please use Google Sign In instead.');
-      return;
-    }
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -161,9 +156,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: height * 0.05,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: height * 0.02,
     gap: 16,
   },
   backButton: {
@@ -185,32 +180,32 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     justifyContent: 'center',
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: Math.min(width * 0.08, 32),
-    marginBottom: 16,
-    lineHeight: Math.min(width * 0.1, 40),
+    fontSize: Math.min(width * 0.075, 30),
+    marginBottom: 12,
+    lineHeight: Math.min(width * 0.09, 36),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
   },
   authContainer: {
-    paddingHorizontal: 24,
-    gap: 16,
-    marginBottom: height * 0.05,
+    paddingHorizontal: 20,
+    gap: 14,
+    marginBottom: height * 0.04,
   },
   appleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 25,
-    paddingVertical: 18,
-    gap: 12,
+    borderRadius: 24,
+    paddingVertical: 16,
+    gap: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -221,13 +216,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   appleIcon: {
-    width: 24,
-    height: 24,
+    width: 22,
+    height: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
   appleIconText: {
-    fontSize: 18,
+    fontSize: 16,
   },
   appleButtonText: {
     fontFamily: 'Inter-SemiBold',
@@ -237,10 +232,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 25,
-    paddingVertical: 18,
-    gap: 12,
-    borderWidth: 2,
+    borderRadius: 24,
+    paddingVertical: 16,
+    gap: 10,
+    borderWidth: 1.5,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -251,16 +246,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   googleIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#4285f4',
     justifyContent: 'center',
     alignItems: 'center',
   },
   googleIconText: {
     fontFamily: 'Inter-Bold',
-    fontSize: 14,
+    fontSize: 13,
     color: '#ffffff',
   },
   googleButtonText: {
@@ -268,14 +263,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   termsContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: height * 0.05,
+    paddingHorizontal: 20,
+    paddingBottom: height * 0.04,
   },
   termsText: {
     fontFamily: 'Inter-Regular',
     fontSize: 12,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
   },
   termsLink: {
     fontFamily: 'Inter-Medium',

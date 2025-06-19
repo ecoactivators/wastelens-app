@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { CircleCheck as CheckCircle, Sparkles } from 'lucide-react-native';
+import { CheckCircle, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import Animated, { 
   useSharedValue, 
@@ -73,19 +73,19 @@ export default function CompleteScreen() {
               colors={['#10b981', '#059669']}
               style={styles.checkGradient}
             >
-              <CheckCircle size={64} color="#ffffff" strokeWidth={2} />
+              <CheckCircle size={56} color="#ffffff" strokeWidth={2} />
             </LinearGradient>
           </Animated.View>
 
           {/* Sparkles */}
           <Animated.View style={[styles.sparkle, styles.sparkle1, sparkleAnimatedStyle]}>
-            <Sparkles size={20} color={theme.colors.warning} />
+            <Sparkles size={18} color={theme.colors.warning} />
           </Animated.View>
           <Animated.View style={[styles.sparkle, styles.sparkle2, sparkleAnimatedStyle]}>
-            <Sparkles size={16} color={theme.colors.primary} />
+            <Sparkles size={14} color={theme.colors.primary} />
           </Animated.View>
           <Animated.View style={[styles.sparkle, styles.sparkle3, sparkleAnimatedStyle]}>
-            <Sparkles size={18} color={theme.colors.accent} />
+            <Sparkles size={16} color={theme.colors.accent} />
           </Animated.View>
         </View>
 
@@ -159,9 +159,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: height * 0.05,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: height * 0.03,
   },
   progressContainer: {
     height: 4,
@@ -175,22 +175,22 @@ const styles = StyleSheet.create({
   animationContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: Math.min(height * 0.3, 200),
+    height: Math.min(height * 0.25, 180),
     position: 'relative',
   },
   checkContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     overflow: 'hidden',
     shadowColor: '#10b981',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 6,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
   },
   checkGradient: {
     flex: 1,
@@ -201,77 +201,77 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   sparkle1: {
-    top: 20,
-    right: 40,
+    top: 16,
+    right: 32,
   },
   sparkle2: {
-    bottom: 30,
-    left: 30,
+    bottom: 24,
+    left: 24,
   },
   sparkle3: {
-    top: 60,
-    left: 20,
+    top: 48,
+    left: 16,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     justifyContent: 'center',
   },
   title: {
     fontFamily: 'Inter-Bold',
-    fontSize: Math.min(width * 0.09, 36),
+    fontSize: Math.min(width * 0.08, 32),
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: Math.min(width * 0.11, 44),
+    marginBottom: 12,
+    lineHeight: Math.min(width * 0.1, 38),
   },
   subtitle: {
     fontFamily: 'Inter-Regular',
-    fontSize: 16,
+    fontSize: 15,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: height * 0.05,
+    lineHeight: 22,
+    marginBottom: height * 0.04,
   },
   featuresContainer: {
-    gap: 20,
+    gap: 16,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 14,
   },
   featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center',
   },
   featureEmoji: {
-    fontSize: 20,
+    fontSize: 18,
   },
   featureText: {
     fontFamily: 'Inter-Medium',
-    fontSize: 16,
+    fontSize: 15,
     flex: 1,
   },
   buttonContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: height * 0.05,
+    paddingHorizontal: 20,
+    paddingBottom: height * 0.04,
   },
   getStartedButton: {
-    borderRadius: 25,
+    borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 6,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   buttonGradient: {
-    paddingVertical: 18,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   buttonText: {
