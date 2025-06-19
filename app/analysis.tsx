@@ -213,7 +213,10 @@ export default function AnalysisScreen() {
               !lowerSuggestions.includes('best buy') &&
               !lowerSuggestions.includes('donation') &&
               !lowerSuggestions.includes('hazardous') &&
-              !lowerSuggestions.includes('grocery store')) {
+              !lowerSuggestions.includes('grocery store') &&
+              !lowerSuggestions.includes('habitat') &&
+              !lowerSuggestions.includes('school') &&
+              !lowerSuggestions.includes('construction')) {
             category = WasteCategory.LANDFILL;
           } else {
             category = WasteCategory.OTHER; // Route to "Other" for special handling
@@ -225,12 +228,18 @@ export default function AnalysisScreen() {
         const material = analysis.material.toLowerCase();
         const itemName = analysis.itemName.toLowerCase();
         
-        // Smart type detection
+        // Smart type detection including ceramics
         if (material.includes('food') || itemName.includes('food') || 
             itemName.includes('apple') || itemName.includes('banana') || 
             itemName.includes('bread') || itemName.includes('pizza') ||
             analysis.compostable) {
           wasteType = WasteType.FOOD;
+        } else if (material.includes('ceramic') || itemName.includes('ceramic') ||
+                   itemName.includes('pottery') || itemName.includes('dish') ||
+                   itemName.includes('plate') || itemName.includes('bowl') ||
+                   itemName.includes('tile') || itemName.includes('sink') ||
+                   itemName.includes('toilet')) {
+          wasteType = WasteType.CERAMICS;
         } else if (material.includes('plastic') || itemName.includes('plastic')) {
           if (itemName.includes('film') || itemName.includes('bag')) {
             wasteType = WasteType.PLASTIC_FILM;

@@ -25,6 +25,7 @@ export enum WasteType {
   BATTERIES = 'batteries',
   LIGHT_BULBS = 'light_bulbs',
   PAINT = 'paint',
+  CERAMICS = 'ceramics',
   OTHER = 'other'
 }
 

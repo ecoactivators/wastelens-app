@@ -99,12 +99,39 @@ export class OpenAIService {
             });
           }
           
-          // Look for donation centers
+          // Look for donation centers (including ceramics)
           else if (lowerSuggestion.includes('donation') || lowerSuggestion.includes('goodwill') || 
-                   lowerSuggestion.includes('salvation army')) {
+                   lowerSuggestion.includes('salvation army') || lowerSuggestion.includes('habitat for humanity')) {
+            let searchQuery = `donation center ${userLocation}`;
+            
+            if (lowerSuggestion.includes('habitat for humanity') || lowerSuggestion.includes('restore')) {
+              searchQuery = `habitat for humanity restore ${userLocation}`;
+            } else if (lowerSuggestion.includes('goodwill')) {
+              searchQuery = `goodwill donation center ${userLocation}`;
+            }
+            
             mapSuggestions.push({
               text: suggestion,
-              searchQuery: `clothing donation center ${userLocation}`,
+              searchQuery: searchQuery,
+              type: 'facility'
+            });
+          }
+          
+          // Look for construction and demolition facilities
+          else if (lowerSuggestion.includes('construction') || lowerSuggestion.includes('demolition') || 
+                   lowerSuggestion.includes('c&d recovery')) {
+            mapSuggestions.push({
+              text: suggestion,
+              searchQuery: `construction demolition recycling ${userLocation}`,
+              type: 'facility'
+            });
+          }
+          
+          // Look for school art programs
+          else if (lowerSuggestion.includes('school') || lowerSuggestion.includes('art class')) {
+            mapSuggestions.push({
+              text: suggestion,
+              searchQuery: `local schools art programs ${userLocation}`,
               type: 'facility'
             });
           }
@@ -197,6 +224,13 @@ TEXTILES → "Other" category
 - Clothes, shoes, fabric → "Donate to Goodwill, Salvation Army, or textile recycling"
 - Even damaged textiles can often be recycled
 
+CERAMICS → "Other" category
+- Dishes, pottery, tiles, sinks, toilets → Multiple options:
+  * Good condition: "Donate to Goodwill or school art classes"
+  * Building materials: "Take to Habitat for Humanity ReStore"
+  * Broken ceramics: "Take to Construction & Demolition (C&D) Recovery facility for aggregate use"
+- Never suggest regular recycling bin for ceramics
+
 ORGANIC WASTE → "Composting" category
 - Food scraps, yard waste → "Add to compost bin" or "Freeze and drop at community compost site"
 
@@ -220,6 +254,9 @@ APPROVED LANGUAGE - Use direct commands:
 - "Take to Best Buy for electronics recycling"
 - "Drop off at grocery store plastic film bins"
 - "Donate to Goodwill or Salvation Army"
+- "Take to Habitat for Humanity ReStore"
+- "Donate to school art classes"
+- "Take to Construction & Demolition Recovery facility"
 - "Add to your compost bin"
 - "Take to household hazardous waste facility"
 
@@ -239,7 +276,7 @@ Return your response as a JSON object with this exact structure:
 
 SCORING GUIDE:
 - 9-10: Compostable organic matter, easily recyclable items
-- 7-8: Items with good disposal options (electronics to Best Buy, textiles to donation)
+- 7-8: Items with good disposal options (electronics to Best Buy, textiles to donation, ceramics to ReStore)
 - 5-6: Items requiring special handling but with available options
 - 3-4: Items with limited disposal options
 - 1-2: Items that truly must go to landfill
@@ -436,6 +473,7 @@ ELECTRONICS → "Other" category → Best Buy, Staples electronics recycling
 PLASTIC FILM → "Other" category → Grocery store plastic film bins  
 HAZARDOUS ITEMS → "Other" category → Household hazardous waste facilities
 TEXTILES → "Other" category → Donation centers, textile recycling
+CERAMICS → "Other" category → Goodwill, school art classes, Habitat ReStore, C&D Recovery
 ORGANIC WASTE → "Composting" category → Compost bins or community sites
 STANDARD RECYCLABLES → "Recycling" category → Regular recycling bin
 LANDFILL → Only for items with truly no other option
@@ -450,6 +488,9 @@ APPROVED LANGUAGE - Use direct commands:
 - "Take to Best Buy for electronics recycling"
 - "Drop off at grocery store plastic film bins"
 - "Donate to Goodwill or Salvation Army"
+- "Take to Habitat for Humanity ReStore"
+- "Donate to school art classes"
+- "Take to Construction & Demolition Recovery facility"
 - "Add to your compost bin"
 - "Rinse and place in your recycling bin"
 
