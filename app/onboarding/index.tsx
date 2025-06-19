@@ -35,18 +35,7 @@ export default function OnboardingIntro() {
           </View>
         </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>
-            Waste tracking{'\n'}made easy
-          </Text>
-          
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            Snap your waste, reduce your environmental impact, and earn rewards for sustainable choices.
-          </Text>
-        </View>
-
-        {/* Get Started Button */}
+        {/* Get Started Button - Centered */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.getStartedButton, { backgroundColor: theme.colors.text }]}
@@ -72,10 +61,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   heroContainer: {
-    flex: 0.6,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: height * 0.06,
+    paddingBottom: height * 0.06,
   },
   heroCard: {
     width: '100%',
@@ -116,34 +106,13 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     letterSpacing: 0.2,
   },
-  content: {
-    flex: 0.25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  title: {
-    fontFamily: 'Inter-Bold',
-    fontSize: Math.min(width * 0.07, 28),
-    textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: Math.min(width * 0.085, 34),
-  },
-  subtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 10,
-  },
   buttonContainer: {
-    flex: 0.15,
-    justifyContent: 'center',
     paddingHorizontal: 20,
+    paddingBottom: height * 0.08,
   },
   getStartedButton: {
     borderRadius: 24,
-    paddingVertical: 16,
+    paddingVertical: 18,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
