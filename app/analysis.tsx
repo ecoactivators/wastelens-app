@@ -205,18 +205,17 @@ export default function AnalysisScreen() {
         } else if (analysis.compostable) {
           category = WasteCategory.COMPOSTING;
         } else {
-          // Smart routing: only use landfill if truly no other option
-          // Most items should be routed to "Other" for special handling
+          // Smart routing: check if this is truly a landfill item (like chip bags)
           const lowerSuggestions = analysis.suggestions.join(' ').toLowerCase();
+          const lowerItemName = analysis.itemName.toLowerCase();
+          const lowerMaterial = analysis.material.toLowerCase();
           
-          if (lowerSuggestions.includes('landfill') && 
-              !lowerSuggestions.includes('best buy') &&
-              !lowerSuggestions.includes('donation') &&
-              !lowerSuggestions.includes('hazardous') &&
-              !lowerSuggestions.includes('grocery store') &&
-              !lowerSuggestions.includes('habitat') &&
-              !lowerSuggestions.includes('school') &&
-              !lowerSuggestions.includes('construction')) {
+          // Check for chip bags and multi-material laminates that truly belong in landfill
+          if ((lowerItemName.includes('chip') && lowerItemName.includes('bag')) ||
+              (lowerMaterial.includes('multi-material') && lowerMaterial.includes('laminate')) ||
+              (lowerMaterial.includes('metallized') && lowerMaterial.includes('layer')) ||
+              (lowerSuggestions.includes('general waste') && lowerSuggestions.includes('laminate')) ||
+              (analysis.environmentScore <= 2 && lowerSuggestions.includes('general waste'))) {
             category = WasteCategory.LANDFILL;
           } else {
             category = WasteCategory.OTHER; // Route to "Other" for special handling
@@ -228,12 +227,15 @@ export default function AnalysisScreen() {
         const material = analysis.material.toLowerCase();
         const itemName = analysis.itemName.toLowerCase();
         
-        // Smart type detection including ceramics
+        // Smart type detection including chip bags
         if (material.includes('food') || itemName.includes('food') || 
             itemName.includes('apple') || itemName.includes('banana') || 
             itemName.includes('bread') || itemName.includes('pizza') ||
             analysis.compostable) {
           wasteType = WasteType.FOOD;
+        } else if ((itemName.includes('chip') && itemName.includes('bag')) ||
+                   (material.includes('multi-material') && material.includes('laminate'))) {
+          wasteType = WasteType.CHIP_BAGS;
         } else if (material.includes('ceramic') || itemName.includes('ceramic') ||
                    itemName.includes('pottery') || itemName.includes('dish') ||
                    itemName.includes('plate') || itemName.includes('bowl') ||

@@ -215,6 +215,12 @@ PLASTIC FILM → "Other" category
 - Plastic bags, bubble wrap, food packaging film → "Drop off at grocery store plastic film recycling bins"
 - Never suggest regular recycling bin for plastic film
 
+CHIP BAGS & MULTI-MATERIAL LAMINATES → "Landfill" category
+- Single chip bags (Doritos, Lay's, etc.) → "Place in general waste bin"
+- Multi-material laminate pouches with metallized layers → "Place in general waste bin"
+- Reason: The multi-material laminate can't be separated easily, and the metallized layer rules out compostability
+- These are the rare items that truly belong in landfill due to their complex construction
+
 HAZARDOUS ITEMS → "Other" category
 - Batteries → "Drop off at Best Buy, Home Depot, or household hazardous waste facility"
 - Light bulbs (CFL, LED) → "Take to Home Depot or household hazardous waste facility"
@@ -238,6 +244,7 @@ STANDARD RECYCLABLES → "Recycling" category
 - Clean plastic bottles, aluminum cans, glass bottles, paper, cardboard → "Rinse and place in recycling bin"
 
 LANDFILL → Only for items that truly have no other option
+- Chip bags and multi-material laminate pouches (metallized layers)
 - Heavily contaminated items that can't be cleaned
 - Mixed materials that can't be separated
 - Items specifically excluded from all other programs
@@ -259,6 +266,7 @@ APPROVED LANGUAGE - Use direct commands:
 - "Take to Construction & Demolition Recovery facility"
 - "Add to your compost bin"
 - "Take to household hazardous waste facility"
+- "Place in general waste bin" (for chip bags and true landfill items)
 
 Return your response as a JSON object with this exact structure:
 {
@@ -270,7 +278,7 @@ Return your response as a JSON object with this exact structure:
   "recyclable": "boolean - whether item goes in regular recycling bin",
   "compostable": "boolean - whether item can be composted",
   "carbonFootprint": "number - estimated carbon footprint in kg CO2",
-  "suggestions": "array of strings - 3-4 actionable disposal suggestions that route away from landfill",
+  "suggestions": "array of strings - 3-4 actionable disposal suggestions that route away from landfill when possible",
   "confidence": "number - confidence level from 0-1"
 }
 
@@ -279,16 +287,19 @@ SCORING GUIDE:
 - 7-8: Items with good disposal options (electronics to Best Buy, textiles to donation, ceramics to ReStore)
 - 5-6: Items requiring special handling but with available options
 - 3-4: Items with limited disposal options
-- 1-2: Items that truly must go to landfill
+- 1-2: Items that truly must go to landfill (chip bags, heavily contaminated items)
 
-Make your suggestions specific and actionable. Always try to route items to their best disposal method rather than defaulting to landfill. This makes Waste Lens™ feel smarter and more helpful than just telling people to throw things away.`
+SPECIAL NOTE FOR CHIP BAGS:
+If you identify a chip bag or similar multi-material laminate pouch with metallized layers (shiny interior), score it 1-2 and route to landfill with explanation: "The multi-material laminate construction with metallized layers cannot be easily separated for recycling."
+
+Make your suggestions specific and actionable. Always try to route items to their best disposal method rather than defaulting to landfill, except for chip bags and other true landfill items.`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Please analyze this waste item and provide smart disposal recommendations for ${userLocation}. Route this item AWAY from landfill if possible. Return only valid JSON with no formatting. Give me direct, actionable instructions that help me dispose of this responsibly.`
+                text: `Please analyze this waste item and provide smart disposal recommendations for ${userLocation}. Route this item AWAY from landfill if possible, unless it's a chip bag or similar multi-material laminate that truly belongs in landfill. Return only valid JSON with no formatting. Give me direct, actionable instructions that help me dispose of this responsibly.`
               },
               {
                 type: 'image_url',
@@ -471,12 +482,13 @@ Landfill should be the LAST resort, not the default. Route items to their best d
 
 ELECTRONICS → "Other" category → Best Buy, Staples electronics recycling
 PLASTIC FILM → "Other" category → Grocery store plastic film bins  
+CHIP BAGS & MULTI-MATERIAL LAMINATES → "Landfill" category → General waste bin (metallized layers can't be separated)
 HAZARDOUS ITEMS → "Other" category → Household hazardous waste facilities
 TEXTILES → "Other" category → Donation centers, textile recycling
 CERAMICS → "Other" category → Goodwill, school art classes, Habitat ReStore, C&D Recovery
 ORGANIC WASTE → "Composting" category → Compost bins or community sites
 STANDARD RECYCLABLES → "Recycling" category → Regular recycling bin
-LANDFILL → Only for items with truly no other option
+LANDFILL → Only for chip bags and items with truly no other option
 
 FORBIDDEN PHRASES - NEVER use these:
 - "Check with local guidelines"
@@ -493,6 +505,7 @@ APPROVED LANGUAGE - Use direct commands:
 - "Take to Construction & Demolition Recovery facility"
 - "Add to your compost bin"
 - "Rinse and place in your recycling bin"
+- "Place in general waste bin" (for chip bags and true landfill items)
 
 Return your response as a JSON object with the same structure as before. Focus on routing the item to its best disposal method based on the user's feedback.`
               },
@@ -505,7 +518,7 @@ Return your response as a JSON object with the same structure as before. Focus o
                     
                     The user provided this feedback: "${userFeedback}"
                     
-                    Please provide a corrected analysis based on this feedback and re-examine the image. Route this item AWAY from landfill if possible. Make sure to provide smart disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Give direct, actionable instructions that help dispose of this responsibly.`
+                    Please provide a corrected analysis based on this feedback and re-examine the image. Route this item AWAY from landfill if possible, unless it's a chip bag or similar multi-material laminate. Make sure to provide smart disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Give direct, actionable instructions that help dispose of this responsibly.`
                   },
                   {
                     type: 'image_url',
