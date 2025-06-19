@@ -1,0 +1,291 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { ArrowLeft } from 'lucide-react-native';
+import { useTheme } from '@/contexts/ThemeContext';
+import { supabase } from '@/lib/supabase';
+
+export default function AuthScreen() {
+  const { theme } = useTheme();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAppleSignIn = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert('Not Available', 'Apple Sign In is not available on web. Please use Google Sign In instead.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // For now, we'll simulate Apple sign in
+      Alert.alert('Coming Soon', 'Apple Sign In will be available in the next update. Please use Google Sign In for now.');
+    } catch (error) {
+      console.error('Apple sign in error:', error);
+      Alert.alert('Error', 'Failed to sign in with Apple. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: Platform.OS === 'web' ? `${window.location.origin}/onboarding/complete` : undefined,
+        },
+      });
+
+      if (error) {
+        console.error('Google sign in error:', error);
+        Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
+        return;
+      }
+
+      // On mobile, we need to handle the redirect differently
+      if (Platform.OS !== 'web') {
+        router.push('/onboarding/complete');
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      Alert.alert('Error', 'Failed to sign in with Google. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSkip = () => {
+    // For demo purposes, allow skipping auth
+    router.push('/onboarding/complete');
+  };
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <LinearGradient
+        colors={[theme.colors.background, theme.colors.surface]}
+        style={styles.gradient}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <ArrowLeft size={24} color={theme.colors.text} strokeWidth={2} />
+          </TouchableOpacity>
+          
+          {/* Progress Bar */}
+          <View style={[styles.progressContainer, { backgroundColor: theme.colors.border }]}>
+            <View style={[styles.progressBar, { backgroundColor: theme.colors.text, width: '75%' }]} />
+          </View>
+        </View>
+
+        {/* Content */}
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>
+            Create an account
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            Sign up to save your progress, sync across devices, and unlock personalized insights.
+          </Text>
+        </View>
+
+        {/* Auth Buttons */}
+        <View style={styles.authContainer}>
+          <TouchableOpacity
+            style={[styles.appleButton, { backgroundColor: theme.colors.text }]}
+            onPress={handleAppleSignIn}
+            disabled={isLoading}
+            activeOpacity={0.9}
+          >
+            <View style={styles.appleIcon}>
+              <Text style={[styles.appleIconText, { color: theme.colors.surface }]}>🍎</Text>
+            </View>
+            <Text style={[styles.appleButtonText, { color: theme.colors.surface }]}>
+              Sign in with Apple
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.googleButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+            onPress={handleGoogleSignIn}
+            disabled={isLoading}
+            activeOpacity={0.9}
+          >
+            <View style={styles.googleIcon}>
+              <Text style={styles.googleIconText}>G</Text>
+            </View>
+            <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>
+              Sign in with Google
+            </Text>
+          </TouchableOpacity>
+
+          {/* Skip Option */}
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleSkip}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.skipButtonText, { color: theme.colors.textSecondary }]}>
+              Continue without account
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Terms */}
+        <View style={styles.termsContainer}>
+          <Text style={[styles.termsText, { color: theme.colors.textTertiary }]}>
+            By continuing, you agree to our{' '}
+            <Text style={[styles.termsLink, { color: theme.colors.primary }]}>Terms of Service</Text>
+            {' '}and{' '}
+            <Text style={[styles.termsLink, { color: theme.colors.primary }]}>Privacy Policy</Text>
+          </Text>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressContainer: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  },
+  title: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 32,
+    marginBottom: 16,
+    lineHeight: 40,
+  },
+  subtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  authContainer: {
+    paddingHorizontal: 24,
+    gap: 16,
+    marginBottom: 40,
+  },
+  appleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 25,
+    paddingVertical: 18,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  appleIcon: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  appleIconText: {
+    fontSize: 18,
+  },
+  appleButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 25,
+    paddingVertical: 18,
+    gap: 12,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4285f4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  googleIconText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 14,
+    color: '#ffffff',
+  },
+  googleButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+  },
+  skipButton: {
+    paddingVertical: 16,
+    marginTop: 8,
+  },
+  skipButtonText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  termsContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  termsText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  termsLink: {
+    fontFamily: 'Inter-Medium',
+  },
+});

@@ -12,6 +12,7 @@ import { SplashScreen } from 'expo-router'
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { ItemsProvider } from '@/contexts/ItemsContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationService } from '@/services/location';
 import { router } from 'expo-router';
 
@@ -29,9 +30,13 @@ function RootLayoutContent() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="camera" options={{ headerShown: false }} />
         <Stack.Screen name="analysis" options={{ headerShown: false }} />
+        <Stack.Screen name="help" options={{ headerShown: false }} />
+        <Stack.Screen name="items" options={{ headerShown: false }} />
+        <Stack.Screen name="item/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDark ? "light" : "dark"} />
@@ -55,31 +60,43 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Request location permission when app starts
+  // Check if user has completed onboarding
   useEffect(() => {
-    const requestLocationOnStartup = async () => {
+    const checkOnboardingStatus = async () => {
       try {
-        console.log('🚀 [RootLayout] Requesting location permission on app startup...');
-        const granted = await LocationService.requestLocationPermission();
-        if (granted) {
-          console.log('✅ [RootLayout] Location permission granted');
-          // Pre-fetch location to cache it
-          await LocationService.getCurrentLocation();
-        } else {
-          console.log('❌ [RootLayout] Location permission denied');
+        // For now, always show onboarding. In a real app, you'd check storage
+        // const hasCompletedOnboarding = await StorageService.hasCompletedOnboarding();
+        const hasCompletedOnboarding = false;
+        
+        if (fontsLoaded || fontError) {
+          if (!hasCompletedOnboarding) {
+            router.replace('/onboarding');
+          } else {
+            // Request location permission when app starts for returning users
+            try {
+              console.log('🚀 [RootLayout] Requesting location permission for returning user...');
+              const granted = await LocationService.requestLocationPermission();
+              if (granted) {
+                console.log('✅ [RootLayout] Location permission granted');
+                await LocationService.getCurrentLocation();
+              }
+            } catch (error) {
+              console.error('❌ [RootLayout] Error requesting location permission:', error);
+            }
+            
+            router.replace('/(tabs)');
+          }
         }
       } catch (error) {
-        console.error('❌ [RootLayout] Error requesting location permission:', error);
+        console.error('❌ [RootLayout] Error checking onboarding status:', error);
+        // Default to showing onboarding on error
+        if (fontsLoaded || fontError) {
+          router.replace('/onboarding');
+        }
       }
     };
 
-    if (fontsLoaded || fontError) {
-      requestLocationOnStartup();
-      // Auto-navigate to camera on app startup using push instead of replace
-      setTimeout(() => {
-        router.push('/camera');
-      }, 100);
-    }
+    checkOnboardingStatus();
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
@@ -88,9 +105,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <ItemsProvider>
-        <RootLayoutContent />
-      </ItemsProvider>
+      <AuthProvider>
+        <ItemsProvider>
+          <RootLayoutContent />
+        </ItemsProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
