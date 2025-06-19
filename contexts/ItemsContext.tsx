@@ -27,7 +27,7 @@ interface ItemsContextType {
 
 const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
-// Default goals that will be created if none exist
+// Default goals that will be created if none exist - REMOVED COMPOST GOAL
 const createDefaultGoals = (): WasteGoal[] => {
   try {
     const now = new Date();
@@ -442,16 +442,11 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         }
       });
       
-      // Update goals with error handling
+      // Update goals with error handling - ONLY REDUCE GOAL NOW
       setGoals(prev => prev.map(goal => {
         try {
           if (goal.type === 'reduce') {
             return { ...goal, current: Math.max(0, goal.current + newItem.weight) };
-          } else if (goal.type === 'compost' && newItem.compostable) {
-            const totalItems = items.length + 1;
-            const compostableItems = items.filter(i => i.compostable).length + 1;
-            const newCompostingRate = totalItems > 0 ? (compostableItems / totalItems) * 100 : 0;
-            return { ...goal, current: Math.min(100, Math.max(0, newCompostingRate)) };
           }
           return goal;
         } catch (error) {
@@ -516,16 +511,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
                 newCurrent
               });
               return { ...goal, current: newCurrent };
-            } else if (goal.type === 'compost') {
-              // Recalculate composting rate without the removed item
-              const remainingItems = items.filter(item => item.id !== id);
-              if (remainingItems.length > 0) {
-                const compostableItems = remainingItems.filter(i => i.compostable).length;
-                const newCompostingRate = (compostableItems / remainingItems.length) * 100;
-                return { ...goal, current: Math.min(100, Math.max(0, newCompostingRate)) };
-              } else {
-                return { ...goal, current: 0 };
-              }
             }
             return goal;
           } catch (error) {
