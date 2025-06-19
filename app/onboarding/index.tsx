@@ -16,66 +16,22 @@ export default function OnboardingIntro() {
         colors={[theme.colors.background, theme.colors.surface]}
         style={styles.gradient}
       >
-        {/* Phone Mockup */}
-        <View style={styles.phoneContainer}>
-          <View style={[styles.phoneMockup, { backgroundColor: theme.colors.text }]}>
-            <View style={styles.phoneScreen}>
-              {/* Status Bar */}
-              <View style={styles.statusBar}>
-                <Text style={styles.time}>1:40</Text>
-                <View style={styles.statusIcons}>
-                  <View style={styles.signal} />
-                  <View style={styles.wifi} />
-                  <View style={styles.battery} />
-                </View>
+        {/* Hero Section */}
+        <View style={styles.heroContainer}>
+          <View style={[styles.heroCard, { backgroundColor: theme.colors.surface }]}>
+            <LinearGradient
+              colors={[theme.colors.surface, theme.colors.surfaceElevated]}
+              style={styles.heroGradient}
+            >
+              <View style={styles.heroContent}>
+                <Text style={[styles.heroTitle, { color: theme.colors.text }]}>
+                  Waste Lens
+                </Text>
+                <Text style={[styles.heroSubtitle, { color: theme.colors.textSecondary }]}>
+                  Snap your waste, reduce your bill
+                </Text>
               </View>
-              
-              {/* Camera Interface */}
-              <View style={styles.cameraContent}>
-                {/* Top Controls */}
-                <View style={styles.topControls}>
-                  <View style={styles.backButton}>
-                    <Text style={styles.backArrow}>‹</Text>
-                  </View>
-                  <View style={styles.flashButton}>
-                    <Text style={styles.flashIcon}>⚡</Text>
-                  </View>
-                </View>
-
-                {/* Plant Image Background */}
-                <View style={styles.plantImageContainer}>
-                  <View style={styles.plantPlaceholder}>
-                    <Text style={styles.plantEmoji}>🌿</Text>
-                  </View>
-                </View>
-
-                {/* Scan Frame */}
-                <View style={styles.scanFrame}>
-                  <View style={[styles.scanCorner, styles.scanCornerTopLeft]} />
-                  <View style={[styles.scanCorner, styles.scanCornerTopRight]} />
-                  <View style={[styles.scanCorner, styles.scanCornerBottomLeft]} />
-                  <View style={[styles.scanCorner, styles.scanCornerBottomRight]} />
-                </View>
-
-                {/* Instruction Text */}
-                <View style={styles.instructionContainer}>
-                  <Text style={styles.instructionText}>Position the waste item within the frame</Text>
-                </View>
-
-                {/* Bottom Controls */}
-                <View style={styles.bottomControls}>
-                  <View style={styles.galleryButton}>
-                    <Text style={styles.galleryIcon}>🖼</Text>
-                  </View>
-                  <View style={styles.captureButton}>
-                    <View style={styles.captureButtonInner} />
-                  </View>
-                  <View style={styles.homeButton}>
-                    <Text style={styles.homeIcon}>🏠</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
+            </LinearGradient>
           </View>
         </View>
 
@@ -115,225 +71,50 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  phoneContainer: {
+  heroContainer: {
     flex: 0.6,
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: height * 0.06,
   },
-  phoneMockup: {
-    width: Math.min(width * 0.55, 240),
-    height: Math.min(width * 0.55 * 2.1, 500),
+  heroCard: {
+    width: '100%',
+    maxWidth: 320,
     borderRadius: 32,
-    padding: 5,
-    shadowColor: '#000',
+    overflow: 'hidden',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 15,
+      height: 16,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 25,
-    elevation: 15,
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
-  phoneScreen: {
+  heroGradient: {
     flex: 1,
-    backgroundColor: '#000000',
-    borderRadius: 27,
-    overflow: 'hidden',
   },
-  statusBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  heroContent: {
+    paddingVertical: 80,
+    paddingHorizontal: 40,
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  time: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 12,
-    color: '#ffffff',
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  signal: {
-    width: 12,
-    height: 8,
-    backgroundColor: '#ffffff',
-    borderRadius: 1,
-  },
-  wifi: {
-    width: 10,
-    height: 8,
-    backgroundColor: '#ffffff',
-    borderRadius: 1,
-  },
-  battery: {
-    width: 18,
-    height: 8,
-    backgroundColor: '#ffffff',
-    borderRadius: 1,
-  },
-  cameraContent: {
-    flex: 1,
-    position: 'relative',
-  },
-  topControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    zIndex: 2,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  backArrow: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  flashButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  flashIcon: {
-    fontSize: 14,
-    color: '#ffffff',
-  },
-  plantImageContainer: {
-    position: 'absolute',
-    top: 40,
-    left: 0,
-    right: 0,
-    bottom: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  plantPlaceholder: {
-    width: 120,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 60,
-  },
-  plantEmoji: {
-    fontSize: 48,
-  },
-  scanFrame: {
-    position: 'absolute',
-    top: '30%',
-    left: '20%',
-    right: '20%',
-    bottom: '35%',
-    zIndex: 1,
-  },
-  scanCorner: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    borderColor: '#ffffff',
-    borderWidth: 2,
-  },
-  scanCornerTopLeft: {
-    top: 0,
-    left: 0,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-  },
-  scanCornerTopRight: {
-    top: 0,
-    right: 0,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-  },
-  scanCornerBottomLeft: {
-    bottom: 0,
-    left: 0,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-  },
-  scanCornerBottomRight: {
-    bottom: 0,
-    right: 0,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  instructionContainer: {
-    position: 'absolute',
-    bottom: 100,
-    left: 14,
-    right: 14,
-    alignItems: 'center',
-  },
-  instructionText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 10,
-    color: '#ffffff',
+  heroTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 36,
     textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    marginBottom: 16,
+    letterSpacing: -1,
   },
-  bottomControls: {
-    position: 'absolute',
-    bottom: 20,
-    left: 14,
-    right: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  galleryButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  galleryIcon: {
-    fontSize: 12,
-  },
-  captureButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  captureButtonInner: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#ffffff',
-  },
-  homeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  homeIcon: {
-    fontSize: 12,
+  heroSubtitle: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 18,
+    textAlign: 'center',
+    lineHeight: 26,
+    letterSpacing: 0.2,
   },
   content: {
     flex: 0.25,
