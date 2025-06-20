@@ -47,26 +47,6 @@ export class RewardsService {
         popularity: 4
       },
       {
-        id: 'bamboo-utensil-set',
-        title: 'Bamboo Utensil Set',
-        description: 'Portable bamboo utensil set with carrying case',
-        pointsCost: 400,
-        category: 'eco',
-        imageUrl: 'https://images.pexels.com/photos/4099238/pexels-photo-4099238.jpeg',
-        available: true,
-        inStock: 30,
-        estimatedDelivery: '5-7 business days',
-        features: [
-          'Fork, knife, spoon, and chopsticks',
-          'Sustainable bamboo construction',
-          'Compact carrying case',
-          'Perfect for travel and work',
-          'Easy to clean'
-        ],
-        value: '$30 value',
-        popularity: 4
-      },
-      {
         id: 'organic-coffee-beans',
         title: 'Organic Coffee Beans',
         description: 'Fair-trade organic coffee beans from sustainable farms',
@@ -85,86 +65,6 @@ export class RewardsService {
         ],
         value: '$40 value',
         popularity: 5
-      },
-      {
-        id: 'eco-notebook',
-        title: 'Recycled Paper Notebook',
-        description: 'Beautiful notebook made from 100% recycled paper',
-        pointsCost: 250,
-        category: 'eco',
-        imageUrl: 'https://images.pexels.com/photos/1925536/pexels-photo-1925536.jpeg',
-        available: true,
-        inStock: 40,
-        estimatedDelivery: '3-5 business days',
-        features: [
-          '100% recycled paper',
-          'Hardcover with elastic band',
-          '200 lined pages',
-          'Bookmark ribbon',
-          'Eco-friendly packaging'
-        ],
-        value: '$20 value',
-        popularity: 3
-      },
-      {
-        id: 'plant-starter-kit',
-        title: 'Indoor Plant Starter Kit',
-        description: 'Everything you need to start your indoor garden',
-        pointsCost: 800,
-        category: 'experience',
-        imageUrl: 'https://images.pexels.com/photos/1084199/pexels-photo-1084199.jpeg',
-        available: true,
-        inStock: 15,
-        estimatedDelivery: '7-10 business days',
-        features: [
-          '3 easy-care plant varieties',
-          'Biodegradable pots',
-          'Organic potting soil',
-          'Care instruction guide',
-          'Perfect for beginners'
-        ],
-        value: '$50 value',
-        popularity: 4
-      },
-      {
-        id: 'solar-phone-charger',
-        title: 'Solar Phone Charger',
-        description: 'Portable solar charger for sustainable power on the go',
-        pointsCost: 1200,
-        category: 'premium',
-        imageUrl: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg',
-        available: true,
-        inStock: 10,
-        estimatedDelivery: '7-10 business days',
-        features: [
-          '10,000mAh battery capacity',
-          'Solar panel charging',
-          'Dual USB ports',
-          'Waterproof design',
-          'LED flashlight included'
-        ],
-        value: '$75 value',
-        popularity: 5
-      },
-      {
-        id: 'compost-bin',
-        title: 'Kitchen Compost Bin',
-        description: 'Stylish countertop compost bin with charcoal filter',
-        pointsCost: 700,
-        category: 'eco',
-        imageUrl: 'https://images.pexels.com/photos/4099355/pexels-photo-4099355.jpeg',
-        available: true,
-        inStock: 20,
-        estimatedDelivery: '5-7 business days',
-        features: [
-          '1.3 gallon capacity',
-          'Charcoal filter eliminates odors',
-          'Stainless steel construction',
-          'Dishwasher safe',
-          'Includes extra filters'
-        ],
-        value: '$45 value',
-        popularity: 4
       }
     ];
   }

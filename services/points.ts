@@ -1,5 +1,5 @@
 import { WasteEntry, WasteType, WasteCategory } from '@/types/waste';
-import { Quest, UserPoints } from '@/types/rewards';
+import { Quest } from '@/types/rewards';
 
 export class PointsService {
   /**
@@ -60,19 +60,6 @@ export class PointsService {
     if (streakDays < 14) return 10;
     if (streakDays < 30) return 20;
     return 30; // 30+ day streak
-  }
-  
-  /**
-   * Get user's rank based on lifetime points
-   */
-  static getUserRank(lifetimePoints: number): string {
-    if (lifetimePoints < 100) return 'Eco Beginner';
-    if (lifetimePoints < 500) return 'Waste Warrior';
-    if (lifetimePoints < 1000) return 'Green Guardian';
-    if (lifetimePoints < 2500) return 'Sustainability Star';
-    if (lifetimePoints < 5000) return 'Environmental Expert';
-    if (lifetimePoints < 10000) return 'Planet Protector';
-    return 'Eco Legend';
   }
   
   /**

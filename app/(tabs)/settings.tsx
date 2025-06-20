@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Sh
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
-import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, Award, Target, TrendingUp, Leaf, ChevronRight, Moon, Globe, Trash2, Camera, Image as ImageIcon, X } from 'lucide-react-native';
+import { User, Settings as SettingsIcon, Bell, Shield, CircleHelp as HelpCircle, Star, Share2, TrendingUp, Leaf, ChevronRight, Moon, Trash2, Camera, Image as ImageIcon, X } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -132,30 +132,6 @@ export default function SettingsScreen() {
     setShowImageOptions(false);
   };
 
-  const accountItems = [
-    {
-      icon: <User size={20} color={theme.colors.textSecondary} />,
-      title: 'Profile',
-      subtitle: 'Edit your personal information',
-      onPress: () => {},
-      showChevron: true,
-    },
-    {
-      icon: <Target size={20} color={theme.colors.textSecondary} />,
-      title: 'Goals',
-      subtitle: 'Set and manage your waste goals',
-      onPress: () => {},
-      showChevron: true,
-    },
-    {
-      icon: <Award size={20} color={theme.colors.textSecondary} />,
-      title: 'Achievements',
-      subtitle: 'View your progress and badges',
-      onPress: () => {},
-      showChevron: true,
-    },
-  ];
-
   const appItems = [
     {
       icon: <Bell size={20} color={theme.colors.textSecondary} />,
@@ -174,13 +150,6 @@ export default function SettingsScreen() {
       hasSwitch: true,
       switchValue: isDark,
       onSwitchChange: toggleTheme,
-    },
-    {
-      icon: <Globe size={20} color={theme.colors.textSecondary} />,
-      title: 'Language',
-      subtitle: 'English',
-      onPress: () => {},
-      showChevron: true,
     },
     {
       icon: <Shield size={20} color={theme.colors.textSecondary} />,
@@ -296,28 +265,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Achievement Badge */}
-        <View style={styles.section}>
-          <View style={[styles.achievementCard, { backgroundColor: theme.colors.surface }]}>
-            <LinearGradient
-              colors={[theme.colors.surface, theme.colors.surfaceElevated]}
-              style={styles.achievementGradient}
-            >
-              <View style={styles.achievementContent}>
-                <View style={[styles.achievementIcon, { backgroundColor: '#fef3c7' }]}>
-                  <Award size={24} color="#f59e0b" />
-                </View>
-                <View style={styles.achievementTextContent}>
-                  <Text style={[styles.achievementTitle, { color: theme.colors.text }]}>Waste Reduction Champion</Text>
-                  <Text style={[styles.achievementSubtitle, { color: theme.colors.textSecondary }]}>
-                    {stats.streak} day streak • Level 3
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
-        </View>
-
         {/* Stats Overview */}
         <View style={styles.statsContainer}>
           <StatsCard
@@ -333,12 +280,6 @@ export default function SettingsScreen() {
             color={theme.colors.success}
             icon={<Leaf size={20} color={theme.colors.success} />}
           />
-        </View>
-
-        {/* Account Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Account</Text>
-          {accountItems.map(renderMenuItem)}
         </View>
 
         {/* App Settings */}
@@ -357,17 +298,6 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Danger Zone</Text>
           {dangerItems.map(renderMenuItem)}
-        </View>
-
-        {/* App Info */}
-        <View style={styles.section}>
-          <View style={styles.appInfo}>
-            <Text style={[styles.appName, { color: theme.colors.text }]}>Waste Lens</Text>
-            <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
-            <Text style={[styles.appDescription, { color: theme.colors.textSecondary }]}>
-              Snap your waste, reduce your impact, and help save the planet one entry at a time.
-            </Text>
-          </View>
         </View>
       </ScrollView>
 
@@ -512,46 +442,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
-  achievementCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  achievementGradient: {
-    flex: 1,
-  },
-  achievementContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    gap: 16,
-  },
-  achievementIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  achievementTextContent: {
-    flex: 1,
-  },
-  achievementTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  achievementSubtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-  },
   statsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -613,27 +503,6 @@ const styles = StyleSheet.create({
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  appInfo: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  appName: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  appVersion: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  appDescription: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 20,
   },
   // Modal styles
   modalContainer: {

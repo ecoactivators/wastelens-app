@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Reward } from '@/types/rewards';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Star, Package, Clock } from 'lucide-react-native';
+import { Star } from 'lucide-react-native';
 
 interface RewardCardProps {
   reward: Reward;
@@ -15,7 +15,7 @@ export function RewardCard({ reward, userPoints, onPress }: RewardCardProps) {
   const { theme } = useTheme();
   
   const canAfford = userPoints >= reward.pointsCost;
-  const isLocked = !reward.available || reward.inStock <= 0;
+  const isLocked = !reward.available;
   
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -60,11 +60,6 @@ export function RewardCard({ reward, userPoints, onPress }: RewardCardProps) {
             {!canAfford && (
               <View style={styles.overlay}>
                 <Text style={styles.overlayText}>Need {reward.pointsCost - userPoints} more points</Text>
-              </View>
-            )}
-            {isLocked && (
-              <View style={styles.overlay}>
-                <Text style={styles.overlayText}>Out of Stock</Text>
               </View>
             )}
           </View>
@@ -116,18 +111,6 @@ export function RewardCard({ reward, userPoints, onPress }: RewardCardProps) {
             
             {/* Footer */}
             <View style={styles.footer}>
-              <View style={styles.valueSection}>
-                <Text style={[styles.value, { color: theme.colors.success }]}>
-                  {reward.value}
-                </Text>
-                <View style={styles.deliveryInfo}>
-                  <Clock size={12} color={theme.colors.textTertiary} />
-                  <Text style={[styles.deliveryText, { color: theme.colors.textTertiary }]}>
-                    {reward.estimatedDelivery}
-                  </Text>
-                </View>
-              </View>
-              
               <View style={styles.pointsSection}>
                 <View style={styles.pointsContainer}>
                   <Star size={16} color="#f59e0b" fill="#f59e0b" />
@@ -136,13 +119,6 @@ export function RewardCard({ reward, userPoints, onPress }: RewardCardProps) {
                     { color: canAfford ? theme.colors.text : '#ef4444' }
                   ]}>
                     {reward.pointsCost}
-                  </Text>
-                </View>
-                
-                <View style={styles.stockInfo}>
-                  <Package size={12} color={theme.colors.textTertiary} />
-                  <Text style={[styles.stockText, { color: theme.colors.textTertiary }]}>
-                    {reward.inStock} left
                   </Text>
                 </View>
               </View>
@@ -282,27 +258,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'flex-end',
-  },
-  valueSection: {
-    flex: 1,
-  },
-  value: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    marginBottom: 4,
-    letterSpacing: 0.1,
-  },
-  deliveryInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  deliveryText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 11,
-    letterSpacing: 0.1,
   },
   pointsSection: {
     alignItems: 'flex-end',
@@ -311,21 +268,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 4,
   },
   pointsCost: {
     fontFamily: 'Inter-Bold',
     fontSize: 16,
     letterSpacing: -0.2,
-  },
-  stockInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  stockText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 11,
-    letterSpacing: 0.1,
   },
 });

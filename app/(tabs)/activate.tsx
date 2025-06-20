@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
 import { WasteCard } from '@/components/WasteCard';
 import { QuestCard } from '@/components/QuestCard';
-import { Zap, Target, Award, TrendingUp, Calendar, Flame, Trophy, Star, Gift, Bell, Plus } from 'lucide-react-native';
+import { Zap, Target, Award, TrendingUp, Flame, Star, Plus } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
 import { Quest, UserPoints } from '@/types/rewards';
@@ -15,8 +15,6 @@ import { PointsService } from '@/services/points';
 export default function ActivateScreen() {
   const { stats, loading, recentItems, refreshData } = useItems();
   const { theme } = useTheme();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [dailyReminders, setDailyReminders] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [userPoints, setUserPoints] = useState<UserPoints>({
@@ -42,7 +40,6 @@ export default function ActivateScreen() {
 
       // For demo purposes, assume no points spent yet
       const currentBalance = totalEarned;
-      const lifetimeRank = PointsService.getUserRank(totalEarned);
 
       // Calculate weekly/monthly earnings (simplified)
       const weeklyEarned = Math.floor(totalEarned * 0.3); // Assume 30% earned this week
@@ -52,7 +49,7 @@ export default function ActivateScreen() {
         totalEarned,
         currentBalance,
         totalSpent: 0,
-        lifetimeRank,
+        lifetimeRank: 'Eco Beginner',
         weeklyEarned,
         monthlyEarned
       });
@@ -167,11 +164,6 @@ export default function ActivateScreen() {
                     </Text>
                     <Text style={[styles.pointsLabel, { color: theme.colors.textSecondary }]}>
                       Available Points
-                    </Text>
-                  </View>
-                  <View style={styles.rankBadge}>
-                    <Text style={[styles.rankText, { color: theme.colors.primary }]}>
-                      {userPoints.lifetimeRank}
                     </Text>
                   </View>
                 </View>
@@ -310,55 +302,6 @@ export default function ActivateScreen() {
               </View>
             )}
           </View>
-
-          {/* Notifications Settings */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Notifications</Text>
-            
-            <View style={[styles.settingCard, { backgroundColor: theme.colors.surface }]}>
-              <View style={styles.settingRow}>
-                <View style={styles.settingInfo}>
-                  <Bell size={20} color={theme.colors.textSecondary} />
-                  <View style={styles.settingText}>
-                    <Text style={[styles.settingTitle, { color: theme.colors.text }]}>
-                      Quest Notifications
-                    </Text>
-                    <Text style={[styles.settingSubtitle, { color: theme.colors.textSecondary }]}>
-                      Get notified about new quests and completions
-                    </Text>
-                  </View>
-                </View>
-                <Switch
-                  value={notificationsEnabled}
-                  onValueChange={setNotificationsEnabled}
-                  trackColor={{ false: theme.colors.border, true: theme.colors.primaryLight }}
-                  thumbColor={notificationsEnabled ? theme.colors.primary : '#ffffff'}
-                />
-              </View>
-            </View>
-
-            <View style={[styles.settingCard, { backgroundColor: theme.colors.surface }]}>
-              <View style={styles.settingRow}>
-                <View style={styles.settingInfo}>
-                  <Calendar size={20} color={theme.colors.textSecondary} />
-                  <View style={styles.settingText}>
-                    <Text style={[styles.settingTitle, { color: theme.colors.text }]}>
-                      Daily Reminders
-                    </Text>
-                    <Text style={[styles.settingSubtitle, { color: theme.colors.textSecondary }]}>
-                      Remind me to complete daily quests
-                    </Text>
-                  </View>
-                </View>
-                <Switch
-                  value={dailyReminders}
-                  onValueChange={setDailyReminders}
-                  trackColor={{ false: theme.colors.border, true: theme.colors.primaryLight }}
-                  thumbColor={dailyReminders ? theme.colors.primary : '#ffffff'}
-                />
-              </View>
-            </View>
-          </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -464,16 +407,6 @@ const styles = StyleSheet.create({
   pointsLabel: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-  },
-  rankBadge: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  rankText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 12,
   },
   pointsStats: {
     flexDirection: 'row',
@@ -619,41 +552,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#ffffff',
-  },
-  settingCard: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-  },
-  settingText: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  settingSubtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
   },
 });
