@@ -63,6 +63,19 @@ export class PointsService {
   }
   
   /**
+   * Get user rank based on total points earned
+   */
+  static getUserRank(totalPoints: number): string {
+    if (totalPoints >= 10000) return 'Eco Legend';
+    if (totalPoints >= 5000) return 'Environmental Master';
+    if (totalPoints >= 2500) return 'Green Champion';
+    if (totalPoints >= 1000) return 'Eco Warrior';
+    if (totalPoints >= 500) return 'Green Enthusiast';
+    if (totalPoints >= 100) return 'Eco Explorer';
+    return 'Eco Beginner';
+  }
+  
+  /**
    * Generate daily quests based on user's activity
    */
   static generateDailyQuests(userStats: any): Quest[] {
