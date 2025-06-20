@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Quest } from '@/types/rewards';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Clock, Star, CheckCircle } from 'lucide-react-native';
+import { Clock, Star, CircleCheck as CheckCircle } from 'lucide-react-native';
 
 interface QuestCardProps {
   quest: Quest;

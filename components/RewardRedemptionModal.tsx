@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Reward, ShippingAddress } from '@/types/rewards';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Star, Package, Truck, Gift, Sparkles, CheckCircle } from 'lucide-react-native';
+import { X, Star, Package, Truck, Gift, Sparkles, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { RewardsService } from '@/services/rewards';
 import Animated, { 
   useSharedValue, 
