@@ -15,6 +15,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [guidelinesLoading, setGuidelinesLoading] = useState(true);
+  const [cameraReady, setCameraReady] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const { theme } = useTheme();
 
@@ -35,6 +36,12 @@ export default function CameraScreen() {
 
     checkGuidelines();
   }, []);
+
+  // Handle camera ready state
+  const handleCameraReady = () => {
+    setCameraReady(true);
+    console.log('📸 Camera is ready');
+  };
 
   if (!permission) {
     return (
@@ -82,6 +89,44 @@ export default function CameraScreen() {
     );
   }
 
+  // For web platform, show a fallback UI since camera might not work properly
+  if (Platform.OS === 'web') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <LinearGradient
+          colors={[theme.colors.background, '#000000']}
+          style={styles.webFallbackGradient}
+        >
+          <View style={styles.webFallbackContainer}>
+            <Text style={styles.webFallbackTitle}>Camera Not Available</Text>
+            <Text style={styles.webFallbackText}>
+              Camera functionality is not available on web. Please use the image picker to select a photo instead.
+            </Text>
+            <TouchableOpacity
+              style={[styles.webFallbackButton, { backgroundColor: theme.colors.primary }]}
+              onPress={pickImage}
+              activeOpacity={0.8}
+            >
+              <ImageIcon size={20} color={theme.colors.surface} strokeWidth={2} />
+              <Text style={[styles.webFallbackButtonText, { color: theme.colors.surface }]}>
+                Select Image
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.webFallbackBackButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+              onPress={handleBackPress}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.webFallbackBackButtonText, { color: theme.colors.text }]}>
+                Go Back
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
+
   const toggleFlash = () => {
     setFlash(current => {
       switch (current) {
@@ -98,8 +143,8 @@ export default function CameraScreen() {
   };
 
   const takePicture = async () => {
-    if (!cameraRef.current) {
-      Alert.alert('Error', 'Camera not ready. Please try again.');
+    if (!cameraRef.current || !cameraReady) {
+      Alert.alert('Error', 'Camera not ready. Please wait a moment and try again.');
       return;
     }
 
@@ -309,44 +354,6 @@ export default function CameraScreen() {
     );
   }
 
-  // For web platform, show a fallback UI since camera might not work
-  if (Platform.OS === 'web') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <LinearGradient
-          colors={[theme.colors.background, '#000000']}
-          style={styles.webFallbackGradient}
-        >
-          <View style={styles.webFallbackContainer}>
-            <Text style={styles.webFallbackTitle}>Camera Not Available</Text>
-            <Text style={styles.webFallbackText}>
-              Camera functionality is not available on web. Please use the image picker to select a photo instead.
-            </Text>
-            <TouchableOpacity
-              style={[styles.webFallbackButton, { backgroundColor: theme.colors.primary }]}
-              onPress={pickImage}
-              activeOpacity={0.8}
-            >
-              <ImageIcon size={20} color={theme.colors.surface} strokeWidth={2} />
-              <Text style={[styles.webFallbackButtonText, { color: theme.colors.surface }]}>
-                Select Image
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.webFallbackBackButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-              onPress={handleBackPress}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.webFallbackBackButtonText, { color: theme.colors.text }]}>
-                Go Back
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <CameraView
@@ -355,6 +362,7 @@ export default function CameraScreen() {
         facing={facing}
         flash={flash}
         mode="picture"
+        onCameraReady={handleCameraReady}
       >
         {/* Top Controls */}
         <LinearGradient
@@ -408,9 +416,10 @@ export default function CameraScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.captureButton}
+              style={[styles.captureButton, !cameraReady && styles.captureButtonDisabled]}
               onPress={takePicture}
               activeOpacity={0.9}
+              disabled={!cameraReady}
             >
               <View style={styles.captureButtonInner} />
             </TouchableOpacity>
@@ -799,6 +808,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  captureButtonDisabled: {
+    opacity: 0.5,
   },
   captureButtonInner: {
     width: 68,

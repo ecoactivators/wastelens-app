@@ -95,7 +95,15 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       
       try {
-        // Always try to load from Supabase first (works for both authenticated and anonymous users)
+        // Load from local storage first for immediate display
+        console.log('📂 [ItemsContext] Loading from local storage...');
+        const localItems = await StorageService.loadItems();
+        if (localItems.length > 0) {
+          setItems(localItems);
+          console.log('✅ [ItemsContext] Loaded', localItems.length, 'items from local storage');
+        }
+
+        // Then try to load from Supabase (works for both authenticated and anonymous users)
         console.log('📦 [ItemsContext] Loading from Supabase...');
         const supabaseItems = await SupabaseService.getUserWasteItems();
         
@@ -108,37 +116,28 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           const updatedItems = await SupabaseService.getUserWasteItems();
           setItems(updatedItems);
           
-          // If no Supabase data after association, try to sync local data
-          if (updatedItems.length === 0) {
-            console.log('📦 [ItemsContext] No Supabase data, checking for local data to sync');
-            const localItems = await StorageService.loadItems();
-            
-            if (localItems.length > 0) {
-              console.log('🔄 [ItemsContext] Syncing local data to Supabase');
-              await SupabaseService.syncLocalDataToSupabase(localItems);
-              // Reload from Supabase after sync
-              const syncedItems = await SupabaseService.getUserWasteItems();
-              setItems(syncedItems);
-            }
+          // If no Supabase data after association, sync local data
+          if (updatedItems.length === 0 && localItems.length > 0) {
+            console.log('🔄 [ItemsContext] Syncing local data to Supabase');
+            await SupabaseService.syncLocalDataToSupabase(localItems);
+            // Reload from Supabase after sync
+            const syncedItems = await SupabaseService.getUserWasteItems();
+            setItems(syncedItems);
           }
         } else {
-          // Anonymous user - use Supabase data directly
-          console.log('🔒 [ItemsContext] Anonymous user, using Supabase data');
-          setItems(supabaseItems);
-          
-          // If no Supabase data, try to load and sync local data
-          if (supabaseItems.length === 0) {
-            console.log('📦 [ItemsContext] No anonymous Supabase data, checking local data');
-            const localItems = await StorageService.loadItems();
-            
-            if (localItems.length > 0) {
-              console.log('🔄 [ItemsContext] Syncing local data to anonymous Supabase');
-              // Save each local item as anonymous
-              for (const item of localItems) {
-                await SupabaseService.saveWasteItem(item);
-              }
-              // Reload from Supabase after sync
-              const syncedItems = await SupabaseService.getUserWasteItems();
+          // Anonymous user - use Supabase data if available, otherwise keep local data
+          if (supabaseItems.length > 0) {
+            console.log('🔒 [ItemsContext] Using anonymous Supabase data');
+            setItems(supabaseItems);
+          } else if (localItems.length > 0) {
+            console.log('🔄 [ItemsContext] Syncing local data to anonymous Supabase');
+            // Save each local item as anonymous
+            for (const item of localItems) {
+              await SupabaseService.saveWasteItem(item);
+            }
+            // Reload from Supabase after sync
+            const syncedItems = await SupabaseService.getUserWasteItems();
+            if (syncedItems.length > 0) {
               setItems(syncedItems);
             }
           }
@@ -484,6 +483,9 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         console.warn('⚠️ [ItemsContext] Failed to save to Supabase, keeping local item');
       }
       
+      // Save to local storage immediately for persistence
+      await StorageService.addItemToStorage(newItem);
+      
       setItems(prev => {
         try {
           const updated = [newItem, ...prev];
@@ -549,6 +551,9 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.warn('⚠️ [ItemsContext] Failed to delete from Supabase, removing locally');
       }
+      
+      // Remove from local storage immediately
+      await StorageService.removeItemFromStorage(id);
       
       setItems(prev => {
         try {

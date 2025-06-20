@@ -323,4 +323,46 @@ export class StorageService {
       return false;
     }
   }
+
+  // Add a new item to storage immediately
+  static async addItemToStorage(item: WasteEntry): Promise<void> {
+    try {
+      console.log('💾 [StorageService] Adding single item to storage:', item.id);
+      
+      // Load existing items
+      const existingItems = await this.loadItems();
+      
+      // Add new item to the beginning of the array
+      const updatedItems = [item, ...existingItems];
+      
+      // Save updated items
+      await this.saveItems(updatedItems);
+      
+      console.log('✅ [StorageService] Item added to storage successfully');
+    } catch (error) {
+      console.error('❌ [StorageService] Failed to add item to storage:', error);
+      // Don't throw error to prevent app crashes
+    }
+  }
+
+  // Remove an item from storage immediately
+  static async removeItemFromStorage(itemId: string): Promise<void> {
+    try {
+      console.log('🗑️ [StorageService] Removing item from storage:', itemId);
+      
+      // Load existing items
+      const existingItems = await this.loadItems();
+      
+      // Filter out the item to remove
+      const updatedItems = existingItems.filter(item => item.id !== itemId);
+      
+      // Save updated items
+      await this.saveItems(updatedItems);
+      
+      console.log('✅ [StorageService] Item removed from storage successfully');
+    } catch (error) {
+      console.error('❌ [StorageService] Failed to remove item from storage:', error);
+      // Don't throw error to prevent app crashes
+    }
+  }
 }
