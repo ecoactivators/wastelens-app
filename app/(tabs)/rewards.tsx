@@ -123,6 +123,7 @@ export default function RewardsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView 
         style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -151,12 +152,6 @@ export default function RewardsScreen() {
                 <Text style={[styles.pointsTitle, { color: theme.colors.textSecondary }]}>Available Points</Text>
                 <Text style={[styles.pointsValue, { color: theme.colors.primary }]}>
                   {userPoints.currentBalance.toLocaleString()}
-                </Text>
-              </View>
-              <View style={styles.rankContainer}>
-                <Text style={[styles.rankLabel, { color: theme.colors.textSecondary }]}>Rank</Text>
-                <Text style={[styles.rankValue, { color: theme.colors.text }]}>
-                  {userPoints.lifetimeRank}
                 </Text>
               </View>
             </View>
@@ -274,6 +269,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 120, // Added extra padding for tab bar
+  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -328,18 +326,6 @@ const styles = StyleSheet.create({
   pointsValue: {
     fontFamily: 'Inter-Bold',
     fontSize: 32,
-  },
-  rankContainer: {
-    alignItems: 'flex-end',
-  },
-  rankLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  rankValue: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
   },
   pointsSubtitle: {
     fontFamily: 'Inter-Regular',
