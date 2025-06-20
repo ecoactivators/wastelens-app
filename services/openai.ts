@@ -249,12 +249,22 @@ LANDFILL → Only for items that truly have no other option
 - Mixed materials that can't be separated
 - Items specifically excluded from all other programs
 
-FORBIDDEN PHRASES - NEVER use these:
+ABSOLUTELY FORBIDDEN PHRASES - NEVER use these words or phrases:
 - "Check with local guidelines"
 - "Verify with your local"
 - "Contact your local waste management"
 - "Follow local guidelines"
 - "Make sure to check"
+- "Confirm with"
+- "Validate with"
+- "Ensure you check"
+- "Double-check"
+- "Verify that"
+- "Check if"
+- "Check whether"
+- "Check your local"
+- "Check the"
+- Any variation of "check" or "verify"
 
 APPROVED LANGUAGE - Use direct commands:
 - "Rinse and place in your recycling bin"
@@ -267,6 +277,10 @@ APPROVED LANGUAGE - Use direct commands:
 - "Add to your compost bin"
 - "Take to household hazardous waste facility"
 - "Place in general waste bin" (for chip bags and true landfill items)
+- "Bring to [specific location]"
+- "Drop off at [specific place]"
+- "Take directly to [facility]"
+- "Use [specific method]"
 
 Return your response as a JSON object with this exact structure:
 {
@@ -292,14 +306,14 @@ SCORING GUIDE:
 SPECIAL NOTE FOR CHIP BAGS:
 If you identify a chip bag or similar multi-material laminate pouch with metallized layers (shiny interior), score it 1-2 and route to landfill with explanation: "The multi-material laminate construction with metallized layers cannot be easily separated for recycling."
 
-Make your suggestions specific and actionable. Always try to route items to their best disposal method rather than defaulting to landfill, except for chip bags and other true landfill items.`
+Make your suggestions specific and actionable. Always try to route items to their best disposal method rather than defaulting to landfill, except for chip bags and other true landfill items. Give direct instructions without using any form of "check" or "verify".`
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Please analyze this waste item and provide smart disposal recommendations for ${userLocation}. Route this item AWAY from landfill if possible, unless it's a chip bag or similar multi-material laminate that truly belongs in landfill. Return only valid JSON with no formatting. Give me direct, actionable instructions that help me dispose of this responsibly.`
+                text: `Please analyze this waste item and provide smart disposal recommendations for ${userLocation}. Route this item AWAY from landfill if possible, unless it's a chip bag or similar multi-material laminate that truly belongs in landfill. Return only valid JSON with no formatting. Give me direct, actionable instructions that help me dispose of this responsibly. Do not use any form of "check" or "verify" in your recommendations.`
               },
               {
                 type: 'image_url',
@@ -490,11 +504,22 @@ ORGANIC WASTE → "Composting" category → Compost bins or community sites
 STANDARD RECYCLABLES → "Recycling" category → Regular recycling bin
 LANDFILL → Only for chip bags and items with truly no other option
 
-FORBIDDEN PHRASES - NEVER use these:
+ABSOLUTELY FORBIDDEN PHRASES - NEVER use these words or phrases:
 - "Check with local guidelines"
 - "Verify with your local"
 - "Contact your local waste management"
 - "Follow local guidelines"
+- "Make sure to check"
+- "Confirm with"
+- "Validate with"
+- "Ensure you check"
+- "Double-check"
+- "Verify that"
+- "Check if"
+- "Check whether"
+- "Check your local"
+- "Check the"
+- Any variation of "check" or "verify"
 
 APPROVED LANGUAGE - Use direct commands:
 - "Take to Best Buy for electronics recycling"
@@ -506,8 +531,12 @@ APPROVED LANGUAGE - Use direct commands:
 - "Add to your compost bin"
 - "Rinse and place in your recycling bin"
 - "Place in general waste bin" (for chip bags and true landfill items)
+- "Bring to [specific location]"
+- "Drop off at [specific place]"
+- "Take directly to [facility]"
+- "Use [specific method]"
 
-Return your response as a JSON object with the same structure as before. Focus on routing the item to its best disposal method based on the user's feedback.`
+Return your response as a JSON object with the same structure as before. Focus on routing the item to its best disposal method based on the user's feedback. Do not use any form of "check" or "verify" in your recommendations.`
               },
               {
                 role: 'user',
@@ -518,7 +547,7 @@ Return your response as a JSON object with the same structure as before. Focus o
                     
                     The user provided this feedback: "${userFeedback}"
                     
-                    Please provide a corrected analysis based on this feedback and re-examine the image. Route this item AWAY from landfill if possible, unless it's a chip bag or similar multi-material laminate. Make sure to provide smart disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Give direct, actionable instructions that help dispose of this responsibly.`
+                    Please provide a corrected analysis based on this feedback and re-examine the image. Route this item AWAY from landfill if possible, unless it's a chip bag or similar multi-material laminate. Make sure to provide smart disposal recommendations for ${userLocation}. Return only valid JSON with no formatting. Give direct, actionable instructions that help dispose of this responsibly. Do not use any form of "check" or "verify" in your recommendations.`
                   },
                   {
                     type: 'image_url',
