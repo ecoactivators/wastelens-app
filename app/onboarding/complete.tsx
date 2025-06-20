@@ -129,7 +129,7 @@ export default function CompleteScreen() {
           </View>
         </Animated.View>
 
-        {/* Start Snapping Button */}
+        {/* Start Snapping Button - Single Action */}
         <Animated.View style={[styles.buttonContainer, contentAnimatedStyle]}>
           <TouchableOpacity
             style={[styles.startSnappingButton, { backgroundColor: theme.colors.text }]}
@@ -145,17 +145,6 @@ export default function CompleteScreen() {
                 Start Snapping
               </Text>
             </LinearGradient>
-          </TouchableOpacity>
-          
-          {/* Secondary option to go to home */}
-          <TouchableOpacity
-            style={[styles.secondaryButton, { borderColor: theme.colors.border }]}
-            onPress={() => router.replace('/(tabs)')}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.secondaryButtonText, { color: theme.colors.textSecondary }]}>
-              Explore the app first
-            </Text>
           </TouchableOpacity>
         </Animated.View>
       </LinearGradient>
@@ -269,7 +258,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 20,
     paddingBottom: height * 0.04,
-    gap: 12,
   },
   startSnappingButton: {
     borderRadius: 24,
@@ -292,16 +280,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-  },
-  secondaryButton: {
-    borderRadius: 24,
-    borderWidth: 1,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontFamily: 'Inter-Medium',
     fontSize: 16,
   },
 });
