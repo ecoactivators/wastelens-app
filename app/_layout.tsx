@@ -42,6 +42,7 @@ function RootLayoutContent() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDark ? "light" : "dark"} />
+      <AuthNavigationHandler />
     </>
   );
 }
@@ -70,7 +71,7 @@ export default function RootLayout() {
     <ThemeProvider>
       <AuthProvider>
         <ItemsProvider>
-          <AuthNavigationHandler />
+          <RootLayoutContent />
         </ItemsProvider>
       </AuthProvider>
     </ThemeProvider>
@@ -79,8 +80,6 @@ export default function RootLayout() {
 
 // Separate component to handle navigation logic with access to auth context
 function AuthNavigationHandler() {
-  const [navigationReady, setNavigationReady] = useState(false);
-
   useEffect(() => {
     const handleNavigation = async () => {
       try {
@@ -116,23 +115,16 @@ function AuthNavigationHandler() {
             router.replace('/camera');
           }
         }
-        
-        setNavigationReady(true);
       } catch (error) {
         console.error('❌ [RootLayout] Error in navigation handler:', error);
         // Default to onboarding on error
         router.replace('/onboarding');
-        setNavigationReady(true);
       }
     };
 
     handleNavigation();
   }, []);
 
-  // Don't render anything until navigation is determined
-  if (!navigationReady) {
-    return null;
-  }
-
-  return <RootLayoutContent />;
+  // This component only handles navigation logic and doesn't render anything
+  return null;
 }
