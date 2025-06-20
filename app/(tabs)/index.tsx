@@ -118,9 +118,9 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* Personal Goals */}
+          {/* Goals */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Personal Goals</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your City's Goals</Text>
             {goals.map(goal => (
               <GoalCard key={goal.id} goal={goal} />
             ))}
