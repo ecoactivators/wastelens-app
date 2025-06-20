@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,12 +6,22 @@ import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
 export default function AuthScreen() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      console.log('✅ [AuthScreen] User already authenticated, redirecting to complete');
+      router.replace('/onboarding/complete');
+    }
+  }, [user]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -22,6 +32,10 @@ export default function AuthScreen() {
         provider: 'google',
         options: {
           redirectTo: Platform.OS === 'web' ? `${window.location.origin}/onboarding/complete` : undefined,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
@@ -33,9 +47,10 @@ export default function AuthScreen() {
 
       console.log('✅ [AuthScreen] Google sign in initiated successfully');
       
-      // On mobile, we need to handle the redirect differently
+      // For web, the redirect will handle navigation
+      // For mobile, we'll wait for the auth state change in useEffect
       if (Platform.OS !== 'web') {
-        router.push('/onboarding/complete');
+        console.log('📱 [AuthScreen] Mobile platform - waiting for auth state change');
       }
     } catch (error) {
       console.error('❌ [AuthScreen] Google sign in exception:', error);
