@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -16,6 +16,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationService } from '@/services/location';
 import { StorageService } from '@/services/storage';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 declare global {
   interface Window {
