@@ -57,7 +57,7 @@ export function GoalCard({ goal }: GoalCardProps) {
 
           <View style={styles.footer}>
             <Text style={[styles.current, { color: theme.colors.textSecondary }]}>
-              {goal.current}{goal.type === 'reduce' ? 'g' : '%'} / {goal.target}{goal.type === 'reduce' ? 'g' : '%'}
+              {goal.current}g / {goal.target}g
             </Text>
             {isCompleted && (
               <View style={[styles.completedBadge, { backgroundColor: theme.colors.primaryLight }]}>
