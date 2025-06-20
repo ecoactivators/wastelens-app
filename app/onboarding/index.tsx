@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { StorageService } from '@/services/storage';
 
 const { width, height } = Dimensions.get('window');
 
 export default function OnboardingIntro() {
   const { theme } = useTheme();
+  const [skipOnboarding, setSkipOnboarding] = useState(false);
+
+  const handleGetStarted = async () => {
+    try {
+      if (skipOnboarding) {
+        // Mark onboarding as completed so it won't show again
+        await StorageService.setOnboardingCompleted();
+        console.log('✅ [OnboardingIntro] Onboarding marked as completed');
+      }
+      
+      // Continue to location screen
+      router.push('/onboarding/location');
+    } catch (error) {
+      console.error('❌ [OnboardingIntro] Error saving onboarding preference:', error);
+      // Continue anyway to not block the user
+      router.push('/onboarding/location');
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -35,11 +55,35 @@ export default function OnboardingIntro() {
           </View>
         </View>
 
+        {/* Skip Onboarding Checkbox */}
+        <View style={styles.checkboxContainer}>
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => setSkipOnboarding(!skipOnboarding)}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.checkbox, 
+              { 
+                backgroundColor: skipOnboarding ? theme.colors.primary : 'transparent',
+                borderColor: skipOnboarding ? theme.colors.primary : theme.colors.border
+              }
+            ]}>
+              {skipOnboarding && (
+                <Check size={14} color={theme.colors.surface} strokeWidth={2.5} />
+              )}
+            </View>
+            <Text style={[styles.checkboxLabel, { color: theme.colors.textSecondary }]}>
+              Don't show me this again
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Get Started Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.getStartedButton, { backgroundColor: theme.colors.text }]}
-            onPress={() => router.push('/onboarding/location')}
+            onPress={handleGetStarted}
             activeOpacity={0.9}
           >
             <LinearGradient
@@ -114,6 +158,29 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     letterSpacing: 0.1,
     opacity: 0.9,
+  },
+  checkboxContainer: {
+    paddingHorizontal: 8,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    letterSpacing: 0.1,
   },
   buttonContainer: {
     paddingHorizontal: 8,

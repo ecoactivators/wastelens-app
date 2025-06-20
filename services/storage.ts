@@ -5,6 +5,7 @@ import { WasteEntry, WasteGoal } from '@/types/waste';
 const ITEMS_KEY = 'waste_items';
 const GOALS_KEY = 'waste_goals';
 const GUIDELINES_SEEN_KEY = 'guidelines_seen';
+const ONBOARDING_COMPLETED_KEY = 'onboarding_completed';
 
 // Web fallback using localStorage with error handling
 const webStorage = {
@@ -267,12 +268,35 @@ export class StorageService {
     }
   }
 
+  static async setOnboardingCompleted(): Promise<void> {
+    try {
+      await storage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
+      console.log('🎯 [StorageService] Marked onboarding as completed');
+    } catch (error) {
+      console.error('❌ [StorageService] Failed to save onboarding completed status:', error);
+      // Don't throw error to prevent app crashes
+    }
+  }
+
+  static async hasCompletedOnboarding(): Promise<boolean> {
+    try {
+      const completed = await storage.getItem(ONBOARDING_COMPLETED_KEY);
+      const hasCompleted = completed === 'true';
+      console.log('🎯 [StorageService] Onboarding completed status:', hasCompleted);
+      return hasCompleted;
+    } catch (error) {
+      console.error('❌ [StorageService] Failed to load onboarding completed status:', error);
+      return false;
+    }
+  }
+
   static async clearAllData(): Promise<void> {
     try {
       await Promise.all([
         storage.deleteItem(ITEMS_KEY),
         storage.deleteItem(GOALS_KEY),
-        storage.deleteItem(GUIDELINES_SEEN_KEY)
+        storage.deleteItem(GUIDELINES_SEEN_KEY),
+        storage.deleteItem(ONBOARDING_COMPLETED_KEY)
       ]);
       console.log('🗑️ [StorageService] Cleared all data from storage');
     } catch (error) {

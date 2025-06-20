@@ -14,6 +14,7 @@ import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { ItemsProvider } from '@/contexts/ItemsContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationService } from '@/services/location';
+import { StorageService } from '@/services/storage';
 import { router } from 'expo-router';
 
 declare global {
@@ -64,14 +65,15 @@ export default function RootLayout() {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
-        // For now, always show onboarding. In a real app, you'd check storage
-        // const hasCompletedOnboarding = await StorageService.hasCompletedOnboarding();
-        const hasCompletedOnboarding = false;
+        // Check if user has completed onboarding (including the checkbox option)
+        const hasCompletedOnboarding = await StorageService.hasCompletedOnboarding();
         
         if (fontsLoaded || fontError) {
           if (!hasCompletedOnboarding) {
+            console.log('🎯 [RootLayout] User has not completed onboarding, showing onboarding flow');
             router.replace('/onboarding');
           } else {
+            console.log('🎯 [RootLayout] User has completed onboarding, going to camera');
             // Request location permission when app starts for returning users
             try {
               console.log('🚀 [RootLayout] Requesting location permission for returning user...');
@@ -84,7 +86,8 @@ export default function RootLayout() {
               console.error('❌ [RootLayout] Error requesting location permission:', error);
             }
             
-            router.replace('/(tabs)');
+            // Navigate directly to camera for returning users
+            router.replace('/camera');
           }
         }
       } catch (error) {
