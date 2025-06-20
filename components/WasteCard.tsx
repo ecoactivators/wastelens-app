@@ -27,21 +27,11 @@ const wasteTypeColors: Record<WasteType, string> = {
 export function WasteCard({ entry, onPress }: WasteCardProps) {
   const { theme } = useTheme();
   
-  const formatTime = (date: Date) => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    return `${displayHours}:${displayMinutes} ${period}`;
-  };
-
   const getItemName = () => {
     // Extract a more descriptive name from the description or use type
     if (entry.description) {
-      return entry.description.length > 20 
-        ? entry.description.substring(0, 20) + '...'
+      return entry.description.length > 35 
+        ? entry.description.substring(0, 35) + '...'
         : entry.description;
     }
     return entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
@@ -49,6 +39,22 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
 
   const formatWeight = (weight: number) => {
     return `${weight} Grams`;
+  };
+
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else if (diffInHours < 48) {
+      return 'Yesterday';
+    } else {
+      const days = Math.floor(diffInHours / 24);
+      return `${days}d ago`;
+    }
   };
 
   const handlePress = () => {
@@ -87,9 +93,13 @@ export function WasteCard({ entry, onPress }: WasteCardProps) {
           {/* Content */}
           <View style={styles.details}>
             <View style={styles.header}>
-              <Text style={[styles.itemName, { color: theme.colors.text }]}>{getItemName()}</Text>
-              <View style={[styles.timeContainer, { backgroundColor: theme.colors.surfacePressed, borderColor: theme.colors.border }]}>
-                <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
+              <Text style={[styles.itemName, { color: theme.colors.text }]} numberOfLines={2}>
+                {getItemName()}
+              </Text>
+              <View style={[styles.dateContainer, { backgroundColor: theme.colors.surfacePressed, borderColor: theme.colors.border }]}>
+                <Text style={[styles.dateText, { color: theme.colors.textSecondary }]}>
+                  {formatDate(entry.timestamp)}
+                </Text>
               </View>
             </View>
 
@@ -159,25 +169,29 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   itemName: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 18,
     flex: 1,
+    marginRight: 12,
     letterSpacing: -0.2,
+    lineHeight: 22,
   },
-  timeContainer: {
+  dateContainer: {
     borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 60,
+    alignItems: 'center',
   },
-  time: {
+  dateText: {
     fontFamily: 'Inter-Medium',
-    fontSize: 11,
-    letterSpacing: 0.3,
+    fontSize: 10,
+    letterSpacing: 0.2,
   },
   quantityContainer: {
     flexDirection: 'row',
