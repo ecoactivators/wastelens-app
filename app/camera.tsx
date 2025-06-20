@@ -16,6 +16,7 @@ export default function CameraScreen() {
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [guidelinesLoading, setGuidelinesLoading] = useState(true);
   const [cameraReady, setCameraReady] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const { theme } = useTheme();
 
@@ -41,6 +42,12 @@ export default function CameraScreen() {
   const handleCameraReady = () => {
     setCameraReady(true);
     console.log('📸 Camera is ready');
+  };
+
+  // Handle camera mount error
+  const handleCameraMountError = (error: any) => {
+    console.error('❌ Camera mount error:', error);
+    setCameraReady(false);
   };
 
   if (!permission) {
@@ -72,6 +79,17 @@ export default function CameraScreen() {
             >
               <Text style={[styles.permissionButtonText, { color: theme.colors.surface }]}>Grant Permission</Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.permissionSecondaryButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]} 
+              onPress={pickImage}
+              activeOpacity={0.8}
+            >
+              <ImageIcon size={20} color={theme.colors.text} strokeWidth={2} />
+              <Text style={[styles.permissionSecondaryButtonText, { color: theme.colors.text }]}>
+                Or Select Image
+              </Text>
+            </TouchableOpacity>
           </View>
         </LinearGradient>
       </View>
@@ -86,44 +104,6 @@ export default function CameraScreen() {
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </View>
-    );
-  }
-
-  // For web platform, show a fallback UI since camera might not work properly
-  if (Platform.OS === 'web') {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <LinearGradient
-          colors={[theme.colors.background, '#000000']}
-          style={styles.webFallbackGradient}
-        >
-          <View style={styles.webFallbackContainer}>
-            <Text style={styles.webFallbackTitle}>Camera Not Available</Text>
-            <Text style={styles.webFallbackText}>
-              Camera functionality is not available on web. Please use the image picker to select a photo instead.
-            </Text>
-            <TouchableOpacity
-              style={[styles.webFallbackButton, { backgroundColor: theme.colors.primary }]}
-              onPress={pickImage}
-              activeOpacity={0.8}
-            >
-              <ImageIcon size={20} color={theme.colors.surface} strokeWidth={2} />
-              <Text style={[styles.webFallbackButtonText, { color: theme.colors.surface }]}>
-                Select Image
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.webFallbackBackButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-              onPress={handleBackPress}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.webFallbackBackButtonText, { color: theme.colors.text }]}>
-                Go Back
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-      </SafeAreaView>
     );
   }
 
@@ -143,11 +123,15 @@ export default function CameraScreen() {
   };
 
   const takePicture = async () => {
-    if (!cameraRef.current || !cameraReady) {
-      Alert.alert('Error', 'Camera not ready. Please wait a moment and try again.');
+    if (!cameraRef.current || !cameraReady || isCapturing) {
+      if (!cameraReady) {
+        Alert.alert('Camera Not Ready', 'Please wait for the camera to initialize and try again.');
+      }
       return;
     }
 
+    setIsCapturing(true);
+    
     try {
       console.log('📸 Taking picture...');
       const photo = await cameraRef.current.takePictureAsync({
@@ -169,7 +153,9 @@ export default function CameraScreen() {
       }
     } catch (error) {
       console.error('❌ Error taking picture:', error);
-      Alert.alert('Error', 'Failed to take picture. Please try again.');
+      Alert.alert('Camera Error', 'Failed to take picture. Please try again or use the image picker.');
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -363,6 +349,7 @@ export default function CameraScreen() {
         flash={flash}
         mode="picture"
         onCameraReady={handleCameraReady}
+        onMountError={handleCameraMountError}
       >
         {/* Top Controls */}
         <LinearGradient
@@ -387,6 +374,13 @@ export default function CameraScreen() {
             </TouchableOpacity>
           </View>
         </LinearGradient>
+
+        {/* Camera Status Indicator */}
+        {!cameraReady && (
+          <View style={styles.cameraStatusContainer}>
+            <Text style={styles.cameraStatusText}>Initializing camera...</Text>
+          </View>
+        )}
 
         {/* Scan Frame */}
         <View style={styles.scanFrameContainer}>
@@ -416,12 +410,18 @@ export default function CameraScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.captureButton, !cameraReady && styles.captureButtonDisabled]}
+              style={[
+                styles.captureButton, 
+                (!cameraReady || isCapturing) && styles.captureButtonDisabled
+              ]}
               onPress={takePicture}
               activeOpacity={0.9}
-              disabled={!cameraReady}
+              disabled={!cameraReady || isCapturing}
             >
-              <View style={styles.captureButtonInner} />
+              <View style={[
+                styles.captureButtonInner,
+                isCapturing && styles.captureButtonCapturing
+              ]} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -486,6 +486,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 16,
+    marginBottom: 16,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
@@ -500,63 +501,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0.3,
   },
-  // Web fallback styles
-  webFallbackGradient: {
-    flex: 1,
-  },
-  webFallbackContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  webFallbackTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 28,
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 16,
-    letterSpacing: -0.5,
-  },
-  webFallbackText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: '#ffffff',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-    opacity: 0.8,
-    letterSpacing: 0.2,
-  },
-  webFallbackButton: {
+  permissionSecondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  webFallbackButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    letterSpacing: 0.3,
-  },
-  webFallbackBackButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 16,
     borderWidth: 2,
   },
-  webFallbackBackButtonText: {
+  permissionSecondaryButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     letterSpacing: 0.3,
@@ -753,6 +707,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  cameraStatusContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 120 : 100,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  cameraStatusText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: '#ffffff',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    letterSpacing: 0.2,
+  },
   scanFrameContainer: {
     position: 'absolute',
     top: '50%',
@@ -817,5 +789,8 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 34,
     backgroundColor: '#ffffff',
+  },
+  captureButtonCapturing: {
+    backgroundColor: '#ef4444',
   },
 });
