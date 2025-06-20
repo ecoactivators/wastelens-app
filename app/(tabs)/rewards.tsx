@@ -1,55 +1,108 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/contexts/ItemsContext';
 import { StatsCard } from '@/components/StatsCard';
-import { Gift, Star, Trophy } from 'lucide-react-native';
+import { RewardCard } from '@/components/RewardCard';
+import { RewardRedemptionModal } from '@/components/RewardRedemptionModal';
+import { Gift, Star, Trophy, Package } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-
-interface Reward {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  imageUrl: string;
-  category: 'eco' | 'discount' | 'experience';
-  available: boolean;
-}
-
-const mockRewards: Reward[] = [
-  {
-    id: '1',
-    title: 'Fishnet Bag',
-    description: 'Reusable mesh bag for groceries',
-    points: 200,
-    imageUrl: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg',
-    category: 'eco',
-    available: true,
-  },
-  {
-    id: '2',
-    title: 'Reusable Water Bottle',
-    description: 'Premium stainless steel water bottle',
-    points: 500,
-    imageUrl: 'https://images.pexels.com/photos/3735218/pexels-photo-3735218.jpeg',
-    category: 'eco',
-    available: true,
-  },
-  {
-    id: '3',
-    title: 'Sustainably Sourced Coffee Beans',
-    description: 'Organic fair-trade coffee beans',
-    points: 800,
-    imageUrl: 'https://images.pexels.com/photos/894695/pexels-photo-894695.jpeg',
-    category: 'eco',
-    available: true,
-  },
-];
+import { Reward, UserReward, ShippingAddress, UserPoints } from '@/types/rewards';
+import { RewardsService } from '@/services/rewards';
+import { PointsService } from '@/services/points';
 
 export default function RewardsScreen() {
-  const { stats, loading } = useItems();
+  const { stats, loading, recentItems, refreshData } = useItems();
   const { theme } = useTheme();
-  const userPoints = 0; // Start with 0 points
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
+  const [userPoints, setUserPoints] = useState<UserPoints>({
+    totalEarned: 0,
+    currentBalance: 0,
+    totalSpent: 0,
+    lifetimeRank: 'Eco Beginner',
+    weeklyEarned: 0,
+    monthlyEarned: 0
+  });
+  const [redeemedRewards, setRedeemedRewards] = useState<UserReward[]>([]);
+
+  // Calculate user points
+  useEffect(() => {
+    if (stats && recentItems) {
+      // Calculate total points earned from all scans
+      const totalPointsFromScans = recentItems.reduce((total, item) => {
+        return total + PointsService.calculatePointsFromScan(item);
+      }, 0);
+
+      // Add streak bonus
+      const streakBonus = PointsService.calculateStreakBonus(stats.streak);
+      const totalEarned = totalPointsFromScans + streakBonus;
+
+      // Calculate points spent on redeemed rewards
+      const totalSpent = redeemedRewards.reduce((total, redemption) => {
+        const reward = RewardsService.getRewardById(redemption.rewardId);
+        return total + (reward?.pointsCost || 0);
+      }, 0);
+
+      const currentBalance = totalEarned - totalSpent;
+      const lifetimeRank = PointsService.getUserRank(totalEarned);
+
+      // Calculate weekly/monthly earnings (simplified)
+      const weeklyEarned = Math.floor(totalEarned * 0.3);
+      const monthlyEarned = Math.floor(totalEarned * 0.7);
+
+      setUserPoints({
+        totalEarned,
+        currentBalance,
+        totalSpent,
+        lifetimeRank,
+        weeklyEarned,
+        monthlyEarned
+      });
+    }
+  }, [stats, recentItems, redeemedRewards]);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    refreshData();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, [refreshData]);
+
+  const handleRewardPress = (reward: Reward) => {
+    setSelectedReward(reward);
+    setShowRedemptionModal(true);
+  };
+
+  const handleRewardRedeem = (reward: Reward, address: ShippingAddress) => {
+    // Create new user reward redemption
+    const newRedemption: UserReward = {
+      id: `redemption-${Date.now()}`,
+      rewardId: reward.id,
+      userId: 'current-user', // In real app, get from auth context
+      redeemedAt: new Date(),
+      status: 'processing',
+      shippingAddress: address,
+      estimatedDelivery: RewardsService.calculateDeliveryDate(reward.estimatedDelivery),
+      trackingNumber: RewardsService.generateTrackingNumber()
+    };
+
+    // Add to redeemed rewards
+    setRedeemedRewards(prev => [...prev, newRedemption]);
+
+    // Close modal
+    setShowRedemptionModal(false);
+    setSelectedReward(null);
+
+    console.log('✅ Reward redeemed:', {
+      reward: reward.title,
+      points: reward.pointsCost,
+      address: address,
+      tracking: newRedemption.trackingNumber
+    });
+  };
 
   if (loading || !stats) {
     return (
@@ -61,16 +114,30 @@ export default function RewardsScreen() {
     );
   }
 
-  const availableRewards = mockRewards.filter(reward => reward.available && reward.points <= userPoints);
-  const lockedRewards = mockRewards.filter(reward => reward.points > userPoints);
+  const availableRewards = RewardsService.getAvailableRewards();
+  const affordableRewards = availableRewards.filter(reward => 
+    RewardsService.canAffordReward(userPoints.currentBalance, reward.pointsCost)
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>Rewards</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Earn points by snapping waste</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+            Redeem points for eco-friendly rewards
+          </Text>
         </View>
 
         {/* Points Balance */}
@@ -81,12 +148,20 @@ export default function RewardsScreen() {
                 <Gift size={24} color={theme.colors.primary} />
               </View>
               <View style={styles.pointsInfo}>
-                <Text style={[styles.pointsTitle, { color: theme.colors.textSecondary }]}>Your Points</Text>
-                <Text style={[styles.pointsValue, { color: theme.colors.primary }]}>{userPoints.toLocaleString()}</Text>
+                <Text style={[styles.pointsTitle, { color: theme.colors.textSecondary }]}>Available Points</Text>
+                <Text style={[styles.pointsValue, { color: theme.colors.primary }]}>
+                  {userPoints.currentBalance.toLocaleString()}
+                </Text>
+              </View>
+              <View style={styles.rankContainer}>
+                <Text style={[styles.rankLabel, { color: theme.colors.textSecondary }]}>Rank</Text>
+                <Text style={[styles.rankValue, { color: theme.colors.text }]}>
+                  {userPoints.lifetimeRank}
+                </Text>
               </View>
             </View>
             <Text style={[styles.pointsSubtitle, { color: theme.colors.textSecondary }]}>
-              Start snapping waste to earn your first points!
+              Earn more points by scanning waste items and completing quests!
             </Text>
           </View>
         </View>
@@ -95,67 +170,67 @@ export default function RewardsScreen() {
         <View style={styles.statsContainer}>
           <StatsCard
             title="This Week"
-            value={`+${Math.round(stats.weeklyWeight / 10)}`}
+            value={`+${userPoints.weeklyEarned}`}
             subtitle="Points earned"
             color={theme.colors.success}
             icon={<Star size={20} color={theme.colors.success} />}
           />
           <StatsCard
-            title="Total Earned"
-            value={`${userPoints}`}
-            subtitle="All time points"
+            title="Available"
+            value={`${affordableRewards.length}`}
+            subtitle="Rewards to redeem"
             color="#3b82f6"
-            icon={<Trophy size={20} color="#3b82f6" />}
+            icon={<Package size={20} color="#3b82f6" />}
           />
         </View>
 
-        {/* Available Rewards */}
-        {availableRewards.length > 0 && (
+        {/* Redeemed Rewards */}
+        {redeemedRewards.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Available Rewards</Text>
-            {availableRewards.map(reward => (
-              <TouchableOpacity key={reward.id} style={[styles.rewardCard, { backgroundColor: theme.colors.surface }]}>
-                <Image source={{ uri: reward.imageUrl }} style={styles.rewardImage} />
-                <View style={styles.rewardContent}>
-                  <Text style={[styles.rewardTitle, { color: theme.colors.text }]}>{reward.title}</Text>
-                  <Text style={[styles.rewardDescription, { color: theme.colors.textSecondary }]}>{reward.description}</Text>
-                  <View style={styles.rewardFooter}>
-                    <View style={styles.pointsBadge}>
-                      <Star size={12} color="#f59e0b" />
-                      <Text style={styles.pointsText}>{reward.points} pts</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Your Rewards</Text>
+            {redeemedRewards.map(redemption => {
+              const reward = RewardsService.getRewardById(redemption.rewardId);
+              if (!reward) return null;
+              
+              return (
+                <View key={redemption.id} style={[styles.redeemedCard, { backgroundColor: theme.colors.surface }]}>
+                  <View style={styles.redeemedHeader}>
+                    <Text style={[styles.redeemedTitle, { color: theme.colors.text }]}>
+                      {reward.title}
+                    </Text>
+                    <View style={[styles.statusBadge, { backgroundColor: '#dcfce7' }]}>
+                      <Text style={[styles.statusText, { color: '#16a34a' }]}>
+                        {redemption.status.toUpperCase()}
+                      </Text>
                     </View>
                   </View>
+                  <Text style={[styles.redeemedInfo, { color: theme.colors.textSecondary }]}>
+                    Tracking: {redemption.trackingNumber}
+                  </Text>
+                  <Text style={[styles.redeemedInfo, { color: theme.colors.textSecondary }]}>
+                    Estimated delivery: {redemption.estimatedDelivery.toLocaleDateString()}
+                  </Text>
                 </View>
-              </TouchableOpacity>
-            ))}
+              );
+            })}
           </View>
         )}
 
-        {/* Locked Rewards */}
+        {/* Available Rewards */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Earn Points to Unlock</Text>
-          {lockedRewards.map(reward => (
-            <View key={reward.id} style={[styles.rewardCard, styles.lockedReward, { backgroundColor: theme.colors.surface }]}>
-              <Image source={{ uri: reward.imageUrl }} style={[styles.rewardImage, styles.lockedImage]} />
-              <View style={styles.rewardContent}>
-                <Text style={[styles.rewardTitle, { color: theme.colors.textTertiary }]}>{reward.title}</Text>
-                <Text style={[styles.rewardDescription, { color: theme.colors.textTertiary }]}>{reward.description}</Text>
-                <View style={styles.rewardFooter}>
-                  <View style={[styles.pointsBadge, styles.lockedBadge, { backgroundColor: theme.colors.background }]}>
-                    <Star size={12} color={theme.colors.textTertiary} />
-                    <Text style={[styles.lockedPointsText, { color: theme.colors.textTertiary }]}>{reward.points} pts</Text>
-                  </View>
-                  <Text style={[styles.lockedLabel, { color: theme.colors.textTertiary }]}>
-                    Need {reward.points} points
-                  </Text>
-                </View>
-              </View>
-            </View>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Available Rewards</Text>
+          {availableRewards.map(reward => (
+            <RewardCard
+              key={reward.id}
+              reward={reward}
+              userPoints={userPoints.currentBalance}
+              onPress={() => handleRewardPress(reward)}
+            />
           ))}
         </View>
 
         {/* Empty State for New Users */}
-        {userPoints === 0 && (
+        {userPoints.currentBalance === 0 && (
           <View style={styles.section}>
             <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
               <Gift size={48} color={theme.colors.textTertiary} />
@@ -167,6 +242,18 @@ export default function RewardsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Reward Redemption Modal */}
+      <RewardRedemptionModal
+        visible={showRedemptionModal}
+        reward={selectedReward}
+        userPoints={userPoints.currentBalance}
+        onClose={() => {
+          setShowRedemptionModal(false);
+          setSelectedReward(null);
+        }}
+        onRedeem={handleRewardRedeem}
+      />
     </SafeAreaView>
   );
 }
@@ -242,6 +329,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     fontSize: 32,
   },
+  rankContainer: {
+    alignItems: 'flex-end',
+  },
+  rankLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  rankValue: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+  },
   pointsSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
@@ -257,11 +356,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 16,
   },
-  rewardCard: {
+  redeemedCard: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    flexDirection: 'row',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -271,55 +369,30 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  rewardImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    marginRight: 16,
-  },
-  rewardContent: {
-    flex: 1,
-  },
-  rewardTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  rewardDescription: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  rewardFooter: {
+  redeemedHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
-  pointsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fef3c7',
+  redeemedTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    flex: 1,
+  },
+  statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    borderRadius: 8,
   },
-  pointsText: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
-    color: '#f59e0b',
+  statusText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 10,
   },
-  lockedReward: {
-    opacity: 0.6,
-  },
-  lockedImage: {
-    opacity: 0.5,
-  },
-  lockedBadge: {},
-  lockedPointsText: {},
-  lockedLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 12,
+  redeemedInfo: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    marginBottom: 2,
   },
   emptyState: {
     alignItems: 'center',
