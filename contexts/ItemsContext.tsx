@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { WasteEntry, WasteStats, WasteType, WasteCategory, WasteGoal } from '@/types/waste';
 import { StorageService } from '@/services/storage';
+import { SupabaseService } from '@/services/supabase';
+import { useAuth } from './AuthContext';
 
 interface ItemsContextType {
   // Items state
@@ -52,6 +54,7 @@ const createDefaultGoals = (): WasteGoal[] => {
 };
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [items, setItems] = useState<WasteEntry[]>([]);
   const [goals, setGoals] = useState<WasteGoal[]>([]);
   const [stats, setStats] = useState<WasteStats | null>(null);
@@ -84,67 +87,97 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items]);
 
-  // Load data from storage on mount
+  // Load data from storage/Supabase on mount
   useEffect(() => {
-    const loadStoredData = async () => {
-      console.log('🔄 [ItemsContext] Loading data from storage...');
+    const loadData = async () => {
+      console.log('🔄 [ItemsContext] Loading data...');
       setLoading(true);
       setError(null);
       
       try {
-        // Check storage health first
-        const isStorageHealthy = await StorageService.healthCheck();
-        if (!isStorageHealthy) {
-          console.warn('⚠️ [ItemsContext] Storage health check failed, proceeding with caution');
-        }
-
-        const [storedItems, storedGoals] = await Promise.all([
-          StorageService.loadItems().catch(error => {
-            console.error('❌ [ItemsContext] Failed to load items:', error);
-            return [];
-          }),
-          StorageService.loadGoals().catch(error => {
-            console.error('❌ [ItemsContext] Failed to load goals:', error);
-            return [];
-          })
-        ]);
-
-        // Validate loaded items
-        const validItems = Array.isArray(storedItems) ? storedItems.filter(item => {
-          try {
-            return item && typeof item === 'object' && item.id && item.timestamp instanceof Date;
-          } catch (error) {
-            console.error('❌ [ItemsContext] Invalid item found:', item, error);
-            return false;
+        if (user) {
+          // User is authenticated - load from Supabase
+          console.log('👤 [ItemsContext] User authenticated, loading from Supabase');
+          
+          // Load items from Supabase
+          const supabaseItems = await SupabaseService.getUserWasteItems();
+          
+          // If no Supabase data, try to sync local data
+          if (supabaseItems.length === 0) {
+            console.log('📦 [ItemsContext] No Supabase data, checking for local data to sync');
+            const localItems = await StorageService.loadItems();
+            
+            if (localItems.length > 0) {
+              console.log('🔄 [ItemsContext] Syncing local data to Supabase');
+              await SupabaseService.syncLocalDataToSupabase(localItems);
+              // Reload from Supabase after sync
+              const syncedItems = await SupabaseService.getUserWasteItems();
+              setItems(syncedItems);
+            } else {
+              setItems([]);
+            }
+          } else {
+            setItems(supabaseItems);
           }
-        }) : [];
+          
+          // Load goals (for now, use local storage until we implement Supabase goals)
+          const storedGoals = await StorageService.loadGoals();
+          if (storedGoals.length > 0) {
+            setGoals(storedGoals);
+          } else {
+            const defaultGoals = createDefaultGoals();
+            setGoals(defaultGoals);
+            await StorageService.saveGoals(defaultGoals);
+          }
+        } else {
+          // User not authenticated - load from local storage
+          console.log('🏠 [ItemsContext] User not authenticated, loading from local storage');
+          
+          const [storedItems, storedGoals] = await Promise.all([
+            StorageService.loadItems().catch(error => {
+              console.error('❌ [ItemsContext] Failed to load items:', error);
+              return [];
+            }),
+            StorageService.loadGoals().catch(error => {
+              console.error('❌ [ItemsContext] Failed to load goals:', error);
+              return [];
+            })
+          ]);
 
-        setItems(validItems);
-        
-        // Use stored goals or create defaults if none exist
-        if (Array.isArray(storedGoals) && storedGoals.length > 0) {
-          const validGoals = storedGoals.filter(goal => {
+          // Validate loaded items
+          const validItems = Array.isArray(storedItems) ? storedItems.filter(item => {
             try {
-              return goal && typeof goal === 'object' && goal.id;
+              return item && typeof item === 'object' && item.id && item.timestamp instanceof Date;
             } catch (error) {
-              console.error('❌ [ItemsContext] Invalid goal found:', goal, error);
+              console.error('❌ [ItemsContext] Invalid item found:', item, error);
               return false;
             }
-          });
-          setGoals(validGoals);
-        } else {
-          const defaultGoals = createDefaultGoals();
-          setGoals(defaultGoals);
-          await StorageService.saveGoals(defaultGoals);
+          }) : [];
+
+          setItems(validItems);
+          
+          // Use stored goals or create defaults if none exist
+          if (Array.isArray(storedGoals) && storedGoals.length > 0) {
+            const validGoals = storedGoals.filter(goal => {
+              try {
+                return goal && typeof goal === 'object' && goal.id;
+              } catch (error) {
+                console.error('❌ [ItemsContext] Invalid goal found:', goal, error);
+                return false;
+              }
+            });
+            setGoals(validGoals);
+          } else {
+            const defaultGoals = createDefaultGoals();
+            setGoals(defaultGoals);
+            await StorageService.saveGoals(defaultGoals);
+          }
         }
 
-        console.log('✅ [ItemsContext] Data loaded successfully:', {
-          items: validItems.length,
-          goals: storedGoals.length > 0 ? storedGoals.length : 'using defaults'
-        });
+        console.log('✅ [ItemsContext] Data loaded successfully');
       } catch (error) {
         console.error('❌ [ItemsContext] Failed to load data:', error);
-        setError('Failed to load data from storage');
+        setError('Failed to load data');
         
         // Initialize with defaults on error
         const defaultGoals = createDefaultGoals();
@@ -155,15 +188,14 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    loadStoredData();
-  }, []);
+    loadData();
+  }, [user]);
 
-  // Save items to storage whenever items change
+  // Save items to storage whenever items change (for local backup)
   useEffect(() => {
     if (!loading && Array.isArray(items)) {
       StorageService.saveItems(items).catch(error => {
-        console.error('❌ [ItemsContext] Failed to save items:', error);
-        setError('Failed to save items to storage');
+        console.error('❌ [ItemsContext] Failed to save items to local storage:', error);
       });
     }
   }, [items, loading]);
@@ -337,7 +369,19 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         streak = 0;
       }
 
-      const co2Saved = Math.max(0, compostableWeight * 0.0005);
+      // Calculate CO2 saved from AI analysis data or fallback
+      const co2Saved = validItems.reduce((sum, item) => {
+        try {
+          if (item.aiAnalysis?.carbonFootprint) {
+            return sum + item.aiAnalysis.carbonFootprint;
+          }
+          // Fallback calculation for items without AI analysis
+          return sum + (item.compostable ? item.weight * 0.0005 : 0);
+        } catch (error) {
+          console.error('❌ [ItemsContext] Error calculating CO2 for item:', error);
+          return sum;
+        }
+      }, 0);
 
       const calculatedStats = {
         totalWeight: Math.max(0, totalWeight),
@@ -360,6 +404,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         foodWastePercentage: Math.round(calculatedStats.foodWastePercentage),
         otherWastePercentage: Math.round(calculatedStats.otherWastePercentage),
         streak: calculatedStats.streak,
+        co2Saved: calculatedStats.co2Saved.toFixed(3),
       });
 
       return calculatedStats;
@@ -406,7 +451,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   }, [items, calculateStats, loading]);
 
   // Add new item with comprehensive error handling
-  const addItem = useCallback((itemData: Omit<WasteEntry, 'id' | 'timestamp'>) => {
+  const addItem = useCallback(async (itemData: Omit<WasteEntry, 'id' | 'timestamp'>) => {
     try {
       if (!itemData || typeof itemData !== 'object') {
         throw new Error('Invalid item data provided');
@@ -428,8 +473,22 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         type: newItem.type,
         category: newItem.category,
         recyclable: newItem.recyclable,
-        timestamp: newItem.timestamp.toISOString()
+        timestamp: newItem.timestamp.toISOString(),
+        hasAiAnalysis: !!newItem.aiAnalysis
       });
+      
+      // Save to Supabase if user is authenticated
+      if (user) {
+        console.log('💾 [ItemsContext] Saving item to Supabase...');
+        const supabaseItem = await SupabaseService.saveWasteItem(newItem);
+        if (supabaseItem) {
+          // Update the item ID with the Supabase ID
+          newItem.id = supabaseItem.id;
+          console.log('✅ [ItemsContext] Item saved to Supabase with ID:', newItem.id);
+        } else {
+          console.warn('⚠️ [ItemsContext] Failed to save to Supabase, keeping local item');
+        }
+      }
       
       setItems(prev => {
         try {
@@ -456,7 +515,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         }
       }));
 
-      console.log('🎯 [ItemsContext] Item added successfully, will be saved to storage');
+      console.log('🎯 [ItemsContext] Item added successfully');
       return newItem;
     } catch (error) {
       console.error('❌ [ItemsContext] Failed to add item:', error);
@@ -474,10 +533,10 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       };
       return fallbackItem;
     }
-  }, [items]);
+  }, [user]);
 
   // Remove item with error handling
-  const removeItem = useCallback((id: string) => {
+  const removeItem = useCallback(async (id: string) => {
     try {
       if (!id || typeof id !== 'string') {
         throw new Error('Invalid item ID provided');
@@ -487,6 +546,17 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       
       // Find the item to be removed to get its weight
       const itemToRemove = items.find(item => item.id === id);
+      
+      // Delete from Supabase if user is authenticated
+      if (user && itemToRemove) {
+        console.log('🗑️ [ItemsContext] Deleting item from Supabase...');
+        const deleted = await SupabaseService.deleteWasteItem(id);
+        if (deleted) {
+          console.log('✅ [ItemsContext] Item deleted from Supabase');
+        } else {
+          console.warn('⚠️ [ItemsContext] Failed to delete from Supabase, removing locally');
+        }
+      }
       
       setItems(prev => {
         try {
@@ -524,7 +594,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       console.error('❌ [ItemsContext] Failed to remove item:', error);
       setError('Failed to remove item');
     }
-  }, [items]);
+  }, [items, user]);
 
   // Update goal with error handling
   const updateGoal = useCallback((goal: WasteGoal) => {
@@ -565,14 +635,22 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Refresh data with error handling
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
     try {
       console.log('🔄 [ItemsContext] Manual refresh triggered');
       setLoading(true);
       setError(null);
+      
+      if (user) {
+        // Reload from Supabase
+        const supabaseItems = await SupabaseService.getUserWasteItems();
+        setItems(supabaseItems);
+      }
+      
       setLastUpdate(new Date());
       const newStats = calculateStats();
       setStats(newStats);
+      
       setTimeout(() => {
         setLoading(false);
       }, 500);
@@ -581,7 +659,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       setError('Failed to refresh data');
       setLoading(false);
     }
-  }, [calculateStats]);
+  }, [calculateStats, user]);
 
   // Clear error
   const clearError = useCallback(() => {

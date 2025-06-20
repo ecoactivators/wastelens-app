@@ -5,6 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { CircleCheck as CheckCircle, Sparkles, Camera } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { SupabaseService } from '@/services/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -17,6 +19,7 @@ const { width, height } = Dimensions.get('window');
 
 export default function CompleteScreen() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const checkScale = useSharedValue(0);
   const sparkleOpacity = useSharedValue(0);
   const contentOpacity = useSharedValue(0);
@@ -34,7 +37,21 @@ export default function CompleteScreen() {
     
     // Animate content
     contentOpacity.value = withDelay(600, withSpring(1));
-  }, []);
+
+    // Mark onboarding as completed in Supabase if user is authenticated
+    const markOnboardingCompleted = async () => {
+      if (user) {
+        try {
+          await SupabaseService.markOnboardingCompleted();
+          console.log('✅ [CompleteScreen] Onboarding marked as completed in Supabase');
+        } catch (error) {
+          console.error('❌ [CompleteScreen] Failed to mark onboarding completed in Supabase:', error);
+        }
+      }
+    };
+
+    markOnboardingCompleted();
+  }, [user]);
 
   const checkAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: checkScale.value }],
