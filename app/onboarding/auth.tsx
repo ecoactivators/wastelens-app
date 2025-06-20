@@ -13,38 +13,6 @@ export default function AuthScreen() {
   const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAppleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      console.log('🍎 [AuthScreen] Starting Apple sign in...');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: Platform.OS === 'web' ? `${window.location.origin}/onboarding/complete` : undefined,
-        },
-      });
-
-      if (error) {
-        console.error('❌ [AuthScreen] Apple sign in error:', error);
-        Alert.alert('Sign In Error', 'Failed to sign in with Apple. Please try again.');
-        return;
-      }
-
-      console.log('✅ [AuthScreen] Apple sign in initiated successfully');
-      
-      // On mobile, we need to handle the redirect differently
-      if (Platform.OS !== 'web') {
-        router.push('/onboarding/complete');
-      }
-    } catch (error) {
-      console.error('❌ [AuthScreen] Apple sign in exception:', error);
-      Alert.alert('Sign In Error', 'An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
@@ -109,24 +77,8 @@ export default function AuthScreen() {
           </Text>
         </View>
 
-        {/* Auth Buttons */}
+        {/* Auth Button */}
         <View style={styles.authContainer}>
-          <TouchableOpacity
-            style={[styles.appleButton, { backgroundColor: theme.colors.text }]}
-            onPress={handleAppleSignIn}
-            disabled={isLoading}
-            activeOpacity={0.9}
-          >
-            <Image 
-              source={require('@/assets/images/apple.png')}
-              style={styles.appleIcon}
-              resizeMode="contain"
-            />
-            <Text style={[styles.appleButtonText, { color: theme.colors.surface }]}>
-              {isLoading ? 'Signing in...' : 'Sign in with Apple'}
-            </Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.googleButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
             onPress={handleGoogleSignIn}
@@ -208,33 +160,7 @@ const styles = StyleSheet.create({
   },
   authContainer: {
     paddingHorizontal: 20,
-    gap: 16,
     marginBottom: height * 0.04,
-  },
-  appleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 24,
-    paddingVertical: 16,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  appleIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#ffffff',
-  },
-  appleButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
   },
   googleButton: {
     flexDirection: 'row',
