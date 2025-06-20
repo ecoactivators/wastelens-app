@@ -4,7 +4,8 @@ import { LocationService } from './location';
 
 export interface SupabaseWasteItem {
   id: string;
-  user_id: string;
+  user_id?: string;
+  anonymous_id?: string;
   item_name: string;
   description?: string;
   waste_type: string;
@@ -66,18 +67,47 @@ export interface UserStats {
 
 export class SupabaseService {
   /**
-   * Save a waste item scan to Supabase
+   * Generate or get anonymous ID for unauthenticated users
+   */
+  static getAnonymousId(): string {
+    const storageKey = 'waste_lens_anonymous_id';
+    
+    // Try to get existing anonymous ID
+    let anonymousId: string | null = null;
+    
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        anonymousId = localStorage.getItem(storageKey);
+      }
+    } catch (error) {
+      console.warn('⚠️ [SupabaseService] Could not access localStorage for anonymous ID');
+    }
+    
+    // Generate new anonymous ID if none exists
+    if (!anonymousId) {
+      anonymousId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem(storageKey, anonymousId);
+        }
+      } catch (error) {
+        console.warn('⚠️ [SupabaseService] Could not save anonymous ID to localStorage');
+      }
+    }
+    
+    return anonymousId;
+  }
+
+  /**
+   * Save a waste item scan to Supabase (works for both authenticated and anonymous users)
    */
   static async saveWasteItem(wasteEntry: WasteEntry): Promise<SupabaseWasteItem | null> {
     try {
       console.log('💾 [SupabaseService] Saving waste item to Supabase...');
       
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn('⚠️ [SupabaseService] No authenticated user found');
-        return null;
-      }
-
+      
       // Get current location for the scan
       let locationData = null;
       try {
@@ -86,8 +116,7 @@ export class SupabaseService {
         console.warn('⚠️ [SupabaseService] Could not get location for scan:', error);
       }
 
-      const wasteItemData = {
-        user_id: user.id,
+      const wasteItemData: any = {
         item_name: wasteEntry.description || wasteEntry.type,
         description: wasteEntry.description,
         waste_type: wasteEntry.type,
@@ -116,6 +145,16 @@ export class SupabaseService {
         scanned_at: wasteEntry.timestamp.toISOString(),
       };
 
+      if (user) {
+        // Authenticated user
+        wasteItemData.user_id = user.id;
+        console.log('👤 [SupabaseService] Saving as authenticated user:', user.id);
+      } else {
+        // Anonymous user
+        wasteItemData.anonymous_id = this.getAnonymousId();
+        console.log('🔒 [SupabaseService] Saving as anonymous user:', wasteItemData.anonymous_id);
+      }
+
       const { data, error } = await supabase
         .from('waste_items')
         .insert(wasteItemData)
@@ -136,23 +175,29 @@ export class SupabaseService {
   }
 
   /**
-   * Get user's waste items from Supabase
+   * Get user's waste items from Supabase (works for both authenticated and anonymous users)
    */
   static async getUserWasteItems(limit?: number): Promise<WasteEntry[]> {
     try {
-      console.log('📂 [SupabaseService] Loading user waste items...');
+      console.log('📂 [SupabaseService] Loading waste items...');
       
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn('⚠️ [SupabaseService] No authenticated user found');
-        return [];
-      }
-
+      
       let query = supabase
         .from('waste_items')
         .select('*')
-        .eq('user_id', user.id)
         .order('scanned_at', { ascending: false });
+
+      if (user) {
+        // Authenticated user - get their items
+        query = query.eq('user_id', user.id);
+        console.log('👤 [SupabaseService] Loading items for authenticated user:', user.id);
+      } else {
+        // Anonymous user - get items by anonymous ID
+        const anonymousId = this.getAnonymousId();
+        query = query.eq('anonymous_id', anonymousId);
+        console.log('🔒 [SupabaseService] Loading items for anonymous user:', anonymousId);
+      }
 
       if (limit) {
         query = query.limit(limit);
@@ -193,6 +238,71 @@ export class SupabaseService {
     } catch (error) {
       console.error('❌ [SupabaseService] Exception loading waste items:', error);
       return [];
+    }
+  }
+
+  /**
+   * Associate anonymous scans with a user account when they sign up
+   */
+  static async associateAnonymousScans(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.warn('⚠️ [SupabaseService] No authenticated user for association');
+        return false;
+      }
+
+      const anonymousId = this.getAnonymousId();
+      console.log('🔄 [SupabaseService] Associating anonymous scans with user account...');
+
+      const { data, error } = await supabase.rpc('associate_anonymous_scans', {
+        p_user_id: user.id,
+        p_anonymous_id: anonymousId
+      });
+
+      if (error) {
+        console.error('❌ [SupabaseService] Error associating anonymous scans:', error);
+        return false;
+      }
+
+      console.log(`✅ [SupabaseService] Associated ${data} anonymous scans with user account`);
+      
+      // Clear the anonymous ID since scans are now associated with the user
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem('waste_lens_anonymous_id');
+        }
+      } catch (error) {
+        console.warn('⚠️ [SupabaseService] Could not clear anonymous ID from localStorage');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ [SupabaseService] Exception associating anonymous scans:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get anonymous user statistics
+   */
+  static async getAnonymousStats(): Promise<any> {
+    try {
+      const anonymousId = this.getAnonymousId();
+      
+      const { data, error } = await supabase.rpc('get_anonymous_stats', {
+        p_anonymous_id: anonymousId
+      });
+
+      if (error) {
+        console.error('❌ [SupabaseService] Error getting anonymous stats:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('❌ [SupabaseService] Exception getting anonymous stats:', error);
+      return null;
     }
   }
 
@@ -385,15 +495,22 @@ export class SupabaseService {
   static async deleteWasteItem(itemId: string): Promise<boolean> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return false;
-      }
-
-      const { error } = await supabase
+      
+      let query = supabase
         .from('waste_items')
         .delete()
-        .eq('id', itemId)
-        .eq('user_id', user.id);
+        .eq('id', itemId);
+
+      if (user) {
+        // Authenticated user
+        query = query.eq('user_id', user.id);
+      } else {
+        // Anonymous user
+        const anonymousId = this.getAnonymousId();
+        query = query.eq('anonymous_id', anonymousId);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error('❌ [SupabaseService] Error deleting waste item:', error);
@@ -440,6 +557,9 @@ export class SupabaseService {
         console.log('ℹ️ [SupabaseService] User already has data in Supabase, skipping sync');
         return true;
       }
+
+      // Associate any anonymous scans first
+      await this.associateAnonymousScans();
 
       // Sync local items to Supabase
       let syncedCount = 0;

@@ -95,15 +95,21 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       
       try {
+        // Always try to load from Supabase first (works for both authenticated and anonymous users)
+        console.log('📦 [ItemsContext] Loading from Supabase...');
+        const supabaseItems = await SupabaseService.getUserWasteItems();
+        
         if (user) {
-          // User is authenticated - load from Supabase
-          console.log('👤 [ItemsContext] User authenticated, loading from Supabase');
+          // User is authenticated - associate any anonymous scans
+          console.log('👤 [ItemsContext] User authenticated, associating anonymous scans');
+          await SupabaseService.associateAnonymousScans();
           
-          // Load items from Supabase
-          const supabaseItems = await SupabaseService.getUserWasteItems();
+          // Reload items after association
+          const updatedItems = await SupabaseService.getUserWasteItems();
+          setItems(updatedItems);
           
-          // If no Supabase data, try to sync local data
-          if (supabaseItems.length === 0) {
+          // If no Supabase data after association, try to sync local data
+          if (updatedItems.length === 0) {
             console.log('📦 [ItemsContext] No Supabase data, checking for local data to sync');
             const localItems = await StorageService.loadItems();
             
@@ -113,65 +119,39 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
               // Reload from Supabase after sync
               const syncedItems = await SupabaseService.getUserWasteItems();
               setItems(syncedItems);
-            } else {
-              setItems([]);
             }
-          } else {
-            setItems(supabaseItems);
-          }
-          
-          // Load goals (for now, use local storage until we implement Supabase goals)
-          const storedGoals = await StorageService.loadGoals();
-          if (storedGoals.length > 0) {
-            setGoals(storedGoals);
-          } else {
-            const defaultGoals = createDefaultGoals();
-            setGoals(defaultGoals);
-            await StorageService.saveGoals(defaultGoals);
           }
         } else {
-          // User not authenticated - load from local storage
-          console.log('🏠 [ItemsContext] User not authenticated, loading from local storage');
+          // Anonymous user - use Supabase data directly
+          console.log('🔒 [ItemsContext] Anonymous user, using Supabase data');
+          setItems(supabaseItems);
           
-          const [storedItems, storedGoals] = await Promise.all([
-            StorageService.loadItems().catch(error => {
-              console.error('❌ [ItemsContext] Failed to load items:', error);
-              return [];
-            }),
-            StorageService.loadGoals().catch(error => {
-              console.error('❌ [ItemsContext] Failed to load goals:', error);
-              return [];
-            })
-          ]);
-
-          // Validate loaded items
-          const validItems = Array.isArray(storedItems) ? storedItems.filter(item => {
-            try {
-              return item && typeof item === 'object' && item.id && item.timestamp instanceof Date;
-            } catch (error) {
-              console.error('❌ [ItemsContext] Invalid item found:', item, error);
-              return false;
-            }
-          }) : [];
-
-          setItems(validItems);
-          
-          // Use stored goals or create defaults if none exist
-          if (Array.isArray(storedGoals) && storedGoals.length > 0) {
-            const validGoals = storedGoals.filter(goal => {
-              try {
-                return goal && typeof goal === 'object' && goal.id;
-              } catch (error) {
-                console.error('❌ [ItemsContext] Invalid goal found:', goal, error);
-                return false;
+          // If no Supabase data, try to load and sync local data
+          if (supabaseItems.length === 0) {
+            console.log('📦 [ItemsContext] No anonymous Supabase data, checking local data');
+            const localItems = await StorageService.loadItems();
+            
+            if (localItems.length > 0) {
+              console.log('🔄 [ItemsContext] Syncing local data to anonymous Supabase');
+              // Save each local item as anonymous
+              for (const item of localItems) {
+                await SupabaseService.saveWasteItem(item);
               }
-            });
-            setGoals(validGoals);
-          } else {
-            const defaultGoals = createDefaultGoals();
-            setGoals(defaultGoals);
-            await StorageService.saveGoals(defaultGoals);
+              // Reload from Supabase after sync
+              const syncedItems = await SupabaseService.getUserWasteItems();
+              setItems(syncedItems);
+            }
           }
+        }
+        
+        // Load goals (for now, use local storage until we implement Supabase goals)
+        const storedGoals = await StorageService.loadGoals();
+        if (storedGoals.length > 0) {
+          setGoals(storedGoals);
+        } else {
+          const defaultGoals = createDefaultGoals();
+          setGoals(defaultGoals);
+          await StorageService.saveGoals(defaultGoals);
         }
 
         console.log('✅ [ItemsContext] Data loaded successfully');
@@ -179,10 +159,26 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ [ItemsContext] Failed to load data:', error);
         setError('Failed to load data');
         
-        // Initialize with defaults on error
-        const defaultGoals = createDefaultGoals();
-        setGoals(defaultGoals);
-        setItems([]);
+        // Fallback to local storage on error
+        try {
+          const localItems = await StorageService.loadItems();
+          setItems(localItems);
+          
+          const localGoals = await StorageService.loadGoals();
+          if (localGoals.length > 0) {
+            setGoals(localGoals);
+          } else {
+            const defaultGoals = createDefaultGoals();
+            setGoals(defaultGoals);
+            await StorageService.saveGoals(defaultGoals);
+          }
+        } catch (fallbackError) {
+          console.error('❌ [ItemsContext] Fallback to local storage failed:', fallbackError);
+          // Initialize with defaults on complete failure
+          const defaultGoals = createDefaultGoals();
+          setGoals(defaultGoals);
+          setItems([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -477,17 +473,15 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         hasAiAnalysis: !!newItem.aiAnalysis
       });
       
-      // Save to Supabase if user is authenticated
-      if (user) {
-        console.log('💾 [ItemsContext] Saving item to Supabase...');
-        const supabaseItem = await SupabaseService.saveWasteItem(newItem);
-        if (supabaseItem) {
-          // Update the item ID with the Supabase ID
-          newItem.id = supabaseItem.id;
-          console.log('✅ [ItemsContext] Item saved to Supabase with ID:', newItem.id);
-        } else {
-          console.warn('⚠️ [ItemsContext] Failed to save to Supabase, keeping local item');
-        }
+      // Save to Supabase (works for both authenticated and anonymous users)
+      console.log('💾 [ItemsContext] Saving item to Supabase...');
+      const supabaseItem = await SupabaseService.saveWasteItem(newItem);
+      if (supabaseItem) {
+        // Update the item ID with the Supabase ID
+        newItem.id = supabaseItem.id;
+        console.log('✅ [ItemsContext] Item saved to Supabase with ID:', newItem.id);
+      } else {
+        console.warn('⚠️ [ItemsContext] Failed to save to Supabase, keeping local item');
       }
       
       setItems(prev => {
@@ -533,7 +527,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       };
       return fallbackItem;
     }
-  }, [user]);
+  }, []);
 
   // Remove item with error handling
   const removeItem = useCallback(async (id: string) => {
@@ -547,15 +541,13 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       // Find the item to be removed to get its weight
       const itemToRemove = items.find(item => item.id === id);
       
-      // Delete from Supabase if user is authenticated
-      if (user && itemToRemove) {
-        console.log('🗑️ [ItemsContext] Deleting item from Supabase...');
-        const deleted = await SupabaseService.deleteWasteItem(id);
-        if (deleted) {
-          console.log('✅ [ItemsContext] Item deleted from Supabase');
-        } else {
-          console.warn('⚠️ [ItemsContext] Failed to delete from Supabase, removing locally');
-        }
+      // Delete from Supabase (works for both authenticated and anonymous users)
+      console.log('🗑️ [ItemsContext] Deleting item from Supabase...');
+      const deleted = await SupabaseService.deleteWasteItem(id);
+      if (deleted) {
+        console.log('✅ [ItemsContext] Item deleted from Supabase');
+      } else {
+        console.warn('⚠️ [ItemsContext] Failed to delete from Supabase, removing locally');
       }
       
       setItems(prev => {
@@ -594,7 +586,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       console.error('❌ [ItemsContext] Failed to remove item:', error);
       setError('Failed to remove item');
     }
-  }, [items, user]);
+  }, [items]);
 
   // Update goal with error handling
   const updateGoal = useCallback((goal: WasteGoal) => {
@@ -641,11 +633,9 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      if (user) {
-        // Reload from Supabase
-        const supabaseItems = await SupabaseService.getUserWasteItems();
-        setItems(supabaseItems);
-      }
+      // Reload from Supabase (works for both authenticated and anonymous users)
+      const supabaseItems = await SupabaseService.getUserWasteItems();
+      setItems(supabaseItems);
       
       setLastUpdate(new Date());
       const newStats = calculateStats();
@@ -659,7 +649,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       setError('Failed to refresh data');
       setLoading(false);
     }
-  }, [calculateStats, user]);
+  }, [calculateStats]);
 
   // Clear error
   const clearError = useCallback(() => {
