@@ -96,7 +96,6 @@ export class SupabaseService {
       }
     }
     
-    console.log('🔑 [SupabaseService] Using anonymous ID:', anonymousId);
     return anonymousId;
   }
 
@@ -211,11 +210,6 @@ export class SupabaseService {
         return [];
       }
 
-      if (!data) {
-        console.log('📂 [SupabaseService] No data returned from query');
-        return [];
-      }
-
       // Convert Supabase data to WasteEntry format
       const wasteEntries: WasteEntry[] = data.map((item: SupabaseWasteItem) => ({
         id: item.id,
@@ -261,44 +255,17 @@ export class SupabaseService {
       const anonymousId = this.getAnonymousId();
       console.log('🔄 [SupabaseService] Associating anonymous scans with user account...');
 
-      // Check if there are any anonymous scans to associate
-      const { data: anonymousItems, error: checkError } = await supabase
-        .from('waste_items')
-        .select('id')
-        .eq('anonymous_id', anonymousId)
-        .is('user_id', null);
-
-      if (checkError) {
-        console.error('❌ [SupabaseService] Error checking for anonymous scans:', checkError);
-        return false;
-      }
-
-      if (!anonymousItems || anonymousItems.length === 0) {
-        console.log('ℹ️ [SupabaseService] No anonymous scans found to associate');
-        return true;
-      }
-
-      console.log(`🔄 [SupabaseService] Found ${anonymousItems.length} anonymous scans to associate`);
-
-      // Update anonymous scans to be associated with the user
-      const { data, error } = await supabase
-        .from('waste_items')
-        .update({ 
-          user_id: user.id,
-          anonymous_id: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('anonymous_id', anonymousId)
-        .is('user_id', null)
-        .select('id');
+      const { data, error } = await supabase.rpc('associate_anonymous_scans', {
+        p_user_id: user.id,
+        p_anonymous_id: anonymousId
+      });
 
       if (error) {
         console.error('❌ [SupabaseService] Error associating anonymous scans:', error);
         return false;
       }
 
-      const associatedCount = data?.length || 0;
-      console.log(`✅ [SupabaseService] Associated ${associatedCount} anonymous scans with user account`);
+      console.log(`✅ [SupabaseService] Associated ${data} anonymous scans with user account`);
       
       // Clear the anonymous ID since scans are now associated with the user
       try {
@@ -527,8 +494,6 @@ export class SupabaseService {
    */
   static async deleteWasteItem(itemId: string): Promise<boolean> {
     try {
-      console.log('🗑️ [SupabaseService] Deleting waste item:', itemId);
-      
       const { data: { user } } = await supabase.auth.getUser();
       
       let query = supabase
@@ -539,12 +504,10 @@ export class SupabaseService {
       if (user) {
         // Authenticated user
         query = query.eq('user_id', user.id);
-        console.log('👤 [SupabaseService] Deleting as authenticated user');
       } else {
         // Anonymous user
         const anonymousId = this.getAnonymousId();
         query = query.eq('anonymous_id', anonymousId);
-        console.log('🔒 [SupabaseService] Deleting as anonymous user:', anonymousId);
       }
 
       const { error } = await query;

@@ -87,107 +87,82 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items]);
 
-  // Load data from Supabase on mount and when user changes
+  // Load data from storage/Supabase on mount
   useEffect(() => {
     const loadData = async () => {
-      console.log('🔄 [ItemsContext] Loading data from Supabase...');
+      console.log('🔄 [ItemsContext] Loading data...');
       setLoading(true);
       setError(null);
       
       try {
-        // Always load from Supabase first (works for both authenticated and anonymous users)
-        console.log('📦 [ItemsContext] Loading waste items from Supabase...');
+        // Always try to load from Supabase first (works for both authenticated and anonymous users)
+        console.log('📦 [ItemsContext] Loading from Supabase...');
         const supabaseItems = await SupabaseService.getUserWasteItems();
         
-        console.log(`✅ [ItemsContext] Loaded ${supabaseItems.length} items from Supabase`);
-        setItems(supabaseItems);
-        
         if (user) {
-          // User is authenticated - try to associate any anonymous scans
-          console.log('👤 [ItemsContext] User authenticated, checking for anonymous scans to associate');
-          try {
-            await SupabaseService.associateAnonymousScans();
-            
-            // Reload items after potential association
-            const updatedItems = await SupabaseService.getUserWasteItems();
-            console.log(`🔄 [ItemsContext] After association: ${updatedItems.length} items`);
-            setItems(updatedItems);
-          } catch (associationError) {
-            console.warn('⚠️ [ItemsContext] Failed to associate anonymous scans:', associationError);
-            // Continue with existing items if association fails
-          }
+          // User is authenticated - associate any anonymous scans
+          console.log('👤 [ItemsContext] User authenticated, associating anonymous scans');
+          await SupabaseService.associateAnonymousScans();
+          
+          // Reload items after association
+          const updatedItems = await SupabaseService.getUserWasteItems();
+          setItems(updatedItems);
           
           // If no Supabase data after association, try to sync local data
-          if (supabaseItems.length === 0) {
+          if (updatedItems.length === 0) {
             console.log('📦 [ItemsContext] No Supabase data, checking for local data to sync');
-            try {
-              const localItems = await StorageService.loadItems();
-              
-              if (localItems.length > 0) {
-                console.log(`🔄 [ItemsContext] Found ${localItems.length} local items, syncing to Supabase`);
-                await SupabaseService.syncLocalDataToSupabase(localItems);
-                
-                // Reload from Supabase after sync
-                const syncedItems = await SupabaseService.getUserWasteItems();
-                console.log(`✅ [ItemsContext] After sync: ${syncedItems.length} items`);
-                setItems(syncedItems);
-              }
-            } catch (syncError) {
-              console.warn('⚠️ [ItemsContext] Failed to sync local data:', syncError);
+            const localItems = await StorageService.loadItems();
+            
+            if (localItems.length > 0) {
+              console.log('🔄 [ItemsContext] Syncing local data to Supabase');
+              await SupabaseService.syncLocalDataToSupabase(localItems);
+              // Reload from Supabase after sync
+              const syncedItems = await SupabaseService.getUserWasteItems();
+              setItems(syncedItems);
             }
           }
         } else {
-          // Anonymous user - if no Supabase data, try to load and sync local data
+          // Anonymous user - use Supabase data directly
+          console.log('🔒 [ItemsContext] Anonymous user, using Supabase data');
+          setItems(supabaseItems);
+          
+          // If no Supabase data, try to load and sync local data
           if (supabaseItems.length === 0) {
             console.log('📦 [ItemsContext] No anonymous Supabase data, checking local data');
-            try {
-              const localItems = await StorageService.loadItems();
-              
-              if (localItems.length > 0) {
-                console.log(`🔄 [ItemsContext] Found ${localItems.length} local items, syncing to anonymous Supabase`);
-                // Save each local item as anonymous
-                for (const item of localItems) {
-                  await SupabaseService.saveWasteItem(item);
-                }
-                
-                // Reload from Supabase after sync
-                const syncedItems = await SupabaseService.getUserWasteItems();
-                console.log(`✅ [ItemsContext] After anonymous sync: ${syncedItems.length} items`);
-                setItems(syncedItems);
+            const localItems = await StorageService.loadItems();
+            
+            if (localItems.length > 0) {
+              console.log('🔄 [ItemsContext] Syncing local data to anonymous Supabase');
+              // Save each local item as anonymous
+              for (const item of localItems) {
+                await SupabaseService.saveWasteItem(item);
               }
-            } catch (syncError) {
-              console.warn('⚠️ [ItemsContext] Failed to sync local data for anonymous user:', syncError);
+              // Reload from Supabase after sync
+              const syncedItems = await SupabaseService.getUserWasteItems();
+              setItems(syncedItems);
             }
           }
         }
         
         // Load goals (for now, use local storage until we implement Supabase goals)
-        try {
-          const storedGoals = await StorageService.loadGoals();
-          if (storedGoals.length > 0) {
-            setGoals(storedGoals);
-          } else {
-            const defaultGoals = createDefaultGoals();
-            setGoals(defaultGoals);
-            await StorageService.saveGoals(defaultGoals);
-          }
-        } catch (goalsError) {
-          console.warn('⚠️ [ItemsContext] Failed to load goals:', goalsError);
+        const storedGoals = await StorageService.loadGoals();
+        if (storedGoals.length > 0) {
+          setGoals(storedGoals);
+        } else {
           const defaultGoals = createDefaultGoals();
           setGoals(defaultGoals);
+          await StorageService.saveGoals(defaultGoals);
         }
 
-        console.log('✅ [ItemsContext] Data loading completed successfully');
+        console.log('✅ [ItemsContext] Data loaded successfully');
       } catch (error) {
-        console.error('❌ [ItemsContext] Failed to load data from Supabase:', error);
-        setError('Failed to load data from server');
+        console.error('❌ [ItemsContext] Failed to load data:', error);
+        setError('Failed to load data');
         
         // Fallback to local storage on error
         try {
-          console.log('🔄 [ItemsContext] Falling back to local storage...');
           const localItems = await StorageService.loadItems();
           setItems(localItems);
-          console.log(`📦 [ItemsContext] Loaded ${localItems.length} items from local storage`);
           
           const localGoals = await StorageService.loadGoals();
           if (localGoals.length > 0) {
@@ -210,11 +185,11 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadData();
-  }, [user]); // Re-run when user authentication state changes
+  }, [user]);
 
-  // Save items to local storage as backup whenever items change
+  // Save items to storage whenever items change (for local backup)
   useEffect(() => {
-    if (!loading && Array.isArray(items) && items.length > 0) {
+    if (!loading && Array.isArray(items)) {
       StorageService.saveItems(items).catch(error => {
         console.error('❌ [ItemsContext] Failed to save items to local storage:', error);
       });
