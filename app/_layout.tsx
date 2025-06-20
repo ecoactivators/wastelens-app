@@ -61,6 +61,47 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+  // Check if user has completed onboarding
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        // Check if user has completed onboarding (including the checkbox option)
+        const hasCompletedOnboarding = await StorageService.hasCompletedOnboarding();
+        
+        if (fontsLoaded || fontError) {
+          if (!hasCompletedOnboarding) {
+            console.log('🎯 [RootLayout] User has not completed onboarding, showing onboarding flow');
+            router.replace('/onboarding');
+          } else {
+            console.log('🎯 [RootLayout] User has completed onboarding, going to camera');
+            // Request location permission when app starts for returning users
+            try {
+              console.log('🚀 [RootLayout] Requesting location permission for returning user...');
+              const granted = await LocationService.requestLocationPermission();
+              if (granted) {
+                console.log('✅ [RootLayout] Location permission granted');
+                await LocationService.getCurrentLocation();
+              }
+            } catch (error) {
+              console.error('❌ [RootLayout] Error requesting location permission:', error);
+            }
+            
+            // Navigate directly to camera for returning users
+            router.replace('/camera');
+          }
+        }
+      } catch (error) {
+        console.error('❌ [RootLayout] Error checking onboarding status:', error);
+        // Default to showing onboarding on error
+        if (fontsLoaded || fontError) {
+          router.replace('/onboarding');
+        }
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [fontsLoaded, fontError]);
+
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -69,69 +110,9 @@ export default function RootLayout() {
     <ThemeProvider>
       <AuthProvider>
         <ItemsProvider>
-          <AuthNavigationHandler />
+          <RootLayoutContent />
         </ItemsProvider>
       </AuthProvider>
     </ThemeProvider>
   );
-}
-
-// Separate component to handle navigation logic with access to auth context
-function AuthNavigationHandler() {
-  const [navigationReady, setNavigationReady] = useState(false);
-
-  useEffect(() => {
-    const handleNavigation = async () => {
-      try {
-        // Wait a bit for auth to initialize
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Check authentication status first
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          console.log('✅ [RootLayout] User is authenticated, going to camera');
-          // Request location permission for authenticated users
-          try {
-            const granted = await LocationService.requestLocationPermission();
-            if (granted) {
-              await LocationService.getCurrentLocation();
-            }
-          } catch (error) {
-            console.error('❌ [RootLayout] Error requesting location permission:', error);
-          }
-          
-          router.replace('/camera');
-        } else {
-          console.log('🎯 [RootLayout] User not authenticated, checking onboarding status');
-          // Check if user has completed onboarding (for guest users)
-          const hasCompletedOnboarding = await StorageService.hasCompletedOnboarding();
-          
-          if (!hasCompletedOnboarding) {
-            console.log('🎯 [RootLayout] User has not completed onboarding, showing onboarding flow');
-            router.replace('/onboarding');
-          } else {
-            console.log('🎯 [RootLayout] Guest user has completed onboarding, going to camera');
-            router.replace('/camera');
-          }
-        }
-        
-        setNavigationReady(true);
-      } catch (error) {
-        console.error('❌ [RootLayout] Error in navigation handler:', error);
-        // Default to onboarding on error
-        router.replace('/onboarding');
-        setNavigationReady(true);
-      }
-    };
-
-    handleNavigation();
-  }, []);
-
-  // Don't render anything until navigation is determined
-  if (!navigationReady) {
-    return null;
-  }
-
-  return <RootLayoutContent />;
 }
