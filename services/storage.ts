@@ -98,7 +98,14 @@ export class StorageService {
         try {
           return {
             ...item,
-            timestamp: item.timestamp instanceof Date ? item.timestamp.toISOString() : new Date().toISOString()
+            timestamp: item.timestamp instanceof Date ? item.timestamp.toISOString() : new Date().toISOString(),
+            // Ensure AI analysis data is preserved
+            aiAnalysis: item.aiAnalysis ? {
+              ...item.aiAnalysis,
+              // Ensure all fields are serializable
+              suggestions: Array.isArray(item.aiAnalysis.suggestions) ? item.aiAnalysis.suggestions : [],
+              mapSuggestions: Array.isArray(item.aiAnalysis.mapSuggestions) ? item.aiAnalysis.mapSuggestions : undefined,
+            } : undefined
           };
         } catch (error) {
           console.error('❌ [StorageService] Error serializing item:', item, error);
@@ -107,7 +114,7 @@ export class StorageService {
       }).filter(item => item !== null));
 
       await storage.setItem(ITEMS_KEY, serializedItems);
-      console.log('💾 [StorageService] Saved', items.length, 'items to storage');
+      console.log('💾 [StorageService] Saved', items.length, 'items to storage with AI analysis data');
     } catch (error) {
       console.error('❌ [StorageService] Failed to save items:', error);
       // Don't throw error to prevent app crashes
@@ -141,7 +148,16 @@ export class StorageService {
         try {
           return {
             ...item,
-            timestamp: item.timestamp ? new Date(item.timestamp) : new Date()
+            timestamp: item.timestamp ? new Date(item.timestamp) : new Date(),
+            // Preserve AI analysis data when loading
+            aiAnalysis: item.aiAnalysis ? {
+              environmentScore: typeof item.aiAnalysis.environmentScore === 'number' ? item.aiAnalysis.environmentScore : 5,
+              carbonFootprint: typeof item.aiAnalysis.carbonFootprint === 'number' ? item.aiAnalysis.carbonFootprint : 0.1,
+              suggestions: Array.isArray(item.aiAnalysis.suggestions) ? item.aiAnalysis.suggestions : [],
+              mapSuggestions: Array.isArray(item.aiAnalysis.mapSuggestions) ? item.aiAnalysis.mapSuggestions : undefined,
+              confidence: typeof item.aiAnalysis.confidence === 'number' ? item.aiAnalysis.confidence : 0.5,
+              material: typeof item.aiAnalysis.material === 'string' ? item.aiAnalysis.material : 'Mixed Material',
+            } : undefined
           };
         } catch (error) {
           console.error('❌ [StorageService] Error deserializing item:', item, error);
@@ -149,7 +165,7 @@ export class StorageService {
         }
       }).filter((item: any) => item !== null);
 
-      console.log('📂 [StorageService] Loaded', items.length, 'items from storage');
+      console.log('📂 [StorageService] Loaded', items.length, 'items from storage with AI analysis data');
       return items;
     } catch (error) {
       console.error('❌ [StorageService] Failed to load items:', error);

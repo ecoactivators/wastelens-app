@@ -274,7 +274,7 @@ export default function AnalysisScreen() {
           compostable: analysis.compostable,
         });
 
-        // Add item to the ItemsContext
+        // Add item to the ItemsContext with AI analysis data
         const newItem = addItem({
           type: wasteType,
           category: category,
@@ -283,9 +283,18 @@ export default function AnalysisScreen() {
           imageUrl: photoUri,
           recyclable: analysis.recyclable,
           compostable: analysis.compostable,
+          // Save the complete AI analysis with the item
+          aiAnalysis: {
+            environmentScore: analysis.environmentScore,
+            carbonFootprint: analysis.carbonFootprint,
+            suggestions: analysis.suggestions,
+            mapSuggestions: analysis.mapSuggestions,
+            confidence: analysis.confidence || 0.5,
+            material: analysis.material,
+          }
         });
 
-        console.log('✅ [AnalysisScreen] Item added successfully:', newItem);
+        console.log('✅ [AnalysisScreen] Item added successfully with AI analysis:', newItem);
 
         // Trigger success vibration instead of showing alert
         triggerSuccessVibration();

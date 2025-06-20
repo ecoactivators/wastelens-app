@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Trash2, Package, Weight, Calendar, Recycle, Leaf, MapPin } from 'lucide-react-native';
+import { ArrowLeft, Trash2, Package, Weight, Calendar, Recycle, Leaf, MapPin, Sparkles, ExternalLink } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useItems } from '@/contexts/ItemsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { WasteType } from '@/types/waste';
+import { MapsService } from '@/services/maps';
 
 const wasteTypeColors: Record<WasteType, string> = {
   [WasteType.FOOD]: '#f59e0b',
@@ -18,6 +19,12 @@ const wasteTypeColors: Record<WasteType, string> = {
   [WasteType.TEXTILE]: '#ec4899',
   [WasteType.ORGANIC]: '#10b981',
   [WasteType.HAZARDOUS]: '#dc2626',
+  [WasteType.PLASTIC_FILM]: '#3b82f6',
+  [WasteType.BATTERIES]: '#dc2626',
+  [WasteType.LIGHT_BULBS]: '#f59e0b',
+  [WasteType.PAINT]: '#dc2626',
+  [WasteType.CERAMICS]: '#8b5cf6',
+  [WasteType.CHIP_BAGS]: '#64748b',
   [WasteType.OTHER]: '#64748b',
 };
 
@@ -62,6 +69,20 @@ export default function ItemDetailScreen() {
     );
   };
 
+  const handleMapSuggestionPress = async (mapSuggestion: any) => {
+    try {
+      console.log('🗺️ [ItemDetailScreen] Opening map suggestion:', mapSuggestion.searchQuery);
+      await MapsService.openMapSuggestion(mapSuggestion);
+    } catch (error) {
+      console.error('❌ [ItemDetailScreen] Error opening maps:', error);
+      Alert.alert(
+        'Unable to Open Maps',
+        'Could not open the maps application. Please search for the location manually.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -83,6 +104,43 @@ export default function ItemDetailScreen() {
       return item.description;
     }
     return item.type.charAt(0).toUpperCase() + item.type.slice(1);
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 7) return '#10b981';
+    if (score >= 4) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  const getScoreGradient = (score: number) => {
+    if (score >= 7) return ['#10b981', '#059669'];
+    if (score >= 4) return ['#f59e0b', '#d97706'];
+    return ['#ef4444', '#dc2626'];
+  };
+
+  const renderSuggestionWithMapButton = (suggestion: string, index: number) => {
+    const mapSuggestion = item.aiAnalysis?.mapSuggestions?.find(ms => ms.text === suggestion);
+    
+    return (
+      <View key={index} style={styles.suggestionItem}>
+        <View style={[styles.suggestionDot, { backgroundColor: theme.colors.primary }]} />
+        <View style={styles.suggestionContent}>
+          <Text style={[styles.suggestionText, { color: theme.colors.textSecondary }]}>
+            {suggestion}
+          </Text>
+          {mapSuggestion && (
+            <TouchableOpacity
+              style={[styles.mapButton, { backgroundColor: theme.colors.primary }]}
+              onPress={() => handleMapSuggestionPress(mapSuggestion)}
+            >
+              <MapPin size={14} color={theme.colors.surface} />
+              <Text style={[styles.mapButtonText, { color: theme.colors.surface }]}>Open in Maps</Text>
+              <ExternalLink size={12} color={theme.colors.surface} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
   };
 
   return (
@@ -133,7 +191,7 @@ export default function ItemDetailScreen() {
             {item.recyclable && (
               <View style={[styles.propertyBadge, styles.recyclableBadge]}>
                 <Recycle size={16} color="#10b981" />
-                <Text style={styles.recyclableText}>Recyclable</Text>
+                <Text style={styles.recyclableText}>Recycling Bin</Text>
               </View>
             )}
             {item.compostable && (
@@ -143,8 +201,8 @@ export default function ItemDetailScreen() {
               </View>
             )}
             {!item.recyclable && !item.compostable && (
-              <View style={[styles.propertyBadge, styles.landfillBadge]}>
-                <Text style={styles.landfillText}>Landfill</Text>
+              <View style={[styles.propertyBadge, styles.specialBadge]}>
+                <Text style={styles.specialText}>Special Handling</Text>
               </View>
             )}
           </View>
@@ -187,6 +245,43 @@ export default function ItemDetailScreen() {
             )}
           </View>
 
+          {/* AI Analysis Section - Only show if available */}
+          {item.aiAnalysis && (
+            <>
+              {/* Environment Score */}
+              <View style={styles.scoreSection}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Environmental Score</Text>
+                <View style={[styles.scoreCard, { backgroundColor: theme.colors.background }]}>
+                  <View style={styles.scoreHeader}>
+                    <Sparkles size={20} color={getScoreColor(item.aiAnalysis.environmentScore)} />
+                    <Text style={[styles.scoreTitle, { color: theme.colors.text }]}>Environment Score</Text>
+                    <Text style={[styles.scoreValue, { color: getScoreColor(item.aiAnalysis.environmentScore) }]}>
+                      {item.aiAnalysis.environmentScore}/10
+                    </Text>
+                  </View>
+                  <View style={[styles.scoreBarContainer, { backgroundColor: theme.colors.border }]}>
+                    <LinearGradient
+                      colors={getScoreGradient(item.aiAnalysis.environmentScore)}
+                      style={[styles.scoreBar, { width: `${item.aiAnalysis.environmentScore * 10}%` }]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Smart Disposal Guide - Show saved AI recommendations */}
+              <View style={styles.disposalSection}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Smart Disposal Guide</Text>
+                <View style={[styles.disposalCard, { backgroundColor: theme.colors.background }]}>
+                  {item.aiAnalysis.suggestions.map((suggestion, index) => 
+                    renderSuggestionWithMapButton(suggestion, index)
+                  )}
+                </View>
+              </View>
+            </>
+          )}
+
           {/* Environmental Impact */}
           <View style={styles.impactSection}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Environmental Impact</Text>
@@ -200,52 +295,63 @@ export default function ItemDetailScreen() {
               <View style={styles.impactRow}>
                 <Text style={[styles.impactLabel, { color: theme.colors.textSecondary }]}>CO₂ Impact</Text>
                 <Text style={[styles.impactValue, { color: theme.colors.success }]}>
-                  {(item.weight * 0.0005).toFixed(3)}kg saved
+                  {item.aiAnalysis ? 
+                    `${item.aiAnalysis.carbonFootprint}kg saved` : 
+                    `${(item.weight * 0.0005).toFixed(3)}kg saved`
+                  }
+                </Text>
+              </View>
+              <View style={styles.impactRow}>
+                <Text style={[styles.impactLabel, { color: theme.colors.textSecondary }]}>Material</Text>
+                <Text style={[styles.impactValue, { color: theme.colors.text }]}>
+                  {item.aiAnalysis?.material || 'Mixed Material'}
                 </Text>
               </View>
               <View style={styles.impactRow}>
                 <Text style={[styles.impactLabel, { color: theme.colors.textSecondary }]}>Disposal Method</Text>
                 <Text style={[styles.impactValue, { color: theme.colors.text }]}>
-                  {item.recyclable ? 'Recycling Bin' : item.compostable ? 'Compost Bin' : 'General Waste'}
+                  {item.recyclable ? 'Recycling Bin' : item.compostable ? 'Compost Bin' : 'Special Handling'}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Tips Section */}
-          <View style={styles.tipsSection}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Disposal Tips</Text>
-            <View style={[styles.tipsCard, { backgroundColor: theme.colors.background }]}>
-              {item.recyclable && (
+          {/* General Tips Section - Only show if no AI analysis */}
+          {!item.aiAnalysis && (
+            <View style={styles.tipsSection}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Disposal Tips</Text>
+              <View style={[styles.tipsCard, { backgroundColor: theme.colors.background }]}>
+                {item.recyclable && (
+                  <View style={styles.tipItem}>
+                    <View style={[styles.tipBullet, { backgroundColor: theme.colors.success }]} />
+                    <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                      Clean the item before placing in recycling bin
+                    </Text>
+                  </View>
+                )}
+                {item.compostable && (
+                  <View style={styles.tipItem}>
+                    <View style={[styles.tipBullet, { backgroundColor: theme.colors.warning }]} />
+                    <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+                      Add to compost bin or home composting system
+                    </Text>
+                  </View>
+                )}
                 <View style={styles.tipItem}>
-                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.success }]} />
+                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
                   <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                    Clean the item before placing in recycling bin
+                    Check local waste management guidelines for specific disposal rules
                   </Text>
                 </View>
-              )}
-              {item.compostable && (
                 <View style={styles.tipItem}>
-                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.warning }]} />
+                  <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
                   <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                    Add to compost bin or home composting system
+                    Consider reusable alternatives for future purchases
                   </Text>
                 </View>
-              )}
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Check local waste management guidelines for specific disposal rules
-                </Text>
-              </View>
-              <View style={styles.tipItem}>
-                <View style={[styles.tipBullet, { backgroundColor: theme.colors.primary }]} />
-                <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                  Consider reusable alternatives for future purchases
-                </Text>
               </View>
             </View>
-          </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -382,13 +488,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#f59e0b',
   },
-  landfillBadge: {
-    backgroundColor: '#fee2e2',
+  specialBadge: {
+    backgroundColor: '#e0e7ff',
   },
-  landfillText: {
+  specialText: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-    color: '#dc2626',
+    color: '#3b82f6',
   },
   detailsGrid: {
     gap: 16,
@@ -417,13 +523,85 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 14,
   },
-  impactSection: {
+  scoreSection: {
     marginBottom: 32,
   },
   sectionTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 20,
     marginBottom: 16,
+  },
+  scoreCard: {
+    borderRadius: 16,
+    padding: 20,
+  },
+  scoreHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  scoreTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    marginLeft: 8,
+    flex: 1,
+  },
+  scoreValue: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+  },
+  scoreBarContainer: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  scoreBar: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  disposalSection: {
+    marginBottom: 32,
+  },
+  disposalCard: {
+    borderRadius: 16,
+    padding: 20,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  suggestionDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 6,
+    marginRight: 12,
+  },
+  suggestionContent: {
+    flex: 1,
+  },
+  suggestionText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  mapButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+  },
+  impactSection: {
+    marginBottom: 32,
   },
   impactCard: {
     borderRadius: 16,

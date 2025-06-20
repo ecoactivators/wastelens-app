@@ -9,6 +9,21 @@ export interface WasteEntry {
   location?: string;
   recyclable: boolean;
   compostable: boolean;
+  // AI Analysis data - saved with the item
+  aiAnalysis?: {
+    environmentScore: number;
+    carbonFootprint: number;
+    suggestions: string[];
+    mapSuggestions?: MapSuggestion[];
+    confidence: number;
+    material: string;
+  };
+}
+
+export interface MapSuggestion {
+  text: string;
+  searchQuery: string;
+  type: 'recycling_center' | 'store' | 'facility';
 }
 
 export enum WasteType {
