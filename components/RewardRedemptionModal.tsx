@@ -4,15 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Reward, ShippingAddress } from '@/types/rewards';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Star, Package, Truck, Gift, Sparkles, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { X, Star, Package, Truck, Gift, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { RewardsService } from '@/services/rewards';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  withSequence,
-  withDelay
-} from 'react-native-reanimated';
 
 interface RewardRedemptionModalProps {
   visible: boolean;
@@ -30,7 +23,7 @@ export function RewardRedemptionModal({
   onRedeem 
 }: RewardRedemptionModalProps) {
   const { theme } = useTheme();
-  const [step, setStep] = useState<'details' | 'address' | 'celebration'>('details');
+  const [step, setStep] = useState<'details' | 'address' | 'confirmation'>('details');
   const [address, setAddress] = useState<ShippingAddress>({
     fullName: '',
     addressLine1: '',
@@ -42,11 +35,6 @@ export function RewardRedemptionModal({
     phoneNumber: ''
   });
   const [errors, setErrors] = useState<string[]>([]);
-  
-  // Animation values
-  const celebrationScale = useSharedValue(0);
-  const sparkleOpacity = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
 
   if (!reward) return null;
 
@@ -69,21 +57,10 @@ export function RewardRedemptionModal({
     }
     
     setErrors([]);
-    setStep('celebration');
+    setStep('confirmation');
     
-    // Start celebration animation
-    celebrationScale.value = withSpring(1, { damping: 15, stiffness: 200 });
-    sparkleOpacity.value = withDelay(300, withSequence(
-      withSpring(1),
-      withSpring(0.7),
-      withSpring(1)
-    ));
-    contentOpacity.value = withDelay(600, withSpring(1));
-    
-    // Call the redeem function after a short delay
-    setTimeout(() => {
-      onRedeem(reward, address);
-    }, 2000);
+    // Call the redeem function immediately
+    onRedeem(reward, address);
   };
 
   const handleClose = () => {
@@ -99,23 +76,8 @@ export function RewardRedemptionModal({
       phoneNumber: ''
     });
     setErrors([]);
-    celebrationScale.value = 0;
-    sparkleOpacity.value = 0;
-    contentOpacity.value = 0;
     onClose();
   };
-
-  const celebrationAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: celebrationScale.value }],
-  }));
-
-  const sparkleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: sparkleOpacity.value,
-  }));
-
-  const contentAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -344,76 +306,65 @@ export function RewardRedemptionModal({
     </ScrollView>
   );
 
-  const renderCelebrationStep = () => (
-    <View style={styles.celebrationContainer}>
-      {/* Success Animation */}
-      <View style={styles.animationContainer}>
-        <Animated.View style={[styles.celebrationIcon, celebrationAnimatedStyle]}>
-          <LinearGradient
-            colors={['#10b981', '#059669']}
-            style={styles.celebrationGradient}
-          >
-            <Gift size={48} color="#ffffff" strokeWidth={2} />
-          </LinearGradient>
-        </Animated.View>
+  const renderConfirmationStep = () => (
+    <View style={styles.confirmationContainer}>
+      <View style={styles.confirmationContent}>
+        <View style={[styles.confirmationIcon, { backgroundColor: theme.colors.success }]}>
+          <CheckCircle size={48} color="#ffffff" strokeWidth={2} />
+        </View>
 
-        {/* Sparkles */}
-        <Animated.View style={[styles.sparkle, styles.sparkle1, sparkleAnimatedStyle]}>
-          <Sparkles size={20} color="#f59e0b" />
-        </Animated.View>
-        <Animated.View style={[styles.sparkle, styles.sparkle2, sparkleAnimatedStyle]}>
-          <Sparkles size={16} color="#3b82f6" />
-        </Animated.View>
-        <Animated.View style={[styles.sparkle, styles.sparkle3, sparkleAnimatedStyle]}>
-          <Sparkles size={18} color="#8b5cf6" />
-        </Animated.View>
-      </View>
-
-      {/* Celebration Content */}
-      <Animated.View style={[styles.celebrationContent, contentAnimatedStyle]}>
-        <Text style={[styles.celebrationTitle, { color: theme.colors.text }]}>
-          Reward Redeemed! 🎉
+        <Text style={[styles.confirmationTitle, { color: theme.colors.text }]}>
+          Order Confirmed!
         </Text>
-        <Text style={[styles.celebrationSubtitle, { color: theme.colors.textSecondary }]}>
+        <Text style={[styles.confirmationSubtitle, { color: theme.colors.textSecondary }]}>
           Your {reward.title} will be shipped to you within {reward.estimatedDelivery}.
         </Text>
 
-        <View style={[styles.celebrationDetails, { backgroundColor: theme.colors.background }]}>
-          <View style={styles.celebrationRow}>
-            <Text style={[styles.celebrationLabel, { color: theme.colors.textSecondary }]}>
+        <View style={[styles.confirmationDetails, { backgroundColor: theme.colors.background }]}>
+          <View style={styles.confirmationRow}>
+            <Text style={[styles.confirmationLabel, { color: theme.colors.textSecondary }]}>
               Points Used:
             </Text>
-            <View style={styles.celebrationPoints}>
+            <View style={styles.confirmationPoints}>
               <Star size={16} color="#f59e0b" fill="#f59e0b" />
-              <Text style={[styles.celebrationValue, { color: theme.colors.text }]}>
+              <Text style={[styles.confirmationValue, { color: theme.colors.text }]}>
                 {reward.pointsCost}
               </Text>
             </View>
           </View>
           
-          <View style={styles.celebrationRow}>
-            <Text style={[styles.celebrationLabel, { color: theme.colors.textSecondary }]}>
+          <View style={styles.confirmationRow}>
+            <Text style={[styles.confirmationLabel, { color: theme.colors.textSecondary }]}>
               Remaining Balance:
             </Text>
-            <Text style={[styles.celebrationValue, { color: theme.colors.success }]}>
+            <Text style={[styles.confirmationValue, { color: theme.colors.success }]}>
               {userPoints - reward.pointsCost} points
             </Text>
           </View>
           
-          <View style={styles.celebrationRow}>
-            <Text style={[styles.celebrationLabel, { color: theme.colors.textSecondary }]}>
+          <View style={styles.confirmationRow}>
+            <Text style={[styles.confirmationLabel, { color: theme.colors.textSecondary }]}>
               Estimated Delivery:
             </Text>
-            <Text style={[styles.celebrationValue, { color: theme.colors.text }]}>
+            <Text style={[styles.confirmationValue, { color: theme.colors.text }]}>
               {reward.estimatedDelivery}
             </Text>
           </View>
         </View>
 
-        <Text style={[styles.celebrationNote, { color: theme.colors.textTertiary }]}>
+        <Text style={[styles.confirmationNote, { color: theme.colors.textTertiary }]}>
           You'll receive a confirmation email with tracking information once your order ships.
         </Text>
-      </Animated.View>
+
+        <TouchableOpacity
+          style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
+          onPress={handleClose}
+        >
+          <Text style={[styles.doneButtonText, { color: theme.colors.surface }]}>
+            Done
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -433,7 +384,7 @@ export function RewardRedemptionModal({
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
             {step === 'details' ? 'Reward Details' : 
              step === 'address' ? 'Shipping Address' : 
-             'Success!'}
+             'Order Confirmed'}
           </Text>
           <View style={styles.closeButton} />
         </View>
@@ -442,11 +393,11 @@ export function RewardRedemptionModal({
         <View style={styles.content}>
           {step === 'details' && renderDetailsStep()}
           {step === 'address' && renderAddressStep()}
-          {step === 'celebration' && renderCelebrationStep()}
+          {step === 'confirmation' && renderConfirmationStep()}
         </View>
 
         {/* Footer */}
-        {step !== 'celebration' && (
+        {step !== 'confirmation' && (
           <View style={[styles.footer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
             {step === 'address' && (
               <TouchableOpacity
@@ -687,101 +638,79 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   
-  // Celebration Step
-  celebrationContainer: {
+  // Confirmation Step
+  confirmationContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
   },
-  animationContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 200,
-    position: 'relative',
-    marginBottom: 40,
-  },
-  celebrationIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    overflow: 'hidden',
-    shadowColor: '#10b981',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  celebrationGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sparkle: {
-    position: 'absolute',
-  },
-  sparkle1: {
-    top: 20,
-    right: 20,
-  },
-  sparkle2: {
-    bottom: 30,
-    left: 30,
-  },
-  sparkle3: {
-    top: 60,
-    left: 20,
-  },
-  celebrationContent: {
+  confirmationContent: {
     alignItems: 'center',
     width: '100%',
   },
-  celebrationTitle: {
+  confirmationIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  confirmationTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 28,
     textAlign: 'center',
     marginBottom: 12,
   },
-  celebrationSubtitle: {
+  confirmationSubtitle: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
   },
-  celebrationDetails: {
+  confirmationDetails: {
     width: '100%',
     padding: 20,
     borderRadius: 16,
     marginBottom: 24,
     gap: 16,
   },
-  celebrationRow: {
+  confirmationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  celebrationLabel: {
+  confirmationLabel: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
   },
-  celebrationPoints: {
+  confirmationPoints: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  celebrationValue: {
+  confirmationValue: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
   },
-  celebrationNote: {
+  confirmationNote: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+    marginBottom: 32,
+  },
+  doneButton: {
+    width: '100%',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
   },
   
   // Footer
