@@ -309,6 +309,44 @@ export default function CameraScreen() {
     );
   }
 
+  // For web platform, show a fallback UI since camera might not work
+  if (Platform.OS === 'web') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <LinearGradient
+          colors={[theme.colors.background, '#000000']}
+          style={styles.webFallbackGradient}
+        >
+          <View style={styles.webFallbackContainer}>
+            <Text style={styles.webFallbackTitle}>Camera Not Available</Text>
+            <Text style={styles.webFallbackText}>
+              Camera functionality is not available on web. Please use the image picker to select a photo instead.
+            </Text>
+            <TouchableOpacity
+              style={[styles.webFallbackButton, { backgroundColor: theme.colors.primary }]}
+              onPress={pickImage}
+              activeOpacity={0.8}
+            >
+              <ImageIcon size={20} color={theme.colors.surface} strokeWidth={2} />
+              <Text style={[styles.webFallbackButtonText, { color: theme.colors.surface }]}>
+                Select Image
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.webFallbackBackButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+              onPress={handleBackPress}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.webFallbackBackButtonText, { color: theme.colors.text }]}>
+                Go Back
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <CameraView
@@ -449,6 +487,67 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   permissionButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
+  // Web fallback styles
+  webFallbackGradient: {
+    flex: 1,
+  },
+  webFallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  webFallbackTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 16,
+    letterSpacing: -0.5,
+  },
+  webFallbackText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#ffffff',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    opacity: 0.8,
+    letterSpacing: 0.2,
+  },
+  webFallbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  webFallbackButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
+  webFallbackBackButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+  },
+  webFallbackBackButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     letterSpacing: 0.3,
