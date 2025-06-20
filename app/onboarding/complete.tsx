@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { CircleCheck as CheckCircle, Sparkles } from 'lucide-react-native';
+import { CircleCheck as CheckCircle, Sparkles, Camera } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import Animated, { 
   useSharedValue, 
@@ -48,9 +48,9 @@ export default function CompleteScreen() {
     opacity: contentOpacity.value,
   }));
 
-  const handleGetStarted = () => {
-    // Mark onboarding as complete and navigate to main app
-    router.replace('/(tabs)');
+  const handleStartSnapping = () => {
+    // Navigate directly to camera screen after onboarding
+    router.replace('/camera');
   };
 
   return (
@@ -95,7 +95,7 @@ export default function CompleteScreen() {
             You're all set!
           </Text>
           <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            Welcome to Waste Lens. Start snapping your waste items to track your environmental impact and earn rewards.
+            Welcome to Waste Lens. Ready to snap your first waste item and discover smart disposal options?
           </Text>
 
           {/* Features Preview */}
@@ -105,45 +105,57 @@ export default function CompleteScreen() {
                 <Text style={styles.featureEmoji}>📸</Text>
               </View>
               <Text style={[styles.featureText, { color: theme.colors.textSecondary }]}>
-                Snap waste items with AI analysis
+                AI-powered waste analysis in seconds
               </Text>
             </View>
 
             <View style={styles.featureItem}>
               <View style={[styles.featureIcon, { backgroundColor: '#dcfce7' }]}>
-                <Text style={styles.featureEmoji}>🌱</Text>
+                <Text style={styles.featureEmoji}>🗺️</Text>
               </View>
               <Text style={[styles.featureText, { color: theme.colors.textSecondary }]}>
-                Track your environmental impact
+                Find nearby disposal locations instantly
               </Text>
             </View>
 
             <View style={styles.featureItem}>
               <View style={[styles.featureIcon, { backgroundColor: '#fef3c7' }]}>
-                <Text style={styles.featureEmoji}>🎁</Text>
+                <Text style={styles.featureEmoji}>♻️</Text>
               </View>
               <Text style={[styles.featureText, { color: theme.colors.textSecondary }]}>
-                Earn rewards for sustainable choices
+                Route items away from landfills
               </Text>
             </View>
           </View>
         </Animated.View>
 
-        {/* Get Started Button */}
+        {/* Start Snapping Button */}
         <Animated.View style={[styles.buttonContainer, contentAnimatedStyle]}>
           <TouchableOpacity
-            style={[styles.getStartedButton, { backgroundColor: theme.colors.text }]}
-            onPress={handleGetStarted}
+            style={[styles.startSnappingButton, { backgroundColor: theme.colors.text }]}
+            onPress={handleStartSnapping}
             activeOpacity={0.9}
           >
             <LinearGradient
               colors={[theme.colors.text, theme.colors.text]}
               style={styles.buttonGradient}
             >
+              <Camera size={20} color={theme.colors.surface} strokeWidth={2} />
               <Text style={[styles.buttonText, { color: theme.colors.surface }]}>
-                Start Snapping Waste
+                Start Snapping
               </Text>
             </LinearGradient>
+          </TouchableOpacity>
+          
+          {/* Secondary option to go to home */}
+          <TouchableOpacity
+            style={[styles.secondaryButton, { borderColor: theme.colors.border }]}
+            onPress={() => router.replace('/(tabs)')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.secondaryButtonText, { color: theme.colors.textSecondary }]}>
+              Explore the app first
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       </LinearGradient>
@@ -257,8 +269,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 20,
     paddingBottom: height * 0.04,
+    gap: 12,
   },
-  getStartedButton: {
+  startSnappingButton: {
     borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -271,11 +284,24 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   buttonGradient: {
-    paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 16,
   },
   buttonText: {
     fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+  },
+  secondaryButton: {
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontFamily: 'Inter-Medium',
     fontSize: 16,
   },
 });
