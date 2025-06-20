@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -16,7 +16,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationService } from '@/services/location';
 import { StorageService } from '@/services/storage';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 
 declare global {
   interface Window {
@@ -42,7 +41,6 @@ function RootLayoutContent() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <AuthNavigationHandler />
     </>
   );
 }
@@ -71,7 +69,7 @@ export default function RootLayout() {
     <ThemeProvider>
       <AuthProvider>
         <ItemsProvider>
-          <RootLayoutContent />
+          <AuthNavigationHandler />
         </ItemsProvider>
       </AuthProvider>
     </ThemeProvider>
@@ -80,6 +78,8 @@ export default function RootLayout() {
 
 // Separate component to handle navigation logic with access to auth context
 function AuthNavigationHandler() {
+  const [navigationReady, setNavigationReady] = useState(false);
+
   useEffect(() => {
     const handleNavigation = async () => {
       try {
@@ -115,16 +115,23 @@ function AuthNavigationHandler() {
             router.replace('/camera');
           }
         }
+        
+        setNavigationReady(true);
       } catch (error) {
         console.error('❌ [RootLayout] Error in navigation handler:', error);
         // Default to onboarding on error
         router.replace('/onboarding');
+        setNavigationReady(true);
       }
     };
 
     handleNavigation();
   }, []);
 
-  // This component only handles navigation logic and doesn't render anything
-  return null;
+  // Don't render anything until navigation is determined
+  if (!navigationReady) {
+    return null;
+  }
+
+  return <RootLayoutContent />;
 }
