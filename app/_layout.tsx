@@ -18,13 +18,6 @@ declare global {
   }
 }
 
-// REQUIRED: useFrameworkReady hook - NEVER REMOVE
-function useFrameworkReady() {
-  useEffect(() => {
-    window.frameworkReady?.()
-  })
-}
-
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {

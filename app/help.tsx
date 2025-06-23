@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Send, Bot, User, Sparkles, MessageCircle, Lightbulb } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '@/contexts/ThemeContext';
 
 interface ChatMessage {
   id: string;
@@ -53,7 +52,6 @@ const quickQuestions: QuickQuestion[] = [
 ];
 
 export default function HelpScreen() {
-  const { theme } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -222,7 +220,7 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
       case 'troubleshooting':
         return <MessageCircle size={16} color="#f59e0b" />;
       default:
-        return <MessageCircle size={16} color={theme.colors.textSecondary} />;
+        return <MessageCircle size={16} color="#6b7280" />;
     }
   };
 
@@ -235,24 +233,24 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
       case 'troubleshooting':
         return '#f59e0b';
       default:
-        return theme.colors.textSecondary;
+        return '#6b7280';
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#ffffff' }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+      <View style={[styles.header, { backgroundColor: '#ffffff', borderBottomColor: '#e5e7eb' }]}>
         <TouchableOpacity 
           style={styles.headerButton} 
           onPress={() => router.back()}
           activeOpacity={0.8}
         >
-          <ArrowLeft size={24} color={theme.colors.text} strokeWidth={1.5} />
+          <ArrowLeft size={24} color="#111827" strokeWidth={1.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Bot size={24} color={theme.colors.primary} strokeWidth={1.5} />
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Help & Support</Text>
+          <Bot size={24} color="#3b82f6" strokeWidth={1.5} />
+          <Text style={[styles.headerTitle, { color: '#111827' }]}>Help & Support</Text>
         </View>
         <View style={styles.headerButton} />
       </View>
@@ -276,30 +274,30 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
             ]}>
               <View style={[
                 styles.messageAvatar,
-                { backgroundColor: message.role === 'user' ? theme.colors.primary : theme.colors.primaryLight }
+                { backgroundColor: message.role === 'user' ? '#3b82f6' : '#dbeafe' }
               ]}>
                 {message.role === 'user' ? (
-                  <User size={16} color={message.role === 'user' ? theme.colors.surface : theme.colors.primary} strokeWidth={1.5} />
+                  <User size={16} color={message.role === 'user' ? '#ffffff' : '#3b82f6'} strokeWidth={1.5} />
                 ) : (
-                  <Bot size={16} color={theme.colors.primary} strokeWidth={1.5} />
+                  <Bot size={16} color="#3b82f6" strokeWidth={1.5} />
                 )}
               </View>
               <View style={styles.messageContent}>
                 <View style={[
                   styles.messageBubble,
                   {
-                    backgroundColor: message.role === 'user' ? theme.colors.primary : theme.colors.surface,
-                    borderColor: theme.colors.border
+                    backgroundColor: message.role === 'user' ? '#3b82f6' : '#ffffff',
+                    borderColor: '#e5e7eb'
                   }
                 ]}>
                   <Text style={[
                     styles.messageText,
-                    { color: message.role === 'user' ? theme.colors.surface : theme.colors.text }
+                    { color: message.role === 'user' ? '#ffffff' : '#111827' }
                   ]}>
                     {message.content}
                   </Text>
                 </View>
-                <Text style={[styles.messageTime, { color: theme.colors.textTertiary }]}>
+                <Text style={[styles.messageTime, { color: '#9ca3af' }]}>
                   {formatTime(message.timestamp)}
                 </Text>
               </View>
@@ -308,15 +306,15 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
 
           {isLoading && (
             <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
-              <View style={[styles.messageAvatar, { backgroundColor: theme.colors.primaryLight }]}>
-                <Bot size={16} color={theme.colors.primary} strokeWidth={1.5} />
+              <View style={[styles.messageAvatar, { backgroundColor: '#dbeafe' }]}>
+                <Bot size={16} color="#3b82f6" strokeWidth={1.5} />
               </View>
               <View style={styles.messageContent}>
-                <View style={[styles.messageBubble, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                <View style={[styles.messageBubble, { backgroundColor: '#ffffff', borderColor: '#e5e7eb' }]}>
                   <View style={styles.typingIndicator}>
-                    <View style={[styles.typingDot, { backgroundColor: theme.colors.textTertiary }]} />
-                    <View style={[styles.typingDot, { backgroundColor: theme.colors.textTertiary }]} />
-                    <View style={[styles.typingDot, { backgroundColor: theme.colors.textTertiary }]} />
+                    <View style={[styles.typingDot, { backgroundColor: '#9ca3af' }]} />
+                    <View style={[styles.typingDot, { backgroundColor: '#9ca3af' }]} />
+                    <View style={[styles.typingDot, { backgroundColor: '#9ca3af' }]} />
                   </View>
                 </View>
               </View>
@@ -326,10 +324,10 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
           {/* Quick Questions */}
           {messages.length <= 1 && (
             <View style={styles.quickQuestionsContainer}>
-              <Text style={[styles.quickQuestionsTitle, { color: theme.colors.text }]}>
+              <Text style={[styles.quickQuestionsTitle, { color: '#111827' }]}>
                 Quick Questions
               </Text>
-              <Text style={[styles.quickQuestionsSubtitle, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.quickQuestionsSubtitle, { color: '#6b7280' }]}>
                 Tap a question to get started
               </Text>
               
@@ -337,7 +335,7 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
                 {quickQuestions.map((item) => (
                   <TouchableOpacity
                     key={item.id}
-                    style={[styles.quickQuestionButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                    style={[styles.quickQuestionButton, { backgroundColor: '#ffffff', borderColor: '#e5e7eb' }]}
                     onPress={() => handleQuickQuestion(item.question)}
                     activeOpacity={0.8}
                   >
@@ -348,7 +346,7 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
                           {item.category.replace('-', ' ')}
                         </Text>
                       </View>
-                      <Text style={[styles.quickQuestionText, { color: theme.colors.text }]}>
+                      <Text style={[styles.quickQuestionText, { color: '#111827' }]}>
                         {item.question}
                       </Text>
                     </View>
@@ -360,14 +358,14 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
         </ScrollView>
 
         {/* Input */}
-        <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
-          <View style={[styles.inputWrapper, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}>
+        <View style={[styles.inputContainer, { backgroundColor: '#ffffff', borderTopColor: '#e5e7eb' }]}>
+          <View style={[styles.inputWrapper, { backgroundColor: '#f9fafb', borderColor: '#e5e7eb' }]}>
             <TextInput
-              style={[styles.textInput, { color: theme.colors.text }]}
+              style={[styles.textInput, { color: '#111827' }]}
               value={inputText}
               onChangeText={setInputText}
               placeholder="Ask me anything about Waste Lens..."
-              placeholderTextColor={theme.colors.textTertiary}
+              placeholderTextColor="#9ca3af"
               multiline
               maxLength={500}
               editable={!isLoading}
@@ -376,7 +374,7 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
               style={[
                 styles.sendButton,
                 {
-                  backgroundColor: inputText.trim() && !isLoading ? theme.colors.primary : theme.colors.border,
+                  backgroundColor: inputText.trim() && !isLoading ? '#3b82f6' : '#e5e7eb',
                 }
               ]}
               onPress={() => sendMessage(inputText)}
@@ -385,7 +383,7 @@ Be helpful, friendly, and knowledgeable about these features. Provide specific, 
             >
               <Send 
                 size={18} 
-                color={inputText.trim() && !isLoading ? theme.colors.surface : theme.colors.textTertiary} 
+                color={inputText.trim() && !isLoading ? '#ffffff' : '#9ca3af'} 
                 strokeWidth={1.5} 
               />
             </TouchableOpacity>
