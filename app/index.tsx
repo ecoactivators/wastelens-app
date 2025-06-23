@@ -11,9 +11,7 @@ import Animated, {
   useAnimatedStyle, 
   withSpring, 
   withSequence,
-  withTiming,
-  interpolate,
-  runOnJS
+  withTiming
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -41,11 +39,6 @@ export default function CameraScreen() {
   const handleCameraReady = () => {
     setCameraReady(true);
     console.log('📸 Camera is ready');
-  };
-
-  const handleCameraMountError = (error: any) => {
-    console.error('❌ Camera mount error:', error);
-    setCameraReady(false);
   };
 
   const triggerCaptureAnimation = () => {
@@ -83,7 +76,6 @@ export default function CameraScreen() {
       
       if (photo && photo.uri) {
         console.log('✅ Photo taken successfully:', photo.uri);
-        // Navigate to analysis screen with the photo
         router.push({
           pathname: '/analysis',
           params: { photoUri: photo.uri }
@@ -234,7 +226,6 @@ export default function CameraScreen() {
         flash={flash}
         mode="picture"
         onCameraReady={handleCameraReady}
-        onMountError={handleCameraMountError}
       >
         {/* Flash Overlay */}
         <Animated.View style={[styles.flashOverlay, flashOverlayStyle]} />

@@ -9,13 +9,19 @@ import {
   Inter_700Bold
 } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
-import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { LocationService } from '@/services/location';
+import * as Location from 'expo-location';
 
 declare global {
   interface Window {
     frameworkReady?: () => void;
   }
+}
+
+// REQUIRED: useFrameworkReady hook - NEVER REMOVE
+function useFrameworkReady() {
+  useEffect(() => {
+    window.frameworkReady?.()
+  })
 }
 
 SplashScreen.preventAutoHideAsync();
@@ -41,14 +47,14 @@ export default function RootLayout() {
   useEffect(() => {
     const requestLocation = async () => {
       try {
-        console.log('🚀 [RootLayout] Auto-requesting location permission...');
-        const granted = await LocationService.requestLocationPermission();
-        if (granted) {
-          console.log('✅ [RootLayout] Location permission granted');
-          await LocationService.getCurrentLocation();
+        console.log('🚀 Auto-requesting location permission...');
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          console.log('✅ Location permission granted');
+          await Location.getCurrentPositionAsync();
         }
       } catch (error) {
-        console.error('❌ [RootLayout] Error requesting location permission:', error);
+        console.error('❌ Error requesting location permission:', error);
       }
     };
 

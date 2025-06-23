@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Dimensions, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, MapPin, ExternalLink, Sparkles, Info } from 'lucide-react-native';
+import { ArrowLeft, MapPin, ExternalLink, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { openAIService } from '@/services/openai';
-import { MapsService, MapSuggestion } from '@/services/maps';
+import * as Location from 'expo-location';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withSpring, 
   withSequence,
   withTiming,
-  withDelay,
-  interpolate
+  withDelay
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -31,6 +29,229 @@ interface WasteAnalysis {
   mapSuggestions?: MapSuggestion[];
   confidence?: number;
 }
+
+interface MapSuggestion {
+  text: string;
+  searchQuery: string;
+  type: 'recycling_center' | 'store' | 'facility';
+}
+
+// Simple location service
+class LocationService {
+  static async getLocationForAnalysis(): Promise<string> {
+    try {
+      if (Platform.OS === 'web') {
+        return 'your local area';
+      }
+
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return 'your local area';
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const reverseGeocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      if (reverseGeocode.length > 0) {
+        const address = reverseGeocode[0];
+        const city = address.city || address.subregion || 'Unknown City';
+        const region = address.region || address.administrativeArea || 'Unknown Region';
+        const country = address.country || 'Unknown Country';
+        return `${city}, ${region}, ${country}`;
+      }
+
+      return 'your local area';
+    } catch (error) {
+      console.error('Error getting location:', error);
+      return 'your local area';
+    }
+  }
+}
+
+// Simple maps service
+class MapsService {
+  static async openMapSuggestion(suggestion: MapSuggestion): Promise<void> {
+    try {
+      const encodedQuery = encodeURIComponent(suggestion.searchQuery);
+      let mapsUrl: string;
+      
+      if (Platform.OS === 'ios') {
+        mapsUrl = `maps://maps.apple.com/?q=${encodedQuery}`;
+        const canOpenAppleMaps = await Linking.canOpenURL(mapsUrl);
+        if (!canOpenAppleMaps) {
+          mapsUrl = `https://maps.google.com/maps?q=${encodedQuery}`;
+        }
+      } else if (Platform.OS === 'android') {
+        mapsUrl = `geo:0,0?q=${encodedQuery}`;
+        const canOpenGoogleMaps = await Linking.canOpenURL(mapsUrl);
+        if (!canOpenGoogleMaps) {
+          mapsUrl = `https://maps.google.com/maps?q=${encodedQuery}`;
+        }
+      } else {
+        mapsUrl = `https://maps.google.com/maps?q=${encodedQuery}`;
+      }
+      
+      await Linking.openURL(mapsUrl);
+    } catch (error) {
+      console.error('Error opening maps:', error);
+      throw new Error('Unable to open maps application');
+    }
+  }
+}
+
+// Simple OpenAI service
+class OpenAIService {
+  private apiKey: string;
+  private baseUrl = 'https://api.openai.com/v1';
+
+  constructor() {
+    this.apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
+  }
+
+  async analyzeWasteImage(imageUri: string): Promise<WasteAnalysis> {
+    if (!this.apiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    try {
+      // Get user location
+      const userLocation = await LocationService.getLocationForAnalysis();
+      
+      // Convert image to base64
+      const base64Image = await this.convertImageToBase64(imageUri);
+
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert waste analysis AI. Analyze the image and provide smart disposal guidance for ${userLocation}.
+
+Return ONLY valid JSON with this structure:
+{
+  "itemName": "string",
+  "quantity": "number",
+  "weight": "number",
+  "material": "string", 
+  "environmentScore": "number 1-10",
+  "recyclable": "boolean",
+  "compostable": "boolean",
+  "carbonFootprint": "number",
+  "suggestions": ["array of 3-4 disposal suggestions"],
+  "confidence": "number 0-1"
+}
+
+Route items AWAY from landfills when possible. Give specific, actionable disposal instructions.`
+            },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: `Analyze this waste item and provide disposal recommendations for ${userLocation}. Return only JSON.`
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+
+      if (!content) {
+        throw new Error('No response from AI');
+      }
+
+      // Clean and parse JSON
+      const cleanedContent = content.replace(/```json\s*|\s*```/g, '').trim();
+      const result = JSON.parse(cleanedContent);
+      
+      // Add map suggestions
+      result.mapSuggestions = this.extractMapSuggestions(result.suggestions || [], userLocation);
+      
+      return result;
+    } catch (error) {
+      console.error('Analysis error:', error);
+      throw error;
+    }
+  }
+
+  private async convertImageToBase64(imageUri: string): Promise<string> {
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error('Failed to convert image'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  private extractMapSuggestions(suggestions: string[], userLocation: string): MapSuggestion[] {
+    const mapSuggestions: MapSuggestion[] = [];
+    
+    suggestions.forEach(suggestion => {
+      const lowerSuggestion = suggestion.toLowerCase();
+      
+      if (lowerSuggestion.includes('best buy') || lowerSuggestion.includes('staples')) {
+        const storeMatch = suggestion.match(/(best buy|staples)/i);
+        if (storeMatch) {
+          mapSuggestions.push({
+            text: suggestion,
+            searchQuery: `${storeMatch[1]} electronics recycling ${userLocation}`,
+            type: 'store'
+          });
+        }
+      } else if (lowerSuggestion.includes('grocery store') || lowerSuggestion.includes('plastic film')) {
+        mapSuggestions.push({
+          text: suggestion,
+          searchQuery: `grocery store plastic bag recycling ${userLocation}`,
+          type: 'store'
+        });
+      } else if (lowerSuggestion.includes('recycling center')) {
+        mapSuggestions.push({
+          text: suggestion,
+          searchQuery: `recycling center ${userLocation}`,
+          type: 'recycling_center'
+        });
+      }
+    });
+    
+    return mapSuggestions;
+  }
+}
+
+const openAIService = new OpenAIService();
 
 export default function AnalysisScreen() {
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
@@ -55,14 +276,12 @@ export default function AnalysisScreen() {
 
   useEffect(() => {
     if (loading) {
-      // Loading animation
       loadingProgress.value = withSequence(
         withTiming(0.3, { duration: 1000 }),
         withTiming(0.7, { duration: 1500 }),
         withTiming(1, { duration: 1000 })
       );
     } else if (analysis) {
-      // Results animation
       contentOpacity.value = withTiming(1, { duration: 800 });
       scoreScale.value = withDelay(300, withSpring(1, { damping: 15, stiffness: 200 }));
       suggestionOpacity.value = withDelay(600, withTiming(1, { duration: 800 }));
@@ -80,16 +299,13 @@ export default function AnalysisScreen() {
     setError(null);
     
     try {
-      console.log('🔄 [AnalysisScreen] Starting waste analysis...');
       const result = await openAIService.analyzeWasteImage(photoUri);
       setAnalysis(result);
-      console.log('✅ [AnalysisScreen] Analysis completed successfully');
     } catch (error) {
-      console.error('❌ [AnalysisScreen] Analysis error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze waste';
-      setError(errorMessage);
+      console.error('Analysis error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to analyze waste');
       
-      // Fallback to mock data if API fails
+      // Fallback mock data
       const mockAnalysis: WasteAnalysis = {
         itemName: 'Unidentified Item',
         quantity: 1,
@@ -115,10 +331,8 @@ export default function AnalysisScreen() {
 
   const handleMapSuggestionPress = async (mapSuggestion: MapSuggestion) => {
     try {
-      console.log('🗺️ [AnalysisScreen] Opening map suggestion:', mapSuggestion.searchQuery);
       await MapsService.openMapSuggestion(mapSuggestion);
     } catch (error) {
-      console.error('❌ [AnalysisScreen] Error opening maps:', error);
       Alert.alert(
         'Unable to Open Maps',
         'Could not open the maps application. Please search for the location manually.',
