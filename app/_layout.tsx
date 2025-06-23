@@ -9,7 +9,8 @@ import {
   Inter_700Bold
 } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
-import * as Location from 'expo-location';
+import * as Location from 'expo-location'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 declare global {
   interface Window {
