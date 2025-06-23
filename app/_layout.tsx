@@ -8,14 +8,9 @@ import {
   Inter_600SemiBold,
   Inter_700Bold
 } from '@expo-google-fonts/inter';
-import { SplashScreen } from 'expo-router'
+import { SplashScreen } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { ItemsProvider } from '@/contexts/ItemsContext';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationService } from '@/services/location';
-import { StorageService } from '@/services/storage';
-import { router } from 'expo-router';
 
 declare global {
   interface Window {
@@ -25,28 +20,9 @@ declare global {
 
 SplashScreen.preventAutoHideAsync();
 
-function RootLayoutContent() {
-  const { isDark } = useTheme();
-  
-  return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="camera" options={{ headerShown: false }} />
-        <Stack.Screen name="analysis" options={{ headerShown: false }} />
-        <Stack.Screen name="help" options={{ headerShown: false }} />
-        <Stack.Screen name="items" options={{ headerShown: false }} />
-        <Stack.Screen name="item/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style={isDark ? "light" : "dark"} />
-    </>
-  );
-}
-
 export default function RootLayout() {
   useFrameworkReady();
+  
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -61,45 +37,24 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Check if user has completed onboarding
+  // Auto-request location permission on app start
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
+    const requestLocation = async () => {
       try {
-        // Check if user has completed onboarding (including the checkbox option)
-        const hasCompletedOnboarding = await StorageService.hasCompletedOnboarding();
-        
-        if (fontsLoaded || fontError) {
-          if (!hasCompletedOnboarding) {
-            console.log('🎯 [RootLayout] User has not completed onboarding, showing onboarding flow');
-            router.replace('/onboarding');
-          } else {
-            console.log('🎯 [RootLayout] User has completed onboarding, going to camera');
-            // Request location permission when app starts for returning users
-            try {
-              console.log('🚀 [RootLayout] Requesting location permission for returning user...');
-              const granted = await LocationService.requestLocationPermission();
-              if (granted) {
-                console.log('✅ [RootLayout] Location permission granted');
-                await LocationService.getCurrentLocation();
-              }
-            } catch (error) {
-              console.error('❌ [RootLayout] Error requesting location permission:', error);
-            }
-            
-            // Navigate directly to camera for returning users
-            router.replace('/camera');
-          }
+        console.log('🚀 [RootLayout] Auto-requesting location permission...');
+        const granted = await LocationService.requestLocationPermission();
+        if (granted) {
+          console.log('✅ [RootLayout] Location permission granted');
+          await LocationService.getCurrentLocation();
         }
       } catch (error) {
-        console.error('❌ [RootLayout] Error checking onboarding status:', error);
-        // Default to showing onboarding on error
-        if (fontsLoaded || fontError) {
-          router.replace('/onboarding');
-        }
+        console.error('❌ [RootLayout] Error requesting location permission:', error);
       }
     };
 
-    checkOnboardingStatus();
+    if (fontsLoaded || fontError) {
+      requestLocation();
+    }
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
@@ -107,12 +62,13 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ItemsProvider>
-          <RootLayoutContent />
-        </ItemsProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="analysis" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="light" />
+    </>
   );
 }
